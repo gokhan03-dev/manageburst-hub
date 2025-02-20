@@ -13,11 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,9 +29,11 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
     initialData?.dependencies || []
   );
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(
+    initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
+  );
 
-  const { register, handleSubmit, setValue, watch } = useForm({
+  const { register, handleSubmit, setValue } = useForm({
     defaultValues: initialData || {
       title: "",
       description: "",
@@ -46,24 +43,12 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
     },
   });
 
-  const dueDate = watch("dueDate");
-
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
+      dueDate: date?.toISOString() || new Date().toISOString(),
       dependencies: selectedDependencies,
     });
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setValue("dueDate", date.toISOString());
-      setIsCalendarOpen(false);
-    }
-  };
-
-  const handleCalendarClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
   };
 
   const availableTasks = tasks.filter(
@@ -109,42 +94,25 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Popover modal open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !dueDate && "text-muted-foreground"
-                )}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsCalendarOpen(true);
-                }}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dueDate ? format(new Date(dueDate), "PPP") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent 
-              className="w-auto p-0 z-50" 
-              align="start"
-              onClick={handleCalendarClick}
-            >
-              <Calendar
-                mode="single"
-                selected={dueDate ? new Date(dueDate) : undefined}
-                onSelect={handleDateSelect}
-                disabled={(date) =>
-                  date < new Date(new Date().setHours(0, 0, 0, 0))
-                }
-                initialFocus
-                className="rounded-md border"
-              />
-            </PopoverContent>
-          </Popover>
+        <div className="space-y-2 border rounded-md p-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-muted-foreground">Due Date</label>
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 opacity-50" />
+              <span className="text-sm">
+                {date ? format(date, "PPP") : "Pick a date"}
+              </span>
+            </div>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              disabled={(date) =>
+                date < new Date(new Date().setHours(0, 0, 0, 0))
+              }
+              className="rounded-md border"
+            />
+          </div>
         </div>
       </div>
 
