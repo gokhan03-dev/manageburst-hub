@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { Task, TaskStatus } from "@/types/task";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,6 +12,7 @@ interface TaskContextType {
   moveTask: (taskId: string, newStatus: TaskStatus) => Promise<void>;
   addDependency: (taskId: string, dependencyId: string) => Promise<void>;
   removeDependency: (taskId: string, dependencyId: string) => Promise<void>;
+  checkDependenciesCompleted: (taskId: string) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -98,6 +98,17 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [user, toast]);
 
+  const checkDependenciesCompleted = useCallback(async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task?.dependencies?.length) return true;
+
+    const dependencyTasks = tasks.filter(t => 
+      task.dependencies?.includes(t.id)
+    );
+
+    return dependencyTasks.every(t => t.status === "completed");
+  }, [tasks]);
+
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt">) => {
     try {
       const { data, error } = await supabase
@@ -115,6 +126,20 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
 
+      // Add dependencies if any
+      if (task.dependencies?.length) {
+        const dependencyPromises = task.dependencies.map(depId =>
+          supabase
+            .from("task_dependencies")
+            .insert({
+              dependent_task_id: data.id,
+              dependency_task_id: depId,
+            })
+        );
+
+        await Promise.all(dependencyPromises);
+      }
+
       const newTask = transformTaskData(data);
       setTasks((prev) => [...prev, newTask]);
       
@@ -122,11 +147,13 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Task created",
         description: "Your task has been created successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding task:", error);
       toast({
         title: "Error",
-        description: "Failed to create task",
+        description: error.message === 'Circular dependency detected' 
+          ? "Cannot create circular dependencies between tasks"
+          : "Failed to create task",
         variant: "destructive",
       });
     }
@@ -134,6 +161,14 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
   const updateTask = useCallback(async (updatedTask: Task) => {
     try {
+      // Check dependencies if moving to completed
+      if (updatedTask.status === "completed") {
+        const depsCompleted = await checkDependenciesCompleted(updatedTask.id);
+        if (!depsCompleted) {
+          throw new Error("Cannot complete task: dependencies are not completed");
+        }
+      }
+
       const { error } = await supabase
         .from("tasks")
         .update({
@@ -154,18 +189,28 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Task updated",
         description: "Your task has been updated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating task:", error);
       toast({
         title: "Error",
-        description: "Failed to update task",
+        description: error.message,
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, checkDependenciesCompleted]);
 
   const deleteTask = useCallback(async (id: string) => {
     try {
+      // Check if task has dependent tasks
+      const { data: dependentTasks } = await supabase
+        .from("task_dependencies")
+        .select("dependent_task_id")
+        .eq("dependency_task_id", id);
+
+      if (dependentTasks?.length) {
+        throw new Error("Cannot delete task: other tasks depend on it");
+      }
+
       const { error } = await supabase.from("tasks").delete().eq("id", id);
 
       if (error) throw error;
@@ -175,11 +220,11 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Task deleted",
         description: "Your task has been deleted successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting task:", error);
       toast({
         title: "Error",
-        description: "Failed to delete task",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -211,6 +256,14 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addDependency = useCallback(async (taskId: string, dependencyId: string) => {
     try {
+      // Validate due dates
+      const task = tasks.find(t => t.id === taskId);
+      const dependencyTask = tasks.find(t => t.id === dependencyId);
+      
+      if (task && dependencyTask && new Date(task.dueDate) < new Date(dependencyTask.dueDate)) {
+        throw new Error("Dependent task due date must be after dependency due date");
+      }
+
       const { error } = await supabase
         .from("task_dependencies")
         .insert([
@@ -233,15 +286,15 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Dependency added",
         description: "Task dependency has been added successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding dependency:", error);
       toast({
         title: "Error",
-        description: "Failed to add dependency",
+        description: error.message,
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [tasks, toast]);
 
   const removeDependency = useCallback(async (taskId: string, dependencyId: string) => {
     try {
@@ -289,6 +342,7 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
         moveTask,
         addDependency,
         removeDependency,
+        checkDependenciesCompleted,
         loading,
       }}
     >
