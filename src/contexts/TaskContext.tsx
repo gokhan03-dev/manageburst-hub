@@ -18,6 +18,18 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
+// Helper function to transform Supabase task data to our Task interface
+const transformTaskData = (taskData: any): Task => ({
+  id: taskData.id,
+  title: taskData.title,
+  description: taskData.description,
+  priority: taskData.priority,
+  status: taskData.status,
+  dueDate: taskData.due_date,
+  createdAt: taskData.created_at,
+  dependencies: taskData.dependencies?.map((dep: any) => dep.dependency_task_id) || [],
+});
+
 export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +54,7 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (tasksError) throw tasksError;
 
-        const formattedTasks: Task[] = tasksData.map((task: any) => ({
-          ...task,
-          dependencies: task.dependencies?.map((dep: any) => dep.dependency_task_id) || [],
-        }));
-
+        const formattedTasks: Task[] = tasksData.map(transformTaskData);
         setTasks(formattedTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -83,13 +91,22 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("tasks")
-        .insert([{ ...task, user_id: user?.id }])
+        .insert([{ 
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          due_date: task.dueDate,
+          user_id: user?.id 
+        }])
         .select()
         .single();
 
       if (error) throw error;
 
-      setTasks((prev) => [...prev, { ...data, dependencies: [] }]);
+      const newTask = transformTaskData(data);
+      setTasks((prev) => [...prev, newTask]);
+      
       toast({
         title: "Task created",
         description: "Your task has been created successfully.",
@@ -108,7 +125,13 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { error } = await supabase
         .from("tasks")
-        .update(updatedTask)
+        .update({
+          title: updatedTask.title,
+          description: updatedTask.description,
+          priority: updatedTask.priority,
+          status: updatedTask.status,
+          due_date: updatedTask.dueDate,
+        })
         .eq("id", updatedTask.id);
 
       if (error) throw error;
