@@ -18,11 +18,6 @@ import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -35,9 +30,8 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
     initialData?.dependencies || []
   );
   const [date, setDate] = useState<Date | undefined>(
-    initialData?.dueDate ? new Date(initialData.dueDate) : undefined
+    initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
   );
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { register, handleSubmit, setValue } = useForm({
     defaultValues: initialData || {
@@ -101,31 +95,26 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="start">
+          <div className="border rounded-md p-3">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-muted-foreground">Due Date</label>
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 opacity-50" />
+                <span className="text-sm">
+                  {date ? format(date, "PPP") : "Pick a date"}
+                </span>
+              </div>
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={(newDate) => {
-                  setDate(newDate);
-                  setIsCalendarOpen(false);
-                }}
-                initialFocus
+                onSelect={setDate}
+                disabled={(date) =>
+                  date < new Date(new Date().setHours(0, 0, 0, 0))
+                }
+                className="mt-2"
               />
-            </PopoverContent>
-          </Popover>
+            </div>
+          </div>
         </div>
       </div>
 
