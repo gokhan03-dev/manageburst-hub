@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
@@ -18,11 +17,7 @@ import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { CustomPopover } from "@/components/ui/custom-popover";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -100,31 +95,33 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Popover>
-            <PopoverTrigger asChild>
+          <CustomPopover
+            trigger={
               <Button
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal",
                   !date && "text-muted-foreground"
                 )}
+                type="button"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={(date) =>
-                  date < new Date(new Date().setHours(0, 0, 0, 0))
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+            }
+          >
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => {
+                setDate(newDate);
+              }}
+              disabled={(date) =>
+                date < new Date(new Date().setHours(0, 0, 0, 0))
+              }
+              initialFocus
+            />
+          </CustomPopover>
         </div>
       </div>
 
