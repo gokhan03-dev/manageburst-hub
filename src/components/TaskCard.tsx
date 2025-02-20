@@ -4,6 +4,8 @@ import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { Calendar, Flag } from "lucide-react";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { useTaskContext } from "@/contexts/TaskContext";
 
 interface TaskCardProps {
   task: Task;
@@ -12,6 +14,8 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onClick, className }: TaskCardProps) => {
+  const { tasks } = useTaskContext();
+  
   const priorityColors = {
     low: "bg-task-low text-gray-700",
     medium: "bg-task-medium text-amber-700",
@@ -23,6 +27,10 @@ export const TaskCard = ({ task, onClick, className }: TaskCardProps) => {
     "in-progress": "border-l-blue-400",
     completed: "border-l-green-400",
   };
+
+  const dependencyTasks = tasks.filter((t) => 
+    task.dependencies?.includes(t.id)
+  );
 
   return (
     <div
@@ -51,6 +59,20 @@ export const TaskCard = ({ task, onClick, className }: TaskCardProps) => {
       </div>
       <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
       <p className="mt-1 text-sm text-gray-500 line-clamp-2">{task.description}</p>
+      
+      {dependencyTasks.length > 0 && (
+        <div className="mt-3">
+          <p className="text-xs text-gray-500 mb-1">Dependencies:</p>
+          <div className="flex flex-wrap gap-1">
+            {dependencyTasks.map((depTask) => (
+              <Badge key={depTask.id} variant="outline" className="text-xs">
+                {depTask.title}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );

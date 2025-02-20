@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTaskContext } from "@/contexts/TaskContext";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -28,6 +30,11 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
+  const { tasks } = useTaskContext();
+  const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
+    initialData?.dependencies || []
+  );
+
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: initialData || {
       title: "",
@@ -40,8 +47,23 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
 
   const dueDate = watch("dueDate");
 
+  const handleFormSubmit = (data: any) => {
+    onSubmit({
+      ...data,
+      dependencies: selectedDependencies,
+    });
+  };
+
+  const availableTasks = tasks.filter(
+    (task) => task.id !== initialData?.id && !selectedDependencies.includes(task.id)
+  );
+
+  const removeDependency = (taskId: string) => {
+    setSelectedDependencies((prev) => prev.filter((id) => id !== taskId));
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Input
           placeholder="Task title"
@@ -100,6 +122,49 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
               />
             </PopoverContent>
           </Popover>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Dependencies</p>
+        <Select
+          onValueChange={(value: string) => {
+            setSelectedDependencies((prev) => [...prev, value]);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Add dependency" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTasks.map((task) => (
+              <SelectItem key={task.id} value={task.id}>
+                {task.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          {selectedDependencies.map((depId) => {
+            const task = tasks.find((t) => t.id === depId);
+            if (!task) return null;
+            return (
+              <Badge
+                key={depId}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
+                {task.title}
+                <button
+                  type="button"
+                  onClick={() => removeDependency(depId)}
+                  className="ml-1 rounded-full p-1 hover:bg-secondary"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
