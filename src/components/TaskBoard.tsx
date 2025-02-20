@@ -13,6 +13,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { 
+  DndContext, 
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 const columns: { id: TaskStatus; title: string }[] = [
   { id: "todo", title: "To Do" },
@@ -24,6 +33,33 @@ export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
   const [open, setOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 300,
+        tolerance: 8,
+      },
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+
+    const taskId = active.id as string;
+    const newStatus = over.id as TaskStatus;
+
+    if (taskId && newStatus) {
+      await moveTask(taskId, newStatus);
+    }
+  };
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -64,30 +100,37 @@ export const TaskBoard = () => {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {columns.map((column) => (
-          <div
-            key={column.id}
-            className="rounded-lg border bg-white p-4 shadow-sm"
-          >
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              {column.title}
-            </h2>
-            <div className="space-y-4">
-              {tasks
-                .filter((task) => task.status === column.id)
-                .map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onClick={() => handleTaskClick(task)}
-                    className="animate-fade-in"
-                  />
-                ))}
+      <DndContext 
+        sensors={sensors}
+        modifiers={[restrictToWindowEdges]}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {columns.map((column) => (
+            <div
+              key={column.id}
+              id={column.id}
+              className="rounded-lg border bg-white p-4 shadow-sm"
+            >
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                {column.title}
+              </h2>
+              <div className="space-y-4">
+                {tasks
+                  .filter((task) => task.status === column.id)
+                  .map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onClick={() => handleTaskClick(task)}
+                      className="animate-fade-in"
+                    />
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </DndContext>
     </div>
   );
 };

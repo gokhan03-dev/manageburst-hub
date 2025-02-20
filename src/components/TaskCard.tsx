@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskDependencyGraph } from "./TaskDependencyGraph";
+import { useDraggable } from "@dnd-kit/core";
 
 interface TaskCardProps {
   task: Task;
@@ -17,6 +18,16 @@ interface TaskCardProps {
 
 export const TaskCard = ({ task, onClick, className, showDependencies = true }: TaskCardProps) => {
   const { tasks } = useTaskContext();
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: task.id,
+  });
   
   const priorityColors = {
     low: "bg-task-low text-gray-700",
@@ -30,13 +41,23 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
     completed: "border-l-green-400",
   };
 
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: isDragging ? 999 : undefined,
+  } : undefined;
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md",
+        "group relative overflow-hidden rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing",
         "border-l-4",
         statusColors[task.status],
+        isDragging && "opacity-50",
         className
       )}
     >
