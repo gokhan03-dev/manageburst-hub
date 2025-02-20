@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Task } from "@/types/task";
-import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   Tooltip,
@@ -52,9 +51,6 @@ export const TaskDependencyGraph = ({ task, allTasks }: TaskDependencyGraphProps
               </Tooltip>
             </TooltipProvider>
             <span className="text-sm flex-1">{depTask.title}</span>
-            <Badge variant={depTask.status === "completed" ? "default" : "secondary"}>
-              {depTask.status}
-            </Badge>
           </div>
         ))}
       </div>

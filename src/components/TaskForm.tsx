@@ -14,10 +14,17 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -37,6 +44,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   const [date, setDate] = useState<Date | undefined>(
     initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
   );
+  const [open, setOpen] = useState(false);
 
   const { register, handleSubmit, setValue } = useForm({
     defaultValues: initialData || {
@@ -130,22 +138,46 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
 
       <div className="space-y-2">
         <p className="text-sm font-medium">Dependencies</p>
-        <Select
-          onValueChange={(value: string) => {
-            setSelectedDependencies((prev) => [...prev, value]);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Add dependency" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTasks.map((task) => (
-              <SelectItem key={task.id} value={task.id}>
-                {task.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              Select dependencies...
+              <CalendarIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0">
+            <Command>
+              <CommandInput placeholder="Search tasks..." className="h-9" />
+              <CommandEmpty>No tasks found.</CommandEmpty>
+              <CommandGroup>
+                {availableTasks.map((task) => (
+                  <CommandItem
+                    key={task.id}
+                    onSelect={() => {
+                      setSelectedDependencies((prev) => [...prev, task.id]);
+                      setOpen(false);
+                    }}
+                  >
+                    {task.title}
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        selectedDependencies.includes(task.id)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         <div className="mt-2 flex flex-wrap gap-2">
           {selectedDependencies.map((depId) => {
