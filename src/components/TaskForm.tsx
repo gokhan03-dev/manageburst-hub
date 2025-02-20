@@ -42,7 +42,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
     initialData?.dependencies || []
   );
   const [date, setDate] = useState<Date | undefined>(
-    initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
+    initialData?.dueDate ? new Date(initialData.dueDate) : undefined
   );
   const [open, setOpen] = useState(false);
 
@@ -121,14 +121,11 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                 {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent align="start" className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                disabled={(date) =>
-                  date < new Date(new Date().setHours(0, 0, 0, 0))
-                }
                 initialFocus
               />
             </PopoverContent>
