@@ -20,6 +20,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
@@ -76,6 +77,26 @@ export const TaskBoard = () => {
     setSelectedTask(undefined);
   };
 
+  const DroppableColumn = ({ column, children }: { column: typeof columns[0], children: React.ReactNode }) => {
+    const { setNodeRef } = useDroppable({
+      id: column.id,
+    });
+
+    return (
+      <div
+        ref={setNodeRef}
+        className="rounded-lg border bg-white p-4 shadow-sm"
+      >
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          {column.title}
+        </h2>
+        <div className="space-y-4">
+          {children}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -107,27 +128,18 @@ export const TaskBoard = () => {
       >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {columns.map((column) => (
-            <div
-              key={column.id}
-              id={column.id}
-              className="rounded-lg border bg-white p-4 shadow-sm"
-            >
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                {column.title}
-              </h2>
-              <div className="space-y-4">
-                {tasks
-                  .filter((task) => task.status === column.id)
-                  .map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onClick={() => handleTaskClick(task)}
-                      className="animate-fade-in"
-                    />
-                  ))}
-              </div>
-            </div>
+            <DroppableColumn key={column.id} column={column}>
+              {tasks
+                .filter((task) => task.status === column.id)
+                .map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onClick={() => handleTaskClick(task)}
+                    className="animate-fade-in"
+                  />
+                ))}
+            </DroppableColumn>
           ))}
         </div>
       </DndContext>
