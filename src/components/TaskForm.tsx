@@ -121,7 +121,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                 {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-auto p-0">
+            <PopoverContent className="w-[280px] p-0" align="start">
               <Calendar
                 mode="single"
                 selected={date}
