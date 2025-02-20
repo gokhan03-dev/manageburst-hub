@@ -62,6 +62,10 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
     }
   };
 
+  const handleCalendarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const availableTasks = tasks.filter(
     (task) => task.id !== initialData?.id && !selectedDependencies.includes(task.id)
   );
@@ -106,7 +110,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+          <Popover modal open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
@@ -115,12 +119,20 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                   "w-full justify-start text-left font-normal",
                   !dueDate && "text-muted-foreground"
                 )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsCalendarOpen(true);
+                }}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dueDate ? format(new Date(dueDate), "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent 
+              className="w-auto p-0 z-50" 
+              align="start"
+              onClick={handleCalendarClick}
+            >
               <Calendar
                 mode="single"
                 selected={dueDate ? new Date(dueDate) : undefined}
@@ -129,6 +141,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                   date < new Date(new Date().setHours(0, 0, 0, 0))
                 }
                 initialFocus
+                className="rounded-md border"
               />
             </PopoverContent>
           </Popover>
