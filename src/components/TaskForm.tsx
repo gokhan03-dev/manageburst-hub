@@ -34,6 +34,7 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
     initialData?.dependencies || []
   );
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: initialData || {
@@ -52,6 +53,13 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
       ...data,
       dependencies: selectedDependencies,
     });
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setValue("dueDate", date.toISOString());
+      setIsCalendarOpen(false);
+    }
   };
 
   const availableTasks = tasks.filter(
@@ -98,9 +106,10 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
+                type="button"
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
@@ -111,15 +120,11 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                 {dueDate ? format(new Date(dueDate), "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
                 selected={dueDate ? new Date(dueDate) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setValue("dueDate", date.toISOString());
-                  }
-                }}
+                onSelect={handleDateSelect}
                 disabled={(date) =>
                   date < new Date(new Date().setHours(0, 0, 0, 0))
                 }
