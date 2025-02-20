@@ -111,12 +111,17 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
                 {dueDate ? format(new Date(dueDate), "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={new Date(dueDate)}
-                onSelect={(date) =>
-                  setValue("dueDate", date?.toISOString() || new Date().toISOString())
+                selected={dueDate ? new Date(dueDate) : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setValue("dueDate", date.toISOString());
+                  }
+                }}
+                disabled={(date) =>
+                  date < new Date(new Date().setHours(0, 0, 0, 0))
                 }
                 initialFocus
               />

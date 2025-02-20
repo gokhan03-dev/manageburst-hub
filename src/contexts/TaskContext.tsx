@@ -42,19 +42,30 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchTasks = async () => {
       try {
+        // First fetch tasks
         const { data: tasksData, error: tasksError } = await supabase
           .from("tasks")
-          .select(`
-            *,
-            dependencies:task_dependencies(
-              dependency_task_id
-            )
-          `)
+          .select("*")
           .eq("user_id", user.id);
 
         if (tasksError) throw tasksError;
 
-        const formattedTasks: Task[] = tasksData.map(transformTaskData);
+        // Then fetch dependencies for these tasks
+        const { data: dependenciesData, error: dependenciesError } = await supabase
+          .from("task_dependencies")
+          .select("dependent_task_id, dependency_task_id")
+          .in("dependent_task_id", tasksData.map(t => t.id));
+
+        if (dependenciesError) throw dependenciesError;
+
+        // Map dependencies to tasks
+        const formattedTasks = tasksData.map(task => ({
+          ...transformTaskData(task),
+          dependencies: dependenciesData
+            ?.filter(dep => dep.dependent_task_id === task.id)
+            .map(dep => dep.dependency_task_id) || []
+        }));
+
         setTasks(formattedTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
