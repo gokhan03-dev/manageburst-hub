@@ -47,13 +47,20 @@ const Settings = () => {
       }
 
       if (profileData?.notification_settings) {
-        const notificationSettings = profileData.notification_settings as NotificationSettingsType;
+        // Safe type casting with type guard
+        const rawSettings = profileData.notification_settings as Record<string, boolean>;
+        const notificationSettings: NotificationSettingsType = {
+          email: Boolean(rawSettings.email ?? true),
+          push: Boolean(rawSettings.push ?? true),
+          in_app: Boolean(rawSettings.in_app ?? true)
+        };
+        
         setSettings(prevSettings => ({
           ...prevSettings,
           notifications: {
-            email: notificationSettings.email ?? true,
-            push: notificationSettings.push ?? true,
-            inApp: notificationSettings.in_app ?? true
+            email: notificationSettings.email,
+            push: notificationSettings.push,
+            inApp: notificationSettings.in_app
           }
         }));
       }
