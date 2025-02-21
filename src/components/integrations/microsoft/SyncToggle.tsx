@@ -43,7 +43,9 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
         });
 
         if (testError || testData?.error) {
-          if ((testError?.message || testData?.error || '').includes('Failed to refresh Microsoft access token')) {
+          console.error('Test connection error:', testError || testData?.error);
+          if (testData?.error?.includes('Failed to refresh Microsoft access token') || 
+              testError?.message?.includes('Failed to refresh Microsoft access token')) {
             await handleTokenRefreshError(userId, toast, onSyncChange);
             return;
           }
@@ -67,11 +69,16 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
       }
     } catch (error) {
       console.error("Error updating sync settings:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update sync settings",
-        variant: "destructive",
-      });
+      // Check if the error is related to token refresh
+      if (error.message?.includes('Failed to refresh Microsoft access token')) {
+        await handleTokenRefreshError(userId, toast, onSyncChange);
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update sync settings",
+          variant: "destructive",
+        });
+      }
       onSyncChange(!enabled);
     } finally {
       setIsSyncing(false);
