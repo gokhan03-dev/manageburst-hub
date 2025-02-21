@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Category } from "@/types/task";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface CategoryFormData {
@@ -124,6 +124,7 @@ export const CategoryManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling up
     if (editingCategory) {
       updateCategory.mutate({
         ...editingCategory,
@@ -134,7 +135,8 @@ export const CategoryManager = () => {
     }
   };
 
-  const handleEdit = (category: Category) => {
+  const handleEdit = (category: Category, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
     setEditingCategory(category);
     setFormData({
       name: category.name,
@@ -154,7 +156,7 @@ export const CategoryManager = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Categories</h2>
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -164,7 +166,7 @@ export const CategoryManager = () => {
               Add Category
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent onClick={(e) => e.stopPropagation()}>
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? "Edit Category" : "Create Category"}
@@ -204,6 +206,7 @@ export const CategoryManager = () => {
           <div
             key={category.id}
             className="flex items-center justify-between p-2 rounded-lg border bg-white"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2">
               <div
@@ -216,14 +219,17 @@ export const CategoryManager = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleEdit(category)}
+                onClick={(e) => handleEdit(category, e)}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => deleteCategory.mutate(category.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteCategory.mutate(category.id);
+                }}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
