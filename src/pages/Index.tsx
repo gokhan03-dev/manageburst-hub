@@ -18,20 +18,20 @@ const Index = () => {
         <TaskProvider>
           <div className="flex min-h-screen bg-background">
             <SideNav />
-            <div className="flex-1 lg:ml-64 overflow-auto"> {/* Added margin for sidebar width */}
-              <div className="px-4 py-8 lg:px-8">
+            <div className="flex-1 lg:ml-64 overflow-auto">
+              <div className="px-4 py-6 lg:px-8">
                 <div className="mx-auto max-w-7xl">
-                  <header className="mb-8">
+                  <header className="mb-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <h1 
-                          className="mb-2 text-4xl font-bold tracking-tight text-foreground"
+                          className="mb-1 text-2xl md:text-3xl font-semibold tracking-tight text-foreground"
                           aria-label="Task Manager Dashboard"
                         >
                           Task Manager
                         </h1>
                         <p 
-                          className="text-lg text-muted-foreground"
+                          className="text-sm md:text-base text-muted-foreground"
                           aria-label={`Logged in as ${user?.email}`}
                         >
                           Welcome back, {user?.email}

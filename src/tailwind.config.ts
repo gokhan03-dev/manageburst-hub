@@ -67,15 +67,24 @@ const config = {
       },
       fontSize: {
         // Mobile text sizes
-        "mobile-body": "16px",
-        "mobile-h1": "24px",
-        "mobile-h2": "20px",
-        "mobile-h3": "18px",
+        "mobile-body": "14px",
+        "mobile-h1": "20px",
+        "mobile-h2": "18px",
+        "mobile-h3": "16px",
         // Desktop text sizes
-        "desktop-body": "14px",
-        "desktop-h1": "28px",
-        "desktop-h2": "24px",
-        "desktop-h3": "20px",
+        "desktop-body": "13px",
+        "desktop-h1": "24px",
+        "desktop-h2": "20px",
+        "desktop-h3": "16px",
+        // Custom sizes
+        "xs": "0.75rem",
+        "sm": "0.8125rem",
+        "base": "0.875rem",
+        "lg": "1rem",
+        "xl": "1.125rem",
+        "2xl": "1.25rem",
+        "3xl": "1.5rem",
+        "4xl": "1.875rem",
       },
       keyframes: {
         "accordion-down": {
