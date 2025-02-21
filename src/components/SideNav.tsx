@@ -146,10 +146,10 @@ export const SideNav = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="fixed left-4 top-4 z-40 lg:hidden"
+            className="fixed left-4 top-4 z-40 lg:hidden flex items-center justify-center"
             aria-label="Open menu"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[240px] p-0">
@@ -169,13 +169,13 @@ export const SideNav = () => {
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center h-8">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="h-6 w-6"
+            className="h-8 w-8 flex items-center justify-center"
           >
             {isCollapsed ? (
               <ArrowRight className="h-4 w-4" />
