@@ -2,6 +2,8 @@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface SyncToggleProps {
   userId: string;
@@ -11,6 +13,32 @@ interface SyncToggleProps {
 
 export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProps) {
   const { toast } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const initiateSync = async () => {
+    try {
+      setIsSyncing(true);
+      const { error } = await supabase.functions.invoke('calendar-sync', {
+        body: { userId, direction: 'push' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Sync Started",
+        description: "Your tasks are being synchronized with Microsoft Calendar",
+      });
+    } catch (error) {
+      console.error("Error during sync:", error);
+      toast({
+        title: "Sync Error",
+        description: "Failed to synchronize with Microsoft Calendar",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleSyncToggle = async (enabled: boolean) => {
     try {
@@ -56,6 +84,10 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
           ? "Your tasks will now sync with Microsoft Calendar" 
           : "Task synchronization has been disabled",
       });
+
+      if (enabled) {
+        await initiateSync();
+      }
     } catch (error) {
       console.error("Error updating sync settings:", error);
       toast({
@@ -74,9 +106,11 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
         checked={syncEnabled}
         onCheckedChange={handleSyncToggle}
         id="sync-enabled"
+        disabled={isSyncing}
       />
-      <label htmlFor="sync-enabled" className="text-sm">
+      <label htmlFor="sync-enabled" className="text-sm flex items-center gap-2">
         Enable task synchronization
+        {isSyncing && <LoadingSpinner className="h-4 w-4" />}
       </label>
     </div>
   );
