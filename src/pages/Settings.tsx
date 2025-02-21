@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { SideNav } from "@/components/SideNav";
+import { TaskProvider } from "@/contexts/TaskContext";
+import { FilterProvider } from "@/contexts/FilterContext";
 
 interface NotificationSettings {
   email: boolean;
@@ -135,7 +138,7 @@ const Settings = () => {
     }
   };
 
-  return (
+  const SettingsContent = () => (
     <div className="flex min-h-screen bg-background">
       <SideNav />
       <div className="flex-1 lg:ml-64">
@@ -316,6 +319,14 @@ const Settings = () => {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <FilterProvider>
+      <TaskProvider>
+        <SettingsContent />
+      </TaskProvider>
+    </FilterProvider>
   );
 };
 
