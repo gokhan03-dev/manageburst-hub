@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Comment {
   id: string;
@@ -117,13 +118,13 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className="flex flex-col h-[calc(100vh-300px)]">
+      <form onSubmit={handleSubmit} className="space-y-2 mb-4">
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
-          className="min-h-[80px]"
+          className="min-h-[80px] resize-none"
         />
         <Button 
           type="submit" 
@@ -133,38 +134,45 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
         </Button>
       </form>
 
-      <div className="space-y-4">
-        {isLoading ? (
-          <div>Loading comments...</div>
-        ) : comments.length === 0 ? (
-          <div className="text-muted-foreground">No comments yet</div>
-        ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="flex gap-4 p-4 border rounded-lg">
-              <Avatar>
-                <AvatarFallback>
-                  {comment.user_profiles?.full_name?.[0] || 
-                   comment.user_profiles?.email?.[0]?.toUpperCase() || 
-                   '?'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">
-                    {comment.user_profiles?.full_name || 
-                     comment.user_profiles?.email || 
-                     'Anonymous'}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(comment.created_at), "MMM d, yyyy 'at' h:mm a")}
-                  </span>
+      <ScrollArea className="flex-1">
+        <div className="space-y-2 pr-4">
+          {isLoading ? (
+            <div>Loading comments...</div>
+          ) : comments.length === 0 ? (
+            <div className="text-muted-foreground text-center py-4">No comments yet</div>
+          ) : (
+            comments.map((comment) => (
+              <div 
+                key={comment.id} 
+                className="flex gap-3 p-3 border rounded-lg bg-card/50 hover:bg-card/80 transition-colors"
+              >
+                <Avatar className="h-6 w-6">
+                  <AvatarFallback className="text-xs">
+                    {comment.user_profiles?.full_name?.[0] || 
+                     comment.user_profiles?.email?.[0]?.toUpperCase() || 
+                     '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm truncate">
+                      {comment.user_profiles?.full_name || 
+                       comment.user_profiles?.email || 
+                       'Anonymous'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(comment.created_at), "MMM d, yyyy 'at' h:mm a")}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
+                    {comment.content}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm">{comment.content}</p>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

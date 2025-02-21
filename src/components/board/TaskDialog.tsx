@@ -23,7 +23,7 @@ interface TaskDialogProps {
 export function TaskDialog({ isOpen, onOpenChange, selectedTask, onSubmit }: TaskDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{selectedTask ? "Edit Task" : "Create Task"}</DialogTitle>
           <DialogDescription>
@@ -31,27 +31,29 @@ export function TaskDialog({ isOpen, onOpenChange, selectedTask, onSubmit }: Tas
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="details" className="w-full">
+        <Tabs defaultValue="details" className="flex-1 flex flex-col">
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="comments">Comments</TabsTrigger>
             <TabsTrigger value="reminders">Reminders</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="details" className="mt-4">
-            <TaskForm
-              onSubmit={onSubmit}
-              initialData={selectedTask}
-            />
-          </TabsContent>
-          
-          <TabsContent value="comments" className="mt-4">
-            {selectedTask && <TaskComments taskId={selectedTask.id} />}
-          </TabsContent>
-          
-          <TabsContent value="reminders" className="mt-4">
-            {selectedTask && <TaskReminders taskId={selectedTask.id} />}
-          </TabsContent>
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="details" className="h-full overflow-auto">
+              <TaskForm
+                onSubmit={onSubmit}
+                initialData={selectedTask}
+              />
+            </TabsContent>
+            
+            <TabsContent value="comments" className="h-full overflow-hidden">
+              {selectedTask && <TaskComments taskId={selectedTask.id} />}
+            </TabsContent>
+            
+            <TabsContent value="reminders" className="h-full overflow-auto">
+              {selectedTask && <TaskReminders taskId={selectedTask.id} />}
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>
