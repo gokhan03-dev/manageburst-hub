@@ -96,7 +96,7 @@ export const TaskStatistics = () => {
         >
           <CarouselContent className="-ml-2 pb-12">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-2 basis-[85%] min-w-0">
+              <CarouselItem key={index} className="pl-2 basis-[44%] min-w-0">
                 <StatCard {...stat} isMobile />
               </CarouselItem>
             ))}
@@ -141,7 +141,7 @@ const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon, isMobil
       )
     )}
   >
-    <div className="flex justify-between items-start mb-2">
+    <div className="flex justify-between items-start mb-1">
       <div className="space-y-0.5">
         <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine1}</p>
         <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine2}</p>
