@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskDependencyGraph } from "./TaskDependencyGraph";
 import { useDraggable } from "@dnd-kit/core";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskCardProps {
   task: Task;
@@ -18,6 +20,17 @@ interface TaskCardProps {
 
 export const TaskCard = ({ task, onClick, className, showDependencies = true }: TaskCardProps) => {
   const { tasks } = useTaskContext();
+  
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
   
   const {
     attributes,
@@ -45,6 +58,10 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     zIndex: isDragging ? 999 : undefined,
   } : undefined;
+
+  const taskCategories = categories.filter(
+    (category) => task.categoryIds?.includes(category.id)
+  );
 
   return (
     <div
@@ -76,6 +93,29 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
           {format(new Date(task.dueDate), "MMM dd")}
         </div>
       </div>
+      
+      {taskCategories.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {taskCategories.map((category) => (
+            <Badge
+              key={category.id}
+              variant="secondary"
+              className="text-xs"
+              style={{
+                backgroundColor: `${category.color}20`,
+                borderColor: category.color,
+              }}
+            >
+              <div
+                className="mr-1 h-2 w-2 rounded-full"
+                style={{ backgroundColor: category.color }}
+              />
+              {category.name}
+            </Badge>
+          ))}
+        </div>
+      )}
+
       <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
       <p className="mt-1 text-sm text-gray-500 line-clamp-2">{task.description}</p>
       

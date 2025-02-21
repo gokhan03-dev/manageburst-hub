@@ -11,6 +11,7 @@ export interface Task {
   dueDate: string;
   createdAt: string;
   dependencies?: string[];
+  categoryIds?: string[];
 }
 
 export interface TaskDependency {
@@ -18,4 +19,10 @@ export interface TaskDependency {
   dependent_task_id: string;
   dependency_task_id: string;
   created_at: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  color: string;
 }

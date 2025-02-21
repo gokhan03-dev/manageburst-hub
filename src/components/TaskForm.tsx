@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,9 @@ import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { Badge } from "@/components/ui/badge";
 import { CustomPopover } from "@/components/ui/custom-popover";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -28,6 +32,9 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   const { tasks } = useTaskContext();
   const [selectedDependencies, setSelectedDependencies] = useState<string[]>(
     initialData?.dependencies || []
+  );
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialData?.categoryIds || []
   );
   const [date, setDate] = useState<Date | undefined>(
     initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
@@ -43,11 +50,33 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
     },
   });
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        toast({
+          title: "Error fetching categories",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
+      
+      return data;
+    },
+  });
+
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
       dueDate: date?.toISOString() || new Date().toISOString(),
       dependencies: selectedDependencies,
+      categoryIds: selectedCategories,
     });
   };
 
@@ -57,6 +86,10 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
 
   const removeDependency = (taskId: string) => {
     setSelectedDependencies((prev) => prev.filter((id) => id !== taskId));
+  };
+
+  const removeCategory = (categoryId: string) => {
+    setSelectedCategories((prev) => prev.filter((id) => id !== categoryId));
   };
 
   return (
@@ -122,6 +155,65 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
               initialFocus
             />
           </CustomPopover>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Categories</p>
+        <Select
+          onValueChange={(value: string) => {
+            if (!selectedCategories.includes(value)) {
+              setSelectedCategories((prev) => [...prev, value]);
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Add category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  {category.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          {selectedCategories.map((categoryId) => {
+            const category = categories.find((c) => c.id === categoryId);
+            if (!category) return null;
+            return (
+              <Badge
+                key={categoryId}
+                variant="secondary"
+                className="flex items-center gap-1"
+                style={{
+                  backgroundColor: `${category.color}20`,
+                  borderColor: category.color,
+                }}
+              >
+                <div
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: category.color }}
+                />
+                {category.name}
+                <button
+                  type="button"
+                  onClick={() => removeCategory(categoryId)}
+                  className="ml-1 rounded-full p-1 hover:bg-secondary"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
