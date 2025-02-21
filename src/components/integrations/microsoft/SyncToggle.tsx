@@ -15,6 +15,44 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const handleTokenRefreshError = async () => {
+    try {
+      // Clear the refresh token as it's no longer valid
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({ microsoft_refresh_token: null })
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
+      // Disable sync settings
+      const { error: settingsError } = await supabase
+        .from("integration_settings")
+        .update({ sync_enabled: false, is_active: false })
+        .eq("user_id", userId)
+        .eq("integration_type", "microsoft_calendar");
+
+      if (settingsError) throw settingsError;
+
+      // Notify user to reconnect
+      toast({
+        title: "Connection expired",
+        description: "Your Microsoft Calendar connection has expired. Please reconnect.",
+        variant: "destructive",
+      });
+
+      // Force sync to be disabled
+      onSyncChange(false);
+    } catch (error) {
+      console.error("Error handling token refresh:", error);
+      toast({
+        title: "Error",
+        description: "Failed to handle expired connection",
+        variant: "destructive",
+      });
+    }
+  };
+
   const initiateSync = async () => {
     try {
       setIsSyncing(true);
@@ -52,7 +90,8 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
       if (data?.error) {
         console.error('Sync function error:', data.error);
         if (data.error.includes('Failed to refresh Microsoft access token')) {
-          throw new Error('Microsoft Calendar connection has expired. Please reconnect.');
+          await handleTokenRefreshError();
+          return;
         }
         throw new Error(data.error);
       }
@@ -69,7 +108,7 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
         variant: "destructive",
       });
       // Disable sync if there's an error
-      handleSyncToggle(false);
+      onSyncChange(false);
     } finally {
       setIsSyncing(false);
     }
@@ -106,7 +145,8 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
         if (testError || testData?.error) {
           if ((testError?.message || testData?.error || '').includes('Failed to refresh Microsoft access token')) {
-            throw new Error('Microsoft Calendar connection has expired. Please reconnect.');
+            await handleTokenRefreshError();
+            return;
           }
           throw new Error('Failed to verify Microsoft Calendar connection');
         }
