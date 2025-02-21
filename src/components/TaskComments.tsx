@@ -13,6 +13,7 @@ interface Comment {
   id: string;
   content: string;
   created_at: string;
+  user_id: string;
   user_profiles: {
     email: string;
     full_name: string | null;
@@ -35,7 +36,8 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
           id,
           content,
           created_at,
-          user_profiles!task_comments_user_id_fkey (
+          user_id,
+          user_profiles (
             email,
             full_name
           )
@@ -49,7 +51,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
       }
       
       console.log("Fetched comments:", data);
-      return data as unknown as Comment[];
+      return data as Comment[];
     },
   });
 
