@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
-import { Task, TaskStatus } from "@/types/task";
+import { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SearchAndFilter } from "./SearchAndFilter";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
-// Updated to match exact database values
 const columns: { id: TaskStatus; title: string }[] = [
   { id: "todo", title: "To Do" },
   { id: "in-progress", title: "In Progress" },
@@ -36,6 +36,11 @@ export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
   const [open, setOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
+  const [sortBy, setSortBy] = useState("dueDate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -51,6 +56,41 @@ export const TaskBoard = () => {
     })
   );
 
+  const filteredAndSortedTasks = useMemo(() => {
+    return tasks
+      .filter((task) => {
+        const matchesSearch = searchQuery
+          ? task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            task.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          : true;
+        const matchesStatus = statusFilter === "all" ? true : task.status === statusFilter;
+        const matchesPriority = priorityFilter === "all" ? true : task.priority === priorityFilter;
+        return matchesSearch && matchesStatus && matchesPriority;
+      })
+      .sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+          case "dueDate":
+            comparison = new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime();
+            break;
+          case "priority": {
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            comparison = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+            break;
+          }
+          case "title":
+            comparison = a.title.localeCompare(b.title);
+            break;
+          case "createdAt":
+            comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            break;
+          default:
+            comparison = 0;
+        }
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
+  }, [tasks, searchQuery, statusFilter, priorityFilter, sortBy, sortDirection]);
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -58,9 +98,6 @@ export const TaskBoard = () => {
 
     const taskId = active.id as string;
     const newStatus = over.id as TaskStatus;
-
-    // Add logging to debug status values
-    console.log('Moving task:', { taskId, newStatus });
 
     try {
       await moveTask(taskId, newStatus);
@@ -106,7 +143,7 @@ export const TaskBoard = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center mb-6">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -131,6 +168,19 @@ export const TaskBoard = () => {
         </Dialog>
       </div>
 
+      <SearchAndFilter
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onSortChange={setSortBy}
+        onSortDirectionChange={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+      />
+
       <DndContext 
         sensors={sensors}
         modifiers={[restrictToWindowEdges]}
@@ -139,7 +189,7 @@ export const TaskBoard = () => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {columns.map((column) => (
             <DroppableColumn key={column.id} column={column}>
-              {tasks
+              {filteredAndSortedTasks
                 .filter((task) => task.status === column.id)
                 .map((task) => (
                   <TaskCard
