@@ -5,7 +5,6 @@ import {
   Menu, 
   ArrowLeft, 
   ArrowRight, 
-  LayoutDashboard, 
   Settings, 
   HelpCircle, 
   LogOut,
@@ -13,6 +12,7 @@ import {
   CalendarRange,
   ListTodo,
   ArrowUpRight,
+  Plus,
   LucideIcon 
 } from "lucide-react";
 import {
@@ -69,6 +69,23 @@ const navItems: NavItem[] = [
     title: "Help",
     icon: HelpCircle,
     href: "/help",
+  },
+];
+
+const mobileNavItems = [
+  {
+    title: "Today",
+    icon: Calendar,
+    filterType: "today"
+  },
+  {
+    title: "Add Task",
+    icon: Plus,
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/settings",
   },
 ];
 
@@ -138,29 +155,45 @@ export const SideNav = () => {
     </div>
   );
 
+  const MobileNav = () => (
+    <div className="fixed bottom-0 left-0 right-0 border-t bg-background py-2 lg:hidden">
+      <nav className="flex items-center justify-around">
+        {mobileNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
+
+          return (
+            <Button
+              key={item.title}
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "flex flex-col items-center gap-1 h-16 px-4",
+                isActive && "text-primary"
+              )}
+              onClick={() => {
+                if (item.filterType) {
+                  setCurrentFilter(item.filterType);
+                }
+                // Add task button functionality can be added here
+                if (item.title === "Add Task") {
+                  // Handle add task click
+                }
+              }}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-xs">{item.title}</span>
+            </Button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+
   return (
     <>
       {/* Mobile Navigation */}
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed left-4 top-4 z-40 lg:hidden flex items-center justify-center"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-[240px] p-0">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle>Navigation</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 p-4">
-            <NavContent />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <MobileNav />
 
       {/* Desktop Navigation */}
       <div 
