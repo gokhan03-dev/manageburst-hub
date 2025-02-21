@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ConnectButtonProps {
   userId: string;
@@ -15,6 +16,20 @@ export function ConnectButton({ userId }: ConnectButtonProps) {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
+      // First ensure we have a record in integration_settings
+      const { error: settingsError } = await supabase
+        .from("integration_settings")
+        .upsert({
+          user_id: userId,
+          integration_type: "microsoft_calendar",
+          sync_enabled: false,
+          is_active: true,
+        });
+
+      if (settingsError) {
+        throw new Error(`Failed to initialize integration settings: ${settingsError.message}`);
+      }
+
       // Generate state parameter for security
       const stateParam = encodeURIComponent(JSON.stringify({
         userId,
@@ -47,7 +62,7 @@ export function ConnectButton({ userId }: ConnectButtonProps) {
       console.error("Error connecting to Microsoft:", error);
       toast({
         title: "Error",
-        description: "Failed to connect to Microsoft Calendar. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to connect to Microsoft Calendar. Please try again.",
         variant: "destructive",
       });
     } finally {

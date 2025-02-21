@@ -39,6 +39,8 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
         description: "Failed to update sync settings",
         variant: "destructive",
       });
+      // Revert the toggle state since the operation failed
+      onSyncChange(!enabled);
     }
   };
 
