@@ -10,6 +10,12 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
+interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  daily_digest: boolean;
+}
+
 interface UserProfile {
   id: string;
   email: string;
@@ -17,11 +23,7 @@ interface UserProfile {
   avatar_url: string | null;
   theme_preference: string;
   timezone: string;
-  notification_settings: {
-    email: boolean;
-    push: boolean;
-    daily_digest: boolean;
-  };
+  notification_settings: NotificationSettings;
 }
 
 export const UserProfile = () => {
@@ -39,13 +41,28 @@ export const UserProfile = () => {
 
       if (error) throw error;
       
-      // Transform the JSON notification_settings into the expected format
+      // Parse the JSON notification_settings
+      let notificationSettings: NotificationSettings;
+      try {
+        notificationSettings = typeof data.notification_settings === 'string' 
+          ? JSON.parse(data.notification_settings)
+          : data.notification_settings;
+      } catch (e) {
+        // Fallback to default values if parsing fails
+        notificationSettings = {
+          email: true,
+          push: true,
+          daily_digest: false
+        };
+      }
+      
+      // Transform the data with properly typed notification settings
       const transformedData: UserProfile = {
         ...data,
         notification_settings: {
-          email: data.notification_settings?.email ?? true,
-          push: data.notification_settings?.push ?? true,
-          daily_digest: data.notification_settings?.daily_digest ?? false,
+          email: notificationSettings?.email ?? true,
+          push: notificationSettings?.push ?? true,
+          daily_digest: notificationSettings?.daily_digest ?? false,
         },
       };
       
