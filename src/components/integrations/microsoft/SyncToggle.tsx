@@ -18,23 +18,46 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
   const initiateSync = async () => {
     try {
       setIsSyncing(true);
-      const { error } = await supabase.functions.invoke('calendar-sync', {
+      
+      // First verify Microsoft auth is set up
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('microsoft_refresh_token')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileError) throw new Error('Failed to verify Microsoft authentication');
+      if (!profile?.microsoft_refresh_token) {
+        throw new Error('Microsoft Calendar not connected. Please connect first.');
+      }
+
+      const { data, error } = await supabase.functions.invoke('calendar-sync', {
         body: { userId, direction: 'push' }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sync error:', error);
+        throw new Error(error.message || 'Failed to synchronize with Microsoft Calendar');
+      }
+
+      if (data?.error) {
+        console.error('Sync function error:', data.error);
+        throw new Error(data.error);
+      }
 
       toast({
-        title: "Sync Started",
-        description: "Your tasks are being synchronized with Microsoft Calendar",
+        title: "Sync Completed",
+        description: "Your tasks have been synchronized with Microsoft Calendar",
       });
     } catch (error) {
       console.error("Error during sync:", error);
       toast({
         title: "Sync Error",
-        description: "Failed to synchronize with Microsoft Calendar",
+        description: error.message || "Failed to synchronize with Microsoft Calendar",
         variant: "destructive",
       });
+      // Disable sync if there's an error
+      handleSyncToggle(false);
     } finally {
       setIsSyncing(false);
     }
@@ -42,13 +65,27 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
   const handleSyncToggle = async (enabled: boolean) => {
     try {
-      // First, check if a record exists
+      // First, check if Microsoft is connected when enabling
+      if (enabled) {
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('microsoft_refresh_token')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (profileError) throw new Error('Failed to verify Microsoft authentication');
+        if (!profile?.microsoft_refresh_token) {
+          throw new Error('Please connect Microsoft Calendar before enabling sync');
+        }
+      }
+
+      // Check if a record exists
       const { data: existingSettings } = await supabase
         .from("integration_settings")
         .select("id")
         .eq("user_id", userId)
         .eq("integration_type", "microsoft_calendar")
-        .single();
+        .maybeSingle();
 
       let error;
 
@@ -59,6 +96,7 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
           .update({
             sync_enabled: enabled,
             is_active: true,
+            last_sync_status: null, // Reset status
           })
           .eq("id", existingSettings.id);
         error = updateError;
@@ -92,7 +130,7 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
       console.error("Error updating sync settings:", error);
       toast({
         title: "Error",
-        description: "Failed to update sync settings",
+        description: error.message || "Failed to update sync settings",
         variant: "destructive",
       });
       // Revert the toggle state since the operation failed
