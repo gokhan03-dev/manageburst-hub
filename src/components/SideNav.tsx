@@ -203,7 +203,7 @@ export const SideNav = () => {
               className={cn(
                 "flex flex-col items-center gap-1",
                 isAddTask ? 
-                  "h-14 w-14 bg-[#1A1F2C] hover:bg-[#221F26] text-white rounded-xl shadow-sm transition-all duration-200" : 
+                  "h-16 w-16 bg-[#1A1F2C] hover:bg-[#221F26] text-white rounded-xl shadow-sm transition-all duration-200" : 
                   "h-16 px-4",
                 isActive && !isAddTask && "text-primary"
               )}
@@ -227,7 +227,7 @@ export const SideNav = () => {
                   </Badge>
                 )}
               </div>
-              {!isAddTask && <span className="text-xs">{item.title}</span>}
+              <span className="text-xs">{item.title}</span>
             </Button>
           );
         })}
