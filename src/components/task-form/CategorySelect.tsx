@@ -53,7 +53,7 @@ export const CategorySelect = ({
         <SelectTrigger>
           <SelectValue placeholder="Add category" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-background">
           {categories.map((category) => (
             <SelectItem key={category.id} value={category.id}>
               <div className="flex items-center gap-2">
