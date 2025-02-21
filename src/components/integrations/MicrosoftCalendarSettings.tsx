@@ -8,9 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MicrosoftAuthConfig } from "@/types/microsoft";
 
+// Use environment variable or your actual Microsoft client ID
 const MICROSOFT_AUTH_CONFIG: MicrosoftAuthConfig = {
   clientId: "04afd4ac-5b4f-4ce5-92c0-b21ac7022d18",
-  redirectUri: `${window.location.origin}/auth/microsoft/callback`,
+  // Ensure the redirect URI matches exactly what's registered in Azure Portal
+  redirectUri: window.location.origin + "/auth/microsoft/callback",
   scopes: [
     "Calendars.ReadWrite",
     "offline_access",
@@ -46,27 +48,50 @@ export function MicrosoftCalendarSettings() {
   }, [user]);
 
   const handleConnect = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to connect Microsoft Calendar",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsConnecting(true);
     try {
-      // Build Microsoft OAuth URL with proper encoding and all required parameters
-      const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` +
-        `?client_id=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.clientId)}` +
-        `&response_type=code` +
-        `&redirect_uri=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.redirectUri)}` +
-        `&scope=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.scopes.join(' '))}` +
-        `&response_mode=query` +
-        `&state=${encodeURIComponent(user.id)}` +
-        `&prompt=select_account`;
+      // Generate state parameter for security
+      const stateParam = encodeURIComponent(JSON.stringify({
+        userId: user.id,
+        timestamp: Date.now()
+      }));
 
-      console.log("Redirect URL:", MICROSOFT_AUTH_CONFIG.redirectUri);
-      window.location.href = authUrl;
+      // Construct Microsoft OAuth URL with all necessary parameters
+      const authUrl = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+      
+      // Add required query parameters
+      const params = new URLSearchParams({
+        client_id: MICROSOFT_AUTH_CONFIG.clientId,
+        response_type: "code",
+        redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
+        scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
+        response_mode: "query",
+        state: stateParam,
+        prompt: "select_account"
+      });
+
+      authUrl.search = params.toString();
+
+      // Log the full URL for debugging
+      console.log("Microsoft Auth URL:", authUrl.toString());
+      console.log("Redirect URI:", MICROSOFT_AUTH_CONFIG.redirectUri);
+
+      // Redirect to Microsoft login
+      window.location.href = authUrl.toString();
     } catch (error) {
       console.error("Error connecting to Microsoft:", error);
       toast({
         title: "Error",
-        description: "Failed to connect to Microsoft Calendar",
+        description: "Failed to connect to Microsoft Calendar. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -119,6 +144,7 @@ export function MicrosoftCalendarSettings() {
           <Button
             onClick={handleConnect}
             disabled={isConnecting}
+            variant="default"
           >
             {isConnecting ? "Connecting..." : "Connect Microsoft Calendar"}
           </Button>
@@ -129,7 +155,9 @@ export function MicrosoftCalendarSettings() {
               onCheckedChange={handleSyncToggle}
               id="sync-enabled"
             />
-            <label htmlFor="sync-enabled">Enable task synchronization</label>
+            <label htmlFor="sync-enabled" className="text-sm">
+              Enable task synchronization
+            </label>
           </div>
         </div>
       </CardContent>
