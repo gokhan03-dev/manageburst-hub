@@ -101,7 +101,7 @@ export const TaskStatistics = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="flex justify-center gap-1.5 mt-4 mb-4">
+          <div className="flex justify-center gap-1.5 mt-4 mb-2">
             {statsCards.map((_, index) => (
               <button
                 key={index}
