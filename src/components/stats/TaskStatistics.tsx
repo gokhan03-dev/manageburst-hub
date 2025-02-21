@@ -8,13 +8,13 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
 
 export const TaskStatistics = () => {
   const { tasks } = useTaskContext();
   const now = new Date();
+  const [activeIndex, setActiveIndex] = React.useState(0);
 
   const weekInterval = {
     start: startOfWeek(now),
@@ -78,19 +78,41 @@ export const TaskStatistics = () => {
         <Carousel
           opts={{
             align: "start",
+            containScroll: "trimSnaps",
             loop: true,
           }}
           className="w-full"
+          onSelect={(api) => {
+            setActiveIndex(api.selectedScrollSnap());
+          }}
         >
-          <CarouselContent className="-ml-2">
+          <CarouselContent className="-ml-4">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-2 basis-[calc(100%-2rem)]">
+              <CarouselItem key={index} className="pl-4 basis-[42%] min-w-0">
                 <StatCard {...stat} />
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-0" />
-          <CarouselNext className="right-0" />
+          <div className="flex justify-center gap-2 mt-4">
+            {statsCards.map((_, index) => (
+              <button
+                key={index}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all",
+                  activeIndex === index ? "bg-primary" : "bg-muted"
+                )}
+                onClick={() => {
+                  const carousel = document.querySelector(".embla__container");
+                  if (carousel) {
+                    carousel.scrollTo({
+                      left: index * (carousel.clientWidth / 2.25),
+                      behavior: "smooth",
+                    });
+                  }
+                }}
+              />
+            ))}
+          </div>
         </Carousel>
       </div>
     </div>
@@ -98,12 +120,12 @@ export const TaskStatistics = () => {
 };
 
 const StatCard = ({ title, value, description, icon: Icon }) => (
-  <Card className="h-full">
+  <Card className="h-[200px] flex flex-col">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <Icon className="h-4 w-4 text-muted-foreground" />
     </CardHeader>
-    <CardContent>
+    <CardContent className="flex-1 flex flex-col justify-center">
       <div className="text-2xl font-bold">{value}</div>
       <p className="text-xs text-muted-foreground">
         {description}
