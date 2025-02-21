@@ -77,7 +77,7 @@ export const TaskStatistics = () => {
   return (
     <div className="w-full">
       {/* Desktop view */}
-      <div className="hidden md:grid md:grid-cols-3 gap-3">
+      <div className="hidden md:grid md:grid-cols-3 gap-2">
         {statsCards.map((stat, index) => (
           <StatCard key={index} {...stat} />
         ))}
@@ -94,19 +94,19 @@ export const TaskStatistics = () => {
           className="w-full"
           setApi={setApi}
         >
-          <CarouselContent className="-ml-4 pb-20">
+          <CarouselContent className="-ml-2 pb-12">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-4 basis-[85%] min-w-0">
+              <CarouselItem key={index} className="pl-2 basis-[85%] min-w-0">
                 <StatCard {...stat} isMobile />
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="flex justify-center gap-2 mt-4">
+          <div className="flex justify-center gap-1.5 mt-2">
             {statsCards.map((_, index) => (
               <button
                 key={index}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all",
+                  "w-1.5 h-1.5 rounded-full transition-all",
                   activeIndex === index ? "bg-primary" : "bg-muted"
                 )}
                 onClick={() => api?.scrollTo(index)}
@@ -133,26 +133,26 @@ const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon, isMobil
     className={cn(
       "flex flex-col bg-white border-none transition-all duration-200 ease-out",
       "shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
-      "rounded-2xl cursor-pointer",
+      "rounded-xl cursor-pointer",
       isMobile ? (
-        "p-4 h-[160px] active:scale-[0.98]"
+        "p-3 h-[140px] active:scale-[0.98]"
       ) : (
-        "p-4 h-[100px] md:h-[120px] hover:scale-[1.02]"
+        "p-3 h-[90px] md:h-[110px] hover:scale-[1.02]"
       )
     )}
   >
-    <div className="flex justify-between items-start mb-3">
+    <div className="flex justify-between items-start mb-2">
       <div className="space-y-0.5">
-        <p className="text-[14px] font-normal text-[#1D1D1F] leading-tight">{titleLine1}</p>
-        <p className="text-[14px] font-normal text-[#1D1D1F] leading-tight">{titleLine2}</p>
+        <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine1}</p>
+        <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine2}</p>
       </div>
       <Icon className={cn(
         "text-[#86868B] opacity-80",
-        isMobile ? "h-6 w-6" : "h-4 w-4"
+        isMobile ? "h-5 w-5" : "h-4 w-4"
       )} />
     </div>
-    <div className="mt-auto space-y-3">
-      <div className="text-[32px] font-bold leading-none text-black">
+    <div className="mt-auto space-y-2">
+      <div className="text-[28px] font-bold leading-none text-black">
         {value}
       </div>
       <div className={cn(
