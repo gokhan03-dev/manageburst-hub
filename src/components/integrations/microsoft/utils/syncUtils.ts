@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { ToastType } from "@/hooks/use-toast";
+import type { ToastType } from "@/components/ui/use-toast";
 
 export const handleTokenRefreshError = async (
   userId: string,
