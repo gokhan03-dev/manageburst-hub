@@ -5,7 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
 
-const MICROSOFT_CLIENT_SECRET = "Oe48Q~nOePX-G6PBxWuQJmilQHp4kewkiZkISc~k"; // This should match your Microsoft App registration
+// This is the correct client secret from the Microsoft Azure Portal
+const MICROSOFT_CLIENT_SECRET = "IXM8Q~o3NWASJg4T2u-RZxlsCmIsYVa4sEfaU6cE";
 
 export function MicrosoftAuthCallback() {
   const [searchParams] = useSearchParams();
