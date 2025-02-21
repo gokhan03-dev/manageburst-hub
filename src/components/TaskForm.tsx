@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Task, TaskPriority, TaskStatus, RecurrencePattern } from "@/types/task";
@@ -44,6 +43,15 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(
     initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate) : undefined
   );
+  const [weeklyRecurrenceDays, setWeeklyRecurrenceDays] = useState<WeekDay[]>(
+    initialData?.weeklyRecurrenceDays || []
+  );
+  const [monthlyRecurrenceType, setMonthlyRecurrenceType] = useState<MonthlyRecurrenceType>(
+    initialData?.monthlyRecurrenceType || "date"
+  );
+  const [monthlyRecurrenceDay, setMonthlyRecurrenceDay] = useState<number>(
+    initialData?.monthlyRecurrenceDay || 1
+  );
 
   const { register, handleSubmit, setValue } = useForm({
     defaultValues: initialData || {
@@ -88,6 +96,13 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         recurrenceStartDate: recurrenceStartDate?.toISOString(),
         recurrenceEndDate: recurrenceEndDate?.toISOString(),
         scheduleStartDate: date?.toISOString(),
+        ...(recurrencePattern === "weekly" && {
+          weeklyRecurrenceDays,
+        }),
+        ...(recurrencePattern === "monthly" && {
+          monthlyRecurrenceType,
+          monthlyRecurrenceDay,
+        }),
       }),
     });
   };
@@ -137,6 +152,12 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         onStartDateChange={setRecurrenceStartDate}
         endDate={recurrenceEndDate}
         onEndDateChange={setRecurrenceEndDate}
+        weeklyDays={weeklyRecurrenceDays}
+        onWeeklyDaysChange={setWeeklyRecurrenceDays}
+        monthlyType={monthlyRecurrenceType}
+        onMonthlyTypeChange={setMonthlyRecurrenceType}
+        monthlyDay={monthlyRecurrenceDay}
+        onMonthlyDayChange={setMonthlyRecurrenceDay}
       />
 
       <CategorySelect

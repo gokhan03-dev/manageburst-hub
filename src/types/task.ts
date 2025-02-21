@@ -2,6 +2,8 @@
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in-progress" | "completed";
 export type RecurrencePattern = "daily" | "weekly" | "monthly" | "yearly";
+export type WeekDay = "sunday" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
+export type MonthlyRecurrenceType = "date" | "end-of-month";
 
 export interface Task {
   id: string;
@@ -20,6 +22,9 @@ export interface Task {
   nextOccurrence?: string;
   lastOccurrence?: string;
   scheduleStartDate?: string;
+  weeklyRecurrenceDays?: WeekDay[];
+  monthlyRecurrenceType?: MonthlyRecurrenceType;
+  monthlyRecurrenceDay?: number;
 }
 
 export interface TaskDependency {

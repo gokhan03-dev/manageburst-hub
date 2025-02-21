@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { RecurrencePattern } from "@/types/task";
+import { RecurrencePattern, WeekDay, MonthlyRecurrenceType } from "@/types/task";
 import {
   Select,
   SelectContent,
@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "./DatePicker";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface RecurrenceSettingsProps {
   enabled: boolean;
@@ -25,7 +27,23 @@ interface RecurrenceSettingsProps {
   onStartDateChange: (date: Date | undefined) => void;
   endDate?: Date;
   onEndDateChange: (date: Date | undefined) => void;
+  weeklyDays?: WeekDay[];
+  onWeeklyDaysChange?: (days: WeekDay[]) => void;
+  monthlyType?: MonthlyRecurrenceType;
+  onMonthlyTypeChange?: (type: MonthlyRecurrenceType) => void;
+  monthlyDay?: number;
+  onMonthlyDayChange?: (day: number) => void;
 }
+
+const DAYS_OF_WEEK: { label: string; value: WeekDay }[] = [
+  { label: "Sunday", value: "sunday" },
+  { label: "Monday", value: "monday" },
+  { label: "Tuesday", value: "tuesday" },
+  { label: "Wednesday", value: "wednesday" },
+  { label: "Thursday", value: "thursday" },
+  { label: "Friday", value: "friday" },
+  { label: "Saturday", value: "saturday" },
+];
 
 export function RecurrenceSettings({
   enabled,
@@ -38,7 +56,20 @@ export function RecurrenceSettings({
   onStartDateChange,
   endDate,
   onEndDateChange,
+  weeklyDays = [],
+  onWeeklyDaysChange = () => {},
+  monthlyType = "date",
+  onMonthlyTypeChange = () => {},
+  monthlyDay = 1,
+  onMonthlyDayChange = () => {},
 }: RecurrenceSettingsProps) {
+  const handleWeeklyDayToggle = (day: WeekDay) => {
+    const newDays = weeklyDays.includes(day)
+      ? weeklyDays.filter(d => d !== day)
+      : [...weeklyDays, day];
+    onWeeklyDaysChange(newDays);
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center space-x-2">
@@ -80,6 +111,50 @@ export function RecurrenceSettings({
               </div>
             </div>
           </div>
+
+          {pattern === "weekly" && (
+            <div className="space-y-2">
+              <Label>Repeat on</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {DAYS_OF_WEEK.map(({ label, value }) => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`day-${value}`}
+                      checked={weeklyDays.includes(value)}
+                      onCheckedChange={() => handleWeeklyDayToggle(value)}
+                    />
+                    <Label htmlFor={`day-${value}`}>{label}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pattern === "monthly" && (
+            <div className="space-y-4">
+              <Label>Repeat on</Label>
+              <RadioGroup value={monthlyType} onValueChange={(value) => onMonthlyTypeChange(value as MonthlyRecurrenceType)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="date" id="monthly-date" />
+                  <Label htmlFor="monthly-date">Day of month</Label>
+                  {monthlyType === "date" && (
+                    <Input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={monthlyDay}
+                      onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
+                      className="w-20 ml-2"
+                    />
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="end-of-month" id="monthly-end" />
+                  <Label htmlFor="monthly-end">End of month</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
