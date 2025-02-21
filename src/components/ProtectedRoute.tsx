@@ -1,13 +1,14 @@
 
-import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import { Fragment } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/auth" replace />;
   }
 
-  return <>{children}</>;
+  return <Fragment>{children}</Fragment>;
 };

@@ -12,8 +12,8 @@ import { MicrosoftAuthCallback } from "@/components/integrations/MicrosoftAuthCa
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <ThemeProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route 
@@ -43,8 +43,8 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
