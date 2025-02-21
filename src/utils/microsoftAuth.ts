@@ -8,17 +8,16 @@ export const getRedirectUri = () => {
       return `http://localhost:8080/auth/microsoft/callback`;
     }
     
-    // For preview environment with id
-    if (typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com')) {
-      const previewId = window.location.hostname.split('.')[0];
-      return `https://${previewId}.lovableproject.com/auth/microsoft/callback`;
+    // Default to current hostname for preview and production
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/microsoft/callback`;
     }
     
-    // Production URL
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
+    // Fallback
+    return `${window.location.origin}/auth/microsoft/callback`;
   } catch (e) {
     console.error('Error getting redirect URI:', e);
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
+    return `${window.location.origin}/auth/microsoft/callback`;
   }
 };
 
