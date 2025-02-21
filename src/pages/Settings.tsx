@@ -13,6 +13,16 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
+interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  in_app: boolean;
+}
+
+interface UserProfile {
+  notification_settings: NotificationSettings;
+}
+
 interface SettingsState {
   notifications: {
     email: boolean;
@@ -55,13 +65,14 @@ const Settings = () => {
         return;
       }
 
-      if (data?.notification_settings) {
+      const profile = data as UserProfile;
+      if (profile?.notification_settings) {
         setSettings(prevSettings => ({
           ...prevSettings,
           notifications: {
-            email: data.notification_settings.email ?? true,
-            push: data.notification_settings.push ?? true,
-            inApp: data.notification_settings.in_app ?? true
+            email: profile.notification_settings.email ?? true,
+            push: profile.notification_settings.push ?? true,
+            inApp: profile.notification_settings.in_app ?? true
           }
         }));
       }
@@ -96,7 +107,7 @@ const Settings = () => {
           notification_settings: {
             email: settings.notifications.email,
             push: settings.notifications.push,
-            in_app: settings.notifications.inApp
+            in_app: settings.notifications.inApp // Note: we map inApp to in_app for database consistency
           }
         })
         .eq('id', user.id);
