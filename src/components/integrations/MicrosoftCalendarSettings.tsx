@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MicrosoftAuthConfig } from "@/types/microsoft";
 
 const MICROSOFT_AUTH_CONFIG: MicrosoftAuthConfig = {
-  clientId: "", // This will need to be provided by the user
+  clientId: "04afd4ac-5b4f-4ce5-92c0-b21ac7022d18",
   redirectUri: `${window.location.origin}/auth/microsoft/callback`,
   scopes: [
     "Calendars.ReadWrite",
