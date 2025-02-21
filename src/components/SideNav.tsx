@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "./ui/badge";
+import { TaskPriority, TaskStatus } from "@/types/task";
 
 type FilterType = "all" | "today" | "this-week" | "upcoming";
 
@@ -109,8 +110,8 @@ export const SideNav = () => {
     const newTask = {
       title: "New Task",
       description: "",
-      status: "todo",
-      priority: "medium",
+      status: "todo" as TaskStatus,
+      priority: "medium" as TaskPriority,
       dueDate: new Date().toISOString(),
     };
     addTask(newTask);
