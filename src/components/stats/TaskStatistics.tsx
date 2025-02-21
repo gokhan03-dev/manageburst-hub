@@ -2,7 +2,7 @@
 import React from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { CheckCircle2, Clock, Target } from "lucide-react";
 import {
   Carousel,
@@ -11,6 +11,7 @@ import {
   type CarouselApi
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { ProgressBar } from "./ProgressBar";
 
 export const TaskStatistics = () => {
   const { tasks } = useTaskContext();
@@ -19,13 +20,8 @@ export const TaskStatistics = () => {
   const [api, setApi] = React.useState<CarouselApi>();
 
   React.useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    api.on("select", () => {
-      setActiveIndex(api.selectedScrollSnap());
-    });
+    if (!api) return;
+    api.on("select", () => setActiveIndex(api.selectedScrollSnap()));
   }, [api]);
 
   const weekInterval = {
@@ -45,33 +41,35 @@ export const TaskStatistics = () => {
     });
 
     if (tasksInPeriod.length === 0) return 0;
-
     const completedTasks = tasksInPeriod.filter(task => task.status === "completed");
     return Math.round((completedTasks.length / tasksInPeriod.length) * 100);
   };
 
   const weeklyCompletionRate = getCompletionRate(tasks, weekInterval);
   const monthlyCompletionRate = getCompletionRate(tasks, monthInterval);
-  const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.status === "completed").length;
+  const totalTasks = tasks.length;
 
   const statsCards = [
     {
-      title: "Weekly Completion Rate",
+      titleLine1: "Weekly",
+      titleLine2: "Progress",
       value: `${weeklyCompletionRate}%`,
-      description: "For the current week",
+      progress: weeklyCompletionRate,
       icon: Clock,
     },
     {
-      title: "Monthly Completion Rate",
+      titleLine1: "Monthly",
+      titleLine2: "Progress",
       value: `${monthlyCompletionRate}%`,
-      description: "For the current month",
+      progress: monthlyCompletionRate,
       icon: Target,
     },
     {
-      title: "Total Tasks Completed",
+      titleLine1: "Overall",
+      titleLine2: "Tasks",
       value: `${completedTasks}/${totalTasks}`,
-      description: "All time completion",
+      progress: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
       icon: CheckCircle2,
     },
   ];
@@ -79,7 +77,7 @@ export const TaskStatistics = () => {
   return (
     <div className="w-full">
       {/* Desktop view */}
-      <div className="hidden md:grid md:grid-cols-3 gap-4">
+      <div className="hidden md:grid md:grid-cols-3 gap-3">
         {statsCards.map((stat, index) => (
           <StatCard key={index} {...stat} />
         ))}
@@ -96,9 +94,9 @@ export const TaskStatistics = () => {
           className="w-full"
           setApi={setApi}
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-2">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-4 basis-[57%] min-w-0">
+              <CarouselItem key={index} className="pl-2 basis-[85%]">
                 <StatCard {...stat} />
               </CarouselItem>
             ))}
@@ -111,9 +109,7 @@ export const TaskStatistics = () => {
                   "w-2 h-2 rounded-full transition-all",
                   activeIndex === index ? "bg-primary" : "bg-muted"
                 )}
-                onClick={() => {
-                  api?.scrollTo(index);
-                }}
+                onClick={() => api?.scrollTo(index)}
               />
             ))}
           </div>
@@ -123,17 +119,27 @@ export const TaskStatistics = () => {
   );
 };
 
-const StatCard = ({ title, value, description, icon: Icon }) => (
-  <Card className="h-[140px] md:h-[160px] flex flex-col">
-    <CardHeader className="flex flex-col space-y-2 pb-2">
-      <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-      <CardTitle className="text-xs md:text-sm font-medium">{title}</CardTitle>
-    </CardHeader>
-    <CardContent className="flex-1 flex flex-col justify-center">
-      <div className="text-lg md:text-xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">
-        {description}
-      </p>
-    </CardContent>
+const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon }) => (
+  <Card className={cn(
+    "flex flex-col p-4 h-[100px] md:h-[120px] bg-white border-none",
+    "shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+    "rounded-xl transition-all duration-200 ease-out hover:scale-[1.02]",
+    "cursor-pointer"
+  )}>
+    <div className="flex justify-between items-start mb-2">
+      <div className="space-y-0 leading-tight">
+        <p className="text-[14px] font-normal text-[#1D1D1F]">{titleLine1}</p>
+        <p className="text-[14px] font-normal text-[#1D1D1F]">{titleLine2}</p>
+      </div>
+      <Icon className="h-4 w-4 text-[#86868B] opacity-80" />
+    </div>
+    <div className="mt-auto space-y-2">
+      <div className="text-[32px] font-bold leading-none text-black">
+        {value}
+      </div>
+      <div className="w-[80%]">
+        <ProgressBar progress={progress} />
+      </div>
+    </div>
   </Card>
 );
