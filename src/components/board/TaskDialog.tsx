@@ -12,6 +12,7 @@ import { TaskForm } from "@/components/TaskForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskComments } from "@/components/TaskComments";
 import { TaskReminders } from "@/components/TaskReminders";
+import { TaskCalendarDetails } from "@/components/calendar/TaskCalendarDetails";
 import { SyncStatus } from "@/components/integrations/microsoft/SyncStatus";
 
 interface TaskDialogProps {

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Check, CloudOff, CloudSync, AlertCircle } from "lucide-react";
+import { Check, CloudOff, RefreshCw, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface SyncStatusProps {
@@ -63,7 +63,7 @@ export function SyncStatus({ taskId }: SyncStatusProps) {
 
   const getStatusIcon = () => {
     if (!syncStatus.isSynced) {
-      return <CloudSync className="h-5 w-5 text-yellow-500 animate-spin" />;
+      return <RefreshCw className="h-5 w-5 text-yellow-500 animate-spin" />;
     }
     
     if (syncStatus.syncStatus === 'error') {
