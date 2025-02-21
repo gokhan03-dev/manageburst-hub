@@ -13,7 +13,7 @@ import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
-import { SettingsState, DatabaseUserProfile } from "@/types/settings";
+import { SettingsState, DatabaseUserProfile, NotificationSettings as NotificationSettingsType } from "@/types/settings";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -46,14 +46,14 @@ const Settings = () => {
         return;
       }
 
-      const profile = profileData as DatabaseUserProfile;
-      if (profile?.notification_settings) {
+      if (profileData?.notification_settings) {
+        const notificationSettings = profileData.notification_settings as NotificationSettingsType;
         setSettings(prevSettings => ({
           ...prevSettings,
           notifications: {
-            email: profile.notification_settings.email ?? true,
-            push: profile.notification_settings.push ?? true,
-            inApp: profile.notification_settings.in_app ?? true
+            email: notificationSettings.email ?? true,
+            push: notificationSettings.push ?? true,
+            inApp: notificationSettings.in_app ?? true
           }
         }));
       }

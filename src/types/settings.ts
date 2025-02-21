@@ -1,4 +1,6 @@
 
+import { Json } from "@/integrations/supabase/types";
+
 export interface NotificationSettings {
   email: boolean;
   push: boolean;
