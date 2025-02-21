@@ -8,11 +8,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MicrosoftAuthConfig } from "@/types/microsoft";
 
-// Use environment variable or your actual Microsoft client ID
+// Ensure we have a valid origin, fallback to a default if needed
+const getRedirectUri = () => {
+  try {
+    return typeof window !== 'undefined' ? 
+      `${window.location.origin}/auth/microsoft/callback` : 
+      'https://id-preview--80b304d4-57ab-4e15-8a68-c9216dbb308d.lovable.app/auth/microsoft/callback';
+  } catch (e) {
+    console.error('Error getting redirect URI:', e);
+    return 'https://id-preview--80b304d4-57ab-4e15-8a68-c9216dbb308d.lovable.app/auth/microsoft/callback';
+  }
+};
+
 const MICROSOFT_AUTH_CONFIG: MicrosoftAuthConfig = {
   clientId: "04afd4ac-5b4f-4ce5-92c0-b21ac7022d18",
-  // Ensure the redirect URI matches exactly what's registered in Azure Portal
-  redirectUri: window.location.origin + "/auth/microsoft/callback",
+  redirectUri: getRedirectUri(),
   scopes: [
     "Calendars.ReadWrite",
     "offline_access",
@@ -27,25 +37,41 @@ export function MicrosoftCalendarSettings() {
   const { toast } = useToast();
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadSettings = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       
-      const { data } = await supabase
-        .from("integration_settings")
-        .select("sync_enabled")
-        .eq("user_id", user.id)
-        .eq("integration_type", "microsoft_calendar")
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("integration_settings")
+          .select("sync_enabled")
+          .eq("user_id", user.id)
+          .eq("integration_type", "microsoft_calendar")
+          .maybeSingle();
 
-      if (data) {
-        setSyncEnabled(data.sync_enabled);
+        if (error) throw error;
+        if (data) {
+          setSyncEnabled(data.sync_enabled);
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load integration settings",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadSettings();
-  }, [user]);
+  }, [user, toast]);
 
   const handleConnect = async () => {
     if (!user) {
@@ -130,6 +156,18 @@ export function MicrosoftCalendarSettings() {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
