@@ -8,6 +8,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,17 @@ export const TaskStatistics = () => {
   const { tasks } = useTaskContext();
   const now = new Date();
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const [api, setApi] = React.useState<CarouselApi>();
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    api.on("select", () => {
+      setActiveIndex(api.selectedScrollSnap());
+    });
+  }, [api]);
 
   const weekInterval = {
     start: startOfWeek(now),
@@ -82,9 +94,7 @@ export const TaskStatistics = () => {
             loop: true,
           }}
           className="w-full"
-          onSelect={(api) => {
-            setActiveIndex(api.selectedScrollSnap());
-          }}
+          setApi={setApi}
         >
           <CarouselContent className="-ml-4">
             {statsCards.map((stat, index) => (
@@ -102,13 +112,7 @@ export const TaskStatistics = () => {
                   activeIndex === index ? "bg-primary" : "bg-muted"
                 )}
                 onClick={() => {
-                  const carousel = document.querySelector(".embla__container");
-                  if (carousel) {
-                    carousel.scrollTo({
-                      left: index * (carousel.clientWidth / 2.25),
-                      behavior: "smooth",
-                    });
-                  }
+                  api?.scrollTo(index);
                 }}
               />
             ))}
