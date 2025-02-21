@@ -105,6 +105,8 @@ export type Database = {
           id: string
           integration_type: string
           is_active: boolean | null
+          last_sync: string | null
+          sync_enabled: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -114,6 +116,8 @@ export type Database = {
           id?: string
           integration_type: string
           is_active?: boolean | null
+          last_sync?: string | null
+          sync_enabled?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -123,6 +127,8 @@ export type Database = {
           id?: string
           integration_type?: string
           is_active?: boolean | null
+          last_sync?: string | null
+          sync_enabled?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
