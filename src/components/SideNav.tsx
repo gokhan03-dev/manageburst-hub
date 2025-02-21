@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "./ui/button";
-import { Menu, X, LayoutDashboard, Settings, HelpCircle } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, Settings, HelpCircle } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -37,6 +37,7 @@ const navItems: NavItem[] = [
 
 export const SideNav = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const NavContent = () => (
     <nav className="space-y-2">
@@ -53,7 +54,7 @@ export const SideNav = () => {
           aria-current={window.location.pathname === item.href ? "page" : undefined}
         >
           <item.icon className="h-5 w-5" />
-          <span>{item.title}</span>
+          {!isCollapsed && <span>{item.title}</span>}
         </a>
       ))}
     </nav>
@@ -63,7 +64,7 @@ export const SideNav = () => {
     <>
       {/* Mobile Navigation */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild className="lg:hidden">
+        <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
@@ -84,7 +85,27 @@ export const SideNav = () => {
       </Sheet>
 
       {/* Desktop Navigation */}
-      <div className="hidden h-screen w-64 flex-col gap-4 border-r bg-white p-4 lg:flex">
+      <div 
+        className={cn(
+          "hidden h-screen flex-col gap-4 border-r bg-white p-4 transition-all duration-300 ease-in-out lg:flex",
+          isCollapsed ? "w-16" : "w-64"
+        )}
+      >
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="h-6 w-6"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
         <NavContent />
       </div>
     </>
