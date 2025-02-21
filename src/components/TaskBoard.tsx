@@ -24,6 +24,7 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
+// Updated to match exact database values
 const columns: { id: TaskStatus; title: string }[] = [
   { id: "todo", title: "To Do" },
   { id: "in-progress", title: "In Progress" },
@@ -57,8 +58,13 @@ export const TaskBoard = () => {
     const taskId = active.id as string;
     const newStatus = over.id as TaskStatus;
 
-    if (taskId && newStatus) {
+    // Add logging to debug status values
+    console.log('Moving task:', { taskId, newStatus });
+
+    try {
       await moveTask(taskId, newStatus);
+    } catch (error) {
+      console.error('Error moving task:', error);
     }
   };
 
@@ -85,7 +91,7 @@ export const TaskBoard = () => {
     return (
       <div
         ref={setNodeRef}
-        className="rounded-lg border bg-white p-4 shadow-sm"
+        className="rounded-lg border bg-white p-4 shadow-sm min-h-[200px]"
       >
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
           {column.title}
