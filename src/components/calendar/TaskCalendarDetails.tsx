@@ -32,6 +32,13 @@ export function TaskCalendarDetails({ taskId }: TaskCalendarDetailsProps) {
 
       if (error) throw error;
       
+      // Safe type conversion of attendees from JSON to Attendee[]
+      const attendees = taskData.attendees ? (taskData.attendees as any[]).map(a => ({
+        email: a.email as string,
+        required: a.required as boolean,
+        response: a.response as AttendeeResponse
+      })) : [];
+      
       // Transform the data to match the Task type
       return {
         id: taskData.id,
@@ -46,7 +53,7 @@ export function TaskCalendarDetails({ taskId }: TaskCalendarDetailsProps) {
         endTime: taskData.end_time,
         isAllDay: taskData.is_all_day,
         location: taskData.location,
-        attendees: taskData.attendees as Attendee[],
+        attendees,
         onlineMeetingUrl: taskData.online_meeting_url,
         sensitivity: taskData.sensitivity as Sensitivity
       } as Task;
@@ -55,18 +62,29 @@ export function TaskCalendarDetails({ taskId }: TaskCalendarDetailsProps) {
 
   const handleUpdateTask = async (updates: Partial<Task>) => {
     try {
+      // Convert Attendee[] to a JSON-compatible format
+      const updateData: Record<string, unknown> = {
+        event_type: updates.eventType,
+        location: updates.location,
+        online_meeting_url: updates.onlineMeetingUrl,
+        sensitivity: updates.sensitivity,
+        is_all_day: updates.isAllDay,
+        start_time: updates.startTime,
+        end_time: updates.endTime
+      };
+
+      // Only include attendees if they are being updated
+      if (updates.attendees) {
+        updateData.attendees = updates.attendees.map(a => ({
+          email: a.email,
+          required: a.required,
+          response: a.response
+        }));
+      }
+
       const { error } = await supabase
         .from('tasks')
-        .update({
-          event_type: updates.eventType,
-          location: updates.location,
-          online_meeting_url: updates.onlineMeetingUrl,
-          sensitivity: updates.sensitivity,
-          attendees: updates.attendees,
-          is_all_day: updates.isAllDay,
-          start_time: updates.startTime,
-          end_time: updates.endTime
-        })
+        .update(updateData)
         .eq('id', taskId);
 
       if (error) throw error;
