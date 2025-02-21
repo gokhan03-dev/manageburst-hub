@@ -3,8 +3,9 @@ import React, { useState, useMemo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
+import { CategoryManager } from "./CategoryManager";
 import { Task, TaskStatus, TaskPriority } from "@/types/task";
-import { Plus } from "lucide-react";
+import { Plus, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchAndFilter } from "./SearchAndFilter";
 import {
@@ -34,7 +35,8 @@ const columns: { id: TaskStatus; title: string }[] = [
 
 export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
-  const [open, setOpen] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -108,16 +110,16 @@ export const TaskBoard = () => {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    setOpen(true);
+    setTaskDialogOpen(true);
   };
 
-  const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
+  const handleTaskSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     if (selectedTask) {
       updateTask({ ...data, id: selectedTask.id, createdAt: selectedTask.createdAt });
     } else {
       addTask(data);
     }
-    setOpen(false);
+    setTaskDialogOpen(false);
     setSelectedTask(undefined);
   };
 
@@ -144,28 +146,48 @@ export const TaskBoard = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Task
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedTask ? "Edit Task" : "Create New Task"}
-              </DialogTitle>
-              <DialogDescription>
-                Fill in the details for your task below.
-              </DialogDescription>
-            </DialogHeader>
-            <TaskForm
-              onSubmit={handleSubmit}
-              initialData={selectedTask}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Task
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedTask ? "Edit Task" : "Create New Task"}
+                </DialogTitle>
+                <DialogDescription>
+                  Fill in the details for your task below.
+                </DialogDescription>
+              </DialogHeader>
+              <TaskForm
+                onSubmit={handleTaskSubmit}
+                initialData={selectedTask}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Tags className="h-4 w-4" />
+                Manage Categories
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Manage Categories</DialogTitle>
+                <DialogDescription>
+                  Create and manage categories for your tasks.
+                </DialogDescription>
+              </DialogHeader>
+              <CategoryManager />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <SearchAndFilter
