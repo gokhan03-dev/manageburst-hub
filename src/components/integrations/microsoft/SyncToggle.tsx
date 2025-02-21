@@ -42,6 +42,9 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
       if (data?.error) {
         console.error('Sync function error:', data.error);
+        if (data.error.includes('Failed to refresh Microsoft access token')) {
+          throw new Error('Microsoft Calendar connection has expired. Please reconnect.');
+        }
         throw new Error(data.error);
       }
 
@@ -76,6 +79,18 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
         if (profileError) throw new Error('Failed to verify Microsoft authentication');
         if (!profile?.microsoft_refresh_token) {
           throw new Error('Please connect Microsoft Calendar before enabling sync');
+        }
+
+        // Check if the token is valid by making a test API call
+        const { data: testData, error: testError } = await supabase.functions.invoke('calendar-sync', {
+          body: { userId, action: 'test-connection' }
+        });
+
+        if (testError || testData?.error) {
+          if ((testError?.message || testData?.error || '').includes('Failed to refresh Microsoft access token')) {
+            throw new Error('Microsoft Calendar connection has expired. Please reconnect.');
+          }
+          throw new Error('Failed to verify Microsoft Calendar connection');
         }
       }
 
