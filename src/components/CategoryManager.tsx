@@ -3,9 +3,8 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Category } from "@/types/task";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,21 +14,15 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface CategoryFormData {
-  name: string;
-  color: string;
-}
+import { CategoryForm } from "./category/CategoryForm";
+import { CategoryList } from "./category/CategoryList";
+import { CategoryFormData } from "./category/types";
 
 export const CategoryManager = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState<CategoryFormData>({
-    name: "",
-    color: "#000000",
-  });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -61,7 +54,6 @@ export const CategoryManager = () => {
         description: "Category created successfully",
       });
       setIsOpen(false);
-      resetForm();
     },
     onError: (error) => {
       toast({
@@ -73,14 +65,15 @@ export const CategoryManager = () => {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async (data: Category) => {
+    mutationFn: async (data: CategoryFormData) => {
+      if (!editingCategory) return;
       const { error } = await supabase
         .from("categories")
         .update({
           name: data.name,
           color: data.color,
         })
-        .eq("id", data.id);
+        .eq("id", editingCategory.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -90,7 +83,7 @@ export const CategoryManager = () => {
         description: "Category updated successfully",
       });
       setIsOpen(false);
-      resetForm();
+      setEditingCategory(null);
     },
     onError: (error) => {
       toast({
@@ -122,37 +115,25 @@ export const CategoryManager = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event from bubbling up
+  const handleSubmit = (data: CategoryFormData) => {
     if (editingCategory) {
-      updateCategory.mutate({
-        ...editingCategory,
-        ...formData,
-      });
+      updateCategory.mutate(data);
     } else {
-      createCategory.mutate(formData);
+      createCategory.mutate(data);
     }
   };
 
   const handleEdit = (category: Category, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
+    e.stopPropagation();
     setEditingCategory(category);
-    setFormData({
-      name: category.name,
-      color: category.color,
-    });
     setIsOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({ name: "", color: "#000000" });
-    setEditingCategory(null);
   };
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open) resetForm();
+    if (!open) {
+      setEditingCategory(null);
+    }
   };
 
   return (
@@ -172,71 +153,31 @@ export const CategoryManager = () => {
                 {editingCategory ? "Edit Category" : "Create Category"}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  placeholder="Category name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Input
-                  type="color"
-                  value={formData.color}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, color: e.target.value }))
-                  }
-                  className="h-10 w-full"
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                {editingCategory ? "Update" : "Create"}
-              </Button>
-            </form>
+            <CategoryForm
+              onSubmit={handleSubmit}
+              initialData={
+                editingCategory
+                  ? {
+                      name: editingCategory.name,
+                      color: editingCategory.color,
+                    }
+                  : undefined
+              }
+              title={editingCategory ? "Edit Category" : "Create Category"}
+              submitLabel={editingCategory ? "Update" : "Create"}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-2">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="flex items-center justify-between p-2 rounded-lg border bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className="h-4 w-4 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              <span>{category.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => handleEdit(category, e)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteCategory.mutate(category.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <CategoryList
+        categories={categories}
+        onEdit={handleEdit}
+        onDelete={(id, e) => {
+          e.stopPropagation();
+          deleteCategory.mutate(id);
+        }}
+      />
     </div>
   );
 };
