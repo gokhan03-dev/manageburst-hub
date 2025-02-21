@@ -102,8 +102,29 @@ export const SideNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { signOut } = useAuth();
-  const { tasks } = useTaskContext();
+  const { tasks, addTask } = useTaskContext();
   const { currentFilter, setCurrentFilter, getFilteredTaskCount } = useFilter();
+
+  const handleAddTask = () => {
+    const newTask = {
+      title: "New Task",
+      description: "",
+      status: "todo",
+      priority: "medium",
+      dueDate: new Date().toISOString(),
+    };
+    addTask(newTask);
+  };
+
+  const getTodayTaskCount = () => {
+    return tasks.filter(task => {
+      const today = new Date();
+      const taskDate = task.dueDate ? new Date(task.dueDate) : null;
+      return taskDate && 
+             taskDate.toDateString() === today.toDateString() && 
+             (task.status === "todo" || task.status === "in-progress");
+    }).length;
+  };
 
   const NavContent = () => (
     <div className="flex h-full flex-col justify-between">
@@ -170,6 +191,7 @@ export const SideNav = () => {
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
+          const todayCount = item.filterType === "today" ? getTodayTaskCount() : null;
 
           return (
             <Button
@@ -184,13 +206,22 @@ export const SideNav = () => {
                 if (item.filterType) {
                   setCurrentFilter(item.filterType);
                 }
-                // Add task button functionality can be added here
                 if (item.title === "Add Task") {
-                  // Handle add task click
+                  handleAddTask();
                 }
               }}
             >
-              <Icon className="h-5 w-5" />
+              <div className="relative">
+                <Icon className="h-5 w-5" />
+                {todayCount !== null && todayCount > 0 && (
+                  <Badge 
+                    variant="default"
+                    className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] rounded-full"
+                  >
+                    {todayCount}
+                  </Badge>
+                )}
+              </div>
               <span className="text-xs">{item.title}</span>
             </Button>
           );
@@ -201,10 +232,7 @@ export const SideNav = () => {
 
   return (
     <>
-      {/* Mobile Navigation */}
       <MobileNav />
-
-      {/* Desktop Navigation */}
       <div 
         className={cn(
           "hidden fixed inset-y-0 left-0 flex-col gap-4 border-r bg-background p-4 transition-all duration-300 ease-in-out lg:flex dark:bg-secondary/50",
