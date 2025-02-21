@@ -1,58 +1,17 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MicrosoftAuthConfig } from "@/types/microsoft";
-
-// Ensure we have a valid origin, use current origin for preview
-const getRedirectUri = () => {
-  try {
-    // For local development
-    if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
-      return `http://localhost:8080/auth/microsoft/callback`;
-    }
-    
-    // For preview environment with id
-    if (typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com')) {
-      const previewId = window.location.hostname.split('.')[0];
-      return `https://${previewId}.lovable.app/auth/microsoft/callback`;
-    }
-    
-    // For preview environment without id
-    if (typeof window !== 'undefined' && window.location.hostname.includes('preview--manageburst-hub.lovable.app')) {
-      return 'https://preview--manageburst-hub.lovable.app/auth/microsoft/callback';
-    }
-    
-    // Production URL
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
-  } catch (e) {
-    console.error('Error getting redirect URI:', e);
-    // Default to production URL
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
-  }
-};
-
-const MICROSOFT_AUTH_CONFIG: MicrosoftAuthConfig = {
-  clientId: "04afd4ac-5b4f-4ce5-92c0-b21ac7022d18",
-  redirectUri: getRedirectUri(),
-  scopes: [
-    "Calendars.ReadWrite",
-    "offline_access",
-    "openid",
-    "profile",
-    "email"
-  ]
-};
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ConnectButton } from "./microsoft/ConnectButton";
+import { SyncToggle } from "./microsoft/SyncToggle";
 
 export function MicrosoftCalendarSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [syncEnabled, setSyncEnabled] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -89,96 +48,16 @@ export function MicrosoftCalendarSettings() {
     loadSettings();
   }, [user, toast]);
 
-  const handleConnect = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to connect Microsoft Calendar",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsConnecting(true);
-    try {
-      // Generate state parameter for security
-      const stateParam = encodeURIComponent(JSON.stringify({
-        userId: user.id,
-        timestamp: Date.now()
-      }));
-
-      // Construct Microsoft OAuth URL with all necessary parameters
-      const authUrl = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
-      
-      // Add required query parameters
-      const params = new URLSearchParams({
-        client_id: MICROSOFT_AUTH_CONFIG.clientId,
-        response_type: "code",
-        redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
-        scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
-        response_mode: "query",
-        state: stateParam,
-        prompt: "select_account"
-      });
-
-      authUrl.search = params.toString();
-
-      // Log the full URL for debugging
-      console.log("Microsoft Auth URL:", authUrl.toString());
-      console.log("Redirect URI:", MICROSOFT_AUTH_CONFIG.redirectUri);
-
-      // Redirect to Microsoft login
-      window.location.href = authUrl.toString();
-    } catch (error) {
-      console.error("Error connecting to Microsoft:", error);
-      toast({
-        title: "Error",
-        description: "Failed to connect to Microsoft Calendar. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const handleSyncToggle = async (enabled: boolean) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from("integration_settings")
-        .upsert({
-          user_id: user.id,
-          integration_type: "microsoft_calendar",
-          sync_enabled: enabled,
-          is_active: true,
-        });
-
-      if (error) throw error;
-
-      setSyncEnabled(enabled);
-      toast({
-        title: enabled ? "Sync Enabled" : "Sync Disabled",
-        description: enabled 
-          ? "Your tasks will now sync with Microsoft Calendar" 
-          : "Task synchronization has been disabled",
-      });
-    } catch (error) {
-      console.error("Error updating sync settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update sync settings",
-        variant: "destructive",
-      });
-    }
-  };
+  if (!user) {
+    return null;
+  }
 
   if (isLoading) {
     return (
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <LoadingSpinner />
           </div>
         </CardContent>
       </Card>
@@ -195,24 +74,12 @@ export function MicrosoftCalendarSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col space-y-4">
-          <Button
-            onClick={handleConnect}
-            disabled={isConnecting}
-            variant="default"
-          >
-            {isConnecting ? "Connecting..." : "Connect Microsoft Calendar"}
-          </Button>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={syncEnabled}
-              onCheckedChange={handleSyncToggle}
-              id="sync-enabled"
-            />
-            <label htmlFor="sync-enabled" className="text-sm">
-              Enable task synchronization
-            </label>
-          </div>
+          <ConnectButton userId={user.id} />
+          <SyncToggle 
+            userId={user.id}
+            syncEnabled={syncEnabled}
+            onSyncChange={setSyncEnabled}
+          />
         </div>
       </CardContent>
     </Card>
