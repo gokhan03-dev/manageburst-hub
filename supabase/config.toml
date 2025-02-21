@@ -1,1 +1,3 @@
-project_id = "mdcnmchtholpfmnrnsmk"
+
+[functions.send-reminder]
+verify_jwt = false

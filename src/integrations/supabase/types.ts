@@ -415,6 +415,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_sent: boolean | null
+          notification_sent: boolean | null
           reminder_time: string
           reminder_type: string
           task_id: string
@@ -426,6 +427,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_sent?: boolean | null
+          notification_sent?: boolean | null
           reminder_time: string
           reminder_type: string
           task_id: string
@@ -437,6 +439,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_sent?: boolean | null
+          notification_sent?: boolean | null
           reminder_time?: string
           reminder_type?: string
           task_id?: string
@@ -620,7 +623,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      process_due_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

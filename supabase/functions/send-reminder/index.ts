@@ -17,6 +17,7 @@ interface ReminderEmailData {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -24,14 +25,22 @@ serve(async (req) => {
   try {
     const { taskTitle, dueDate, userEmail }: ReminderEmailData = await req.json();
 
+    console.log(`Sending reminder email for task: ${taskTitle} to ${userEmail}`);
+
     const { data, error } = await resend.emails.send({
       from: "Task Reminder <onboarding@resend.dev>",
       to: [userEmail],
       subject: `Reminder: ${taskTitle}`,
       html: `
-        <h1>Task Reminder</h1>
-        <p>This is a reminder for your task: ${taskTitle}</p>
-        <p>Due date: ${new Date(dueDate).toLocaleDateString()}</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1>Task Reminder</h1>
+          <p>This is a reminder for your task:</p>
+          <h2>${taskTitle}</h2>
+          <p>Due date: ${new Date(dueDate).toLocaleString()}</p>
+          <p>Please make sure to complete this task before the due date.</p>
+          <br/>
+          <p>Best regards,<br/>Your Task Manager</p>
+        </div>
       `,
     });
 
@@ -39,11 +48,14 @@ serve(async (req) => {
       throw error;
     }
 
-    return new Response(JSON.stringify(data), {
+    console.log("Email sent successfully:", data);
+
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
+    console.error("Error sending reminder email:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
