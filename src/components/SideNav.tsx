@@ -193,27 +193,29 @@ export const SideNav = () => {
           const Icon = item.icon;
           const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
           const todayCount = item.filterType === "today" ? getTodayTaskCount() : null;
+          const isAddTask = item.title === "Add Task";
 
           return (
             <Button
               key={item.title}
-              variant="ghost"
+              variant={isAddTask ? "default" : "ghost"}
               size="sm"
               className={cn(
-                "flex flex-col items-center gap-1 h-16 px-4",
-                isActive && "text-primary"
+                "flex flex-col items-center gap-1 h-16",
+                isAddTask ? "px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg" : "px-4",
+                isActive && !isAddTask && "text-primary"
               )}
               onClick={() => {
                 if (item.filterType) {
                   setCurrentFilter(item.filterType);
                 }
-                if (item.title === "Add Task") {
+                if (isAddTask) {
                   handleAddTask();
                 }
               }}
             >
               <div className="relative">
-                <Icon className="h-5 w-5" />
+                <Icon className={cn("h-5 w-5", isAddTask && "animate-pulse")} />
                 {todayCount !== null && todayCount > 0 && (
                   <Badge 
                     variant="default"
