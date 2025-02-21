@@ -28,11 +28,20 @@ import { useTaskContext } from "@/contexts/TaskContext";
 import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "./ui/badge";
 
+type FilterType = "all" | "today" | "this-week" | "upcoming";
+
 interface NavItem {
   title: string;
   icon: LucideIcon;
   href: string;
-  filterType?: "all" | "today" | "this-week" | "upcoming";
+  filterType?: FilterType;
+}
+
+interface MobileNavItem {
+  title: string;
+  icon: LucideIcon;
+  filterType?: FilterType;
+  href?: string;
 }
 
 const navItems: NavItem[] = [
@@ -72,11 +81,11 @@ const navItems: NavItem[] = [
   },
 ];
 
-const mobileNavItems = [
+const mobileNavItems: MobileNavItem[] = [
   {
     title: "Today",
     icon: Calendar,
-    filterType: "today"
+    filterType: "today" as FilterType
   },
   {
     title: "Add Task",
