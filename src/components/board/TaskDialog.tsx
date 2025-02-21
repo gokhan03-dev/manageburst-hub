@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Dialog,
@@ -13,23 +14,20 @@ import { TaskComments } from "@/components/TaskComments";
 import { TaskReminders } from "@/components/TaskReminders";
 
 interface TaskDialogProps {
-  task?: Task;
-  onClose: () => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedTask?: Task;
+  onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
 }
 
-export function TaskDialog({ task, onClose }: TaskDialogProps) {
-  const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
-    console.log("Task data submitted:", data);
-    onClose();
-  };
-
+export function TaskDialog({ isOpen, onOpenChange, selectedTask, onSubmit }: TaskDialogProps) {
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{task ? "Edit Task" : "Create Task"}</DialogTitle>
+          <DialogTitle>{selectedTask ? "Edit Task" : "Create Task"}</DialogTitle>
           <DialogDescription>
-            {task ? "Edit your task details below." : "Add a new task to your board."}
+            {selectedTask ? "Edit your task details below." : "Add a new task to your board."}
           </DialogDescription>
         </DialogHeader>
         
@@ -42,17 +40,17 @@ export function TaskDialog({ task, onClose }: TaskDialogProps) {
           
           <TabsContent value="details" className="mt-4">
             <TaskForm
-              onSubmit={handleSubmit}
-              initialData={task}
+              onSubmit={onSubmit}
+              initialData={selectedTask}
             />
           </TabsContent>
           
           <TabsContent value="comments" className="mt-4">
-            {task && <TaskComments taskId={task.id} />}
+            {selectedTask && <TaskComments taskId={selectedTask.id} />}
           </TabsContent>
           
           <TabsContent value="reminders" className="mt-4">
-            {task && <TaskReminders taskId={task.id} />}
+            {selectedTask && <TaskReminders taskId={selectedTask.id} />}
           </TabsContent>
         </Tabs>
       </DialogContent>

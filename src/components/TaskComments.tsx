@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +20,6 @@ interface Comment {
 export const TaskComments = ({ taskId }: { taskId: string }) => {
   const [newComment, setNewComment] = useState("");
   const queryClient = useQueryClient();
-
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", taskId],
     queryFn: async () => {
@@ -31,7 +29,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
           id,
           content,
           created_at,
-          user_profiles:user_id (
+          user:user_id (
             email,
             full_name
           )
@@ -40,7 +38,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Comment[];
+      return data as unknown as Comment[];
     },
   });
 

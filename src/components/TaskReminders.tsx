@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { CalendarIcon, BellRing, X } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Reminder {
   id: string;
@@ -19,6 +20,7 @@ interface Reminder {
 export const TaskReminders = ({ taskId }: { taskId: string }) => {
   const queryClient = useQueryClient();
   const [date, setDate] = React.useState<Date>();
+  const { user } = useAuth();
 
   const { data: reminders = [] } = useQuery({
     queryKey: ["reminders", taskId],
@@ -35,13 +37,16 @@ export const TaskReminders = ({ taskId }: { taskId: string }) => {
 
   const addReminderMutation = useMutation({
     mutationFn: async (reminderTime: Date) => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
       const { error } = await supabase
         .from("task_reminders")
-        .insert([{
+        .insert({
           task_id: taskId,
+          user_id: user.id,
           reminder_type: "notification",
           reminder_time: reminderTime.toISOString(),
-        }]);
+        });
 
       if (error) throw error;
     },
