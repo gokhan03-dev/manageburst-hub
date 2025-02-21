@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
 
 // This is the correct client secret from the Microsoft Azure Portal
-const MICROSOFT_CLIENT_SECRET = "IXM8Q~o3NWASJg4T2u-RZxlsCmIsYVa4sEfaU6cE";
+const MICROSOFT_CLIENT_SECRET = "tUZ8Q~QxHonqcpDfHbAfFAQ5pRtfEKQ0Ss5jrcpS";
 
 export function MicrosoftAuthCallback() {
   const [searchParams] = useSearchParams();
