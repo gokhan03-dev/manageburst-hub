@@ -5,9 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
 
-// This is the correct client secret from the Microsoft Azure Portal
-const MICROSOFT_CLIENT_SECRET = "2qe8Q~V_M~h6ouLWHQUUFQuoWBVwHNIHjx~q1a5W";
-
+// Using PKCE flow instead of client secret for SPA
 export function MicrosoftAuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -56,12 +54,12 @@ export function MicrosoftAuthCallback() {
           code: code,
           redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
           grant_type: "authorization_code",
-          client_secret: MICROSOFT_CLIENT_SECRET,
+          code_verifier: sessionStorage.getItem('code_verifier') || '', // Add PKCE code verifier
         };
 
         console.log("Token request parameters:", {
           ...tokenRequestBody,
-          client_secret: "[REDACTED]"
+          code_verifier: "[REDACTED]"
         });
 
         // Exchange the code for tokens
