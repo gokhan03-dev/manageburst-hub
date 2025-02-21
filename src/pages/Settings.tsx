@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,17 +10,6 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Bell,
-  User,
-  Shield,
-  Palette,
-  Globe,
-  CalendarDays,
-  HelpCircle,
-  FileText,
-  ListTodo
-} from "lucide-react";
 
 const Settings = () => {
   const { user } = useAuth();
