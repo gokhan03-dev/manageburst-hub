@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { 
@@ -26,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "./ui/badge";
-import { TaskPriority, TaskStatus } from "@/types/task";
+import { TaskPriority, TaskStatus, Task } from "@/types/task";
 import { TaskDialog } from "./board/TaskDialog";
 
 type FilterType = "all" | "today" | "this-week" | "upcoming";
