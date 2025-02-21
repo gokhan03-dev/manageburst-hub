@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import { Button } from "@/components/ui/button";
@@ -14,14 +14,15 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
-import { Badge } from "@/components/ui/badge";
 import { CustomPopover } from "@/components/ui/custom-popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
+import { DependencySelect } from "./task-form/DependencySelect";
+import { CategorySelect } from "./task-form/CategorySelect";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -78,18 +79,6 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
       dependencies: selectedDependencies,
       categoryIds: selectedCategories,
     });
-  };
-
-  const availableTasks = tasks.filter(
-    (task) => task.id !== initialData?.id && !selectedDependencies.includes(task.id)
-  );
-
-  const removeDependency = (taskId: string) => {
-    setSelectedDependencies((prev) => prev.filter((id) => id !== taskId));
-  };
-
-  const removeCategory = (categoryId: string) => {
-    setSelectedCategories((prev) => prev.filter((id) => id !== categoryId));
   };
 
   return (
@@ -158,107 +147,24 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Categories</p>
-        <Select
-          onValueChange={(value: string) => {
-            if (!selectedCategories.includes(value)) {
-              setSelectedCategories((prev) => [...prev, value]);
-            }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Add category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  {category.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <CategorySelect
+        categories={categories}
+        selectedCategories={selectedCategories}
+        onAddCategory={(categoryId) => setSelectedCategories((prev) => [...prev, categoryId])}
+        onRemoveCategory={(categoryId) => 
+          setSelectedCategories((prev) => prev.filter((id) => id !== categoryId))
+        }
+      />
 
-        <div className="mt-2 flex flex-wrap gap-2">
-          {selectedCategories.map((categoryId) => {
-            const category = categories.find((c) => c.id === categoryId);
-            if (!category) return null;
-            return (
-              <Badge
-                key={categoryId}
-                variant="secondary"
-                className="flex items-center gap-1"
-                style={{
-                  backgroundColor: `${category.color}20`,
-                  borderColor: category.color,
-                }}
-              >
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: category.color }}
-                />
-                {category.name}
-                <button
-                  type="button"
-                  onClick={() => removeCategory(categoryId)}
-                  className="ml-1 rounded-full p-1 hover:bg-secondary"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Dependencies</p>
-        <Select
-          onValueChange={(value: string) => {
-            setSelectedDependencies((prev) => [...prev, value]);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Add dependency" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTasks.map((task) => (
-              <SelectItem key={task.id} value={task.id}>
-                {task.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="mt-2 flex flex-wrap gap-2">
-          {selectedDependencies.map((depId) => {
-            const task = tasks.find((t) => t.id === depId);
-            if (!task) return null;
-            return (
-              <Badge
-                key={depId}
-                variant="secondary"
-                className="flex items-center gap-1"
-              >
-                {task.title}
-                <button
-                  type="button"
-                  onClick={() => removeDependency(depId)}
-                  className="ml-1 rounded-full p-1 hover:bg-secondary"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            );
-          })}
-        </div>
-      </div>
+      <DependencySelect
+        tasks={tasks}
+        selectedDependencies={selectedDependencies}
+        initialTaskId={initialData?.id}
+        onAddDependency={(taskId) => setSelectedDependencies((prev) => [...prev, taskId])}
+        onRemoveDependency={(taskId) => 
+          setSelectedDependencies((prev) => prev.filter((id) => id !== taskId))
+        }
+      />
 
       <Button type="submit" className="w-full">
         {initialData ? "Update Task" : "Create Task"}
