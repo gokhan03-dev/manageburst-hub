@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -118,6 +119,9 @@ export const TaskBoard = () => {
               <DialogTitle>
                 {selectedTask ? "Edit Task" : "Create New Task"}
               </DialogTitle>
+              <DialogDescription>
+                Fill in the details for your task below.
+              </DialogDescription>
             </DialogHeader>
             <TaskForm
               onSubmit={handleSubmit}
