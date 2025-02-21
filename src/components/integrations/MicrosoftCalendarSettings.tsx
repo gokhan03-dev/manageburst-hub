@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,28 @@ export function MicrosoftCalendarSettings() {
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("integration_settings")
+        .select("sync_enabled")
+        .eq("user_id", user.id)
+        .eq("integration_type", "microsoft_calendar")
+        .single();
+
+      if (data) {
+        setSyncEnabled(data.sync_enabled);
+      }
+    };
+
+    loadSettings();
+  }, [user]);
+
   const handleConnect = async () => {
+    if (!user) return;
+    
     setIsConnecting(true);
     try {
       // Build Microsoft OAuth URL
@@ -33,7 +54,7 @@ export function MicrosoftCalendarSettings() {
         `&redirect_uri=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.redirectUri)}` +
         `&scope=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.scopes.join(' '))}` +
         `&response_mode=query` +
-        `&state=${user?.id}`;
+        `&state=${user.id}`;
 
       // Redirect to Microsoft login
       window.location.href = authUrl;
