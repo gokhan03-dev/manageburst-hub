@@ -26,7 +26,7 @@ export const DatePicker = ({ date, onSelect }: DatePickerProps) => {
         >
           <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           <span className="block flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-            {date ? format(date, "PPP") : "Pick a date"}
+            {date ? format(date, "MMM d, yyyy") : "Pick a date"}
           </span>
         </Button>
       }
