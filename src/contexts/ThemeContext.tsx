@@ -22,20 +22,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     async function loadUserTheme() {
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("theme_preference")
-        .eq("id", user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("theme_preference")
+          .eq("id", user.id)
+          .single();
 
-      if (error) {
-        console.error("Error loading theme preference:", error);
-        return;
-      }
+        if (error && error.code !== 'PGRST116') { // Not found error
+          console.error("Error loading theme preference:", error);
+          return;
+        }
 
-      if (data?.theme_preference) {
-        setTheme(data.theme_preference as Theme);
-        document.documentElement.classList.toggle("dark", data.theme_preference === "dark");
+        if (data?.theme_preference) {
+          setTheme(data.theme_preference as Theme);
+          document.documentElement.classList.toggle("dark", data.theme_preference === "dark");
+        }
+      } catch (error) {
+        console.error("Unexpected error loading theme:", error);
       }
     }
 
@@ -48,19 +52,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.toggle("dark", newTheme === "dark");
 
     if (user) {
-      const { error } = await supabase
-        .from("user_profiles")
-        .upsert({
-          id: user.id,
-          theme_preference: newTheme,
-          email: user.email,
-        })
-        .select();
+      try {
+        const { error } = await supabase
+          .from("user_profiles")
+          .upsert(
+            {
+              id: user.id,
+              theme_preference: newTheme,
+              email: user.email,
+              updated_at: new Date().toISOString()
+            },
+            {
+              onConflict: 'id'
+            }
+          );
 
-      if (error) {
+        if (error) {
+          console.error("Error saving theme preference:", error);
+          toast({
+            title: "Error saving theme preference",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Unexpected error saving theme:", error);
         toast({
           title: "Error saving theme preference",
-          description: "Your preference could not be saved.",
+          description: "An unexpected error occurred.",
           variant: "destructive",
         });
       }
