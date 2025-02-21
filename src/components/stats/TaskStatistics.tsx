@@ -124,14 +124,14 @@ export const TaskStatistics = () => {
 };
 
 const StatCard = ({ title, value, description, icon: Icon }) => (
-  <Card className="h-[200px] flex flex-col">
+  <Card className="h-[160px] md:h-[200px] flex flex-col">
     <CardHeader className="flex flex-col space-y-3 pb-2">
-      <Icon className="h-8 w-8 text-primary" />
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      <Icon className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+      <CardTitle className="text-sm md:text-base font-medium">{title}</CardTitle>
     </CardHeader>
     <CardContent className="flex-1 flex flex-col justify-center">
-      <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">
+      <div className="text-xl md:text-2xl font-bold">{value}</div>
+      <p className="text-xs md:text-sm text-muted-foreground">
         {description}
       </p>
     </CardContent>
