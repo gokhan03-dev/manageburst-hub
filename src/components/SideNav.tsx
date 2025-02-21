@@ -15,13 +15,7 @@ import {
   Plus,
   LucideIcon 
 } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -29,6 +23,7 @@ import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "./ui/badge";
 import { TaskPriority, TaskStatus, Task } from "@/types/task";
 import { TaskDialog } from "./board/TaskDialog";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type FilterType = "all" | "today" | "this-week" | "upcoming";
 
@@ -87,7 +82,7 @@ const mobileNavItems: MobileNavItem[] = [
   {
     title: "Today",
     icon: Calendar,
-    filterType: "today" as FilterType
+    filterType: "today"
   },
   {
     title: "Add Task",
@@ -107,6 +102,8 @@ export const SideNav = () => {
   const { signOut } = useAuth();
   const { tasks, addTask } = useTaskContext();
   const { currentFilter, setCurrentFilter, getFilteredTaskCount } = useFilter();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleTaskSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     addTask(data);
@@ -128,7 +125,10 @@ export const SideNav = () => {
       <nav className="space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
+          const isActive = item.filterType 
+            ? currentFilter === item.filterType 
+            : location.pathname === item.href;
+
           const taskCount = item.filterType ? getFilteredTaskCount(tasks, item.filterType) : null;
 
           return (
@@ -136,9 +136,12 @@ export const SideNav = () => {
               key={item.title}
               href={item.href}
               onClick={(e) => {
+                e.preventDefault();
                 if (item.filterType) {
-                  e.preventDefault();
                   setCurrentFilter(item.filterType);
+                  navigate('/');
+                } else {
+                  navigate(item.href);
                 }
               }}
               className={cn(
@@ -187,7 +190,9 @@ export const SideNav = () => {
       <nav className="flex items-center justify-around">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
+          const isActive = item.filterType 
+            ? currentFilter === item.filterType 
+            : item.href ? location.pathname === item.href : false;
           const todayCount = item.filterType === "today" ? getTodayTaskCount() : null;
           const isAddTask = item.title === "Add Task";
 
@@ -206,8 +211,10 @@ export const SideNav = () => {
               onClick={() => {
                 if (item.filterType) {
                   setCurrentFilter(item.filterType);
-                }
-                if (isAddTask) {
+                  navigate('/');
+                } else if (item.href) {
+                  navigate(item.href);
+                } else if (isAddTask) {
                   setTaskDialogOpen(true);
                 }
               }}
