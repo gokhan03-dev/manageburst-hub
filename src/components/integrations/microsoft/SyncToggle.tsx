@@ -19,6 +19,12 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
     try {
       setIsSyncing(true);
       
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session found');
+      }
+      
       // First verify Microsoft auth is set up
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -32,7 +38,10 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
       }
 
       const { data, error } = await supabase.functions.invoke('calendar-sync', {
-        body: { userId, direction: 'push' }
+        body: { userId, direction: 'push' },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) {
@@ -68,6 +77,12 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
   const handleSyncToggle = async (enabled: boolean) => {
     try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session found');
+      }
+
       // First, check if Microsoft is connected when enabling
       if (enabled) {
         const { data: profile, error: profileError } = await supabase
@@ -83,7 +98,10 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
         // Check if the token is valid by making a test API call
         const { data: testData, error: testError } = await supabase.functions.invoke('calendar-sync', {
-          body: { userId, action: 'test-connection' }
+          body: { userId, action: 'test-connection' },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
         });
 
         if (testError || testData?.error) {
