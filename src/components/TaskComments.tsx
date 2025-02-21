@@ -13,7 +13,7 @@ interface Comment {
   id: string;
   content: string;
   created_at: string;
-  user_profiles: {
+  user: {
     email: string;
     full_name: string | null;
   };
@@ -35,7 +35,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
           id,
           content,
           created_at,
-          user_profiles (
+          user:user_id (
             email,
             full_name
           )
@@ -141,13 +141,13 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
             <div key={comment.id} className="flex gap-4 p-4 border rounded-lg">
               <Avatar>
                 <AvatarFallback>
-                  {comment.user_profiles.full_name?.[0] || comment.user_profiles.email[0].toUpperCase()}
+                  {comment.user.full_name?.[0] || comment.user.email[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">
-                    {comment.user_profiles.full_name || comment.user_profiles.email}
+                    {comment.user.full_name || comment.user.email}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {format(new Date(comment.created_at), "MMM d, yyyy 'at' h:mm a")}
