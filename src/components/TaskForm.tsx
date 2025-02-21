@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Task, TaskPriority, TaskStatus } from "@/types/task";
+import { Task, TaskPriority, TaskStatus, RecurrencePattern } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { DependencySelect } from "./task-form/DependencySelect";
 import { CategorySelect } from "./task-form/CategorySelect";
 import { PrioritySelect } from "./task-form/PrioritySelect";
 import { DatePicker } from "./task-form/DatePicker";
+import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -29,6 +30,19 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
   );
   const [date, setDate] = useState<Date | undefined>(
     initialData?.dueDate ? new Date(initialData.dueDate) : new Date()
+  );
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
+  const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern | undefined>(
+    initialData?.recurrencePattern
+  );
+  const [recurrenceInterval, setRecurrenceInterval] = useState<number>(
+    initialData?.recurrenceInterval || 1
+  );
+  const [recurrenceStartDate, setRecurrenceStartDate] = useState<Date | undefined>(
+    initialData?.recurrenceStartDate ? new Date(initialData.recurrenceStartDate) : undefined
+  );
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(
+    initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate) : undefined
   );
 
   const { register, handleSubmit, setValue } = useForm({
@@ -68,6 +82,13 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
       dueDate: date?.toISOString() || new Date().toISOString(),
       dependencies: selectedDependencies,
       categoryIds: selectedCategories,
+      ...(recurrenceEnabled && {
+        recurrencePattern,
+        recurrenceInterval,
+        recurrenceStartDate: recurrenceStartDate?.toISOString(),
+        recurrenceEndDate: recurrenceEndDate?.toISOString(),
+        scheduleStartDate: date?.toISOString(),
+      }),
     });
   };
 
@@ -104,6 +125,19 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
           />
         </div>
       </div>
+
+      <RecurrenceSettings
+        enabled={recurrenceEnabled}
+        onEnableChange={setRecurrenceEnabled}
+        pattern={recurrencePattern}
+        onPatternChange={setRecurrencePattern}
+        interval={recurrenceInterval}
+        onIntervalChange={setRecurrenceInterval}
+        startDate={recurrenceStartDate}
+        onStartDateChange={setRecurrenceStartDate}
+        endDate={recurrenceEndDate}
+        onEndDateChange={setRecurrenceEndDate}
+      />
 
       <CategorySelect
         categories={categories}

@@ -1,6 +1,7 @@
 
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in-progress" | "completed";
+export type RecurrencePattern = "daily" | "weekly" | "monthly" | "yearly";
 
 export interface Task {
   id: string;
@@ -12,6 +13,13 @@ export interface Task {
   createdAt: string;
   dependencies?: string[];
   categoryIds?: string[];
+  recurrencePattern?: RecurrencePattern;
+  recurrenceInterval?: number;
+  recurrenceStartDate?: string;
+  recurrenceEndDate?: string;
+  nextOccurrence?: string;
+  lastOccurrence?: string;
+  scheduleStartDate?: string;
 }
 
 export interface TaskDependency {

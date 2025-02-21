@@ -521,9 +521,16 @@ export type Database = {
           habit_streak: number | null
           id: string
           is_completed: boolean | null
+          last_occurrence: string | null
+          next_occurrence: string | null
           parent_id: string | null
           priority: string
           progress: number | null
+          recurrence_end_date: string | null
+          recurrence_interval: number | null
+          recurrence_pattern: string | null
+          recurrence_start_date: string | null
+          schedule_start_date: string | null
           status: string
           tags: string[] | null
           task_type: string
@@ -542,9 +549,16 @@ export type Database = {
           habit_streak?: number | null
           id?: string
           is_completed?: boolean | null
+          last_occurrence?: string | null
+          next_occurrence?: string | null
           parent_id?: string | null
           priority?: string
           progress?: number | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_pattern?: string | null
+          recurrence_start_date?: string | null
+          schedule_start_date?: string | null
           status?: string
           tags?: string[] | null
           task_type?: string
@@ -563,9 +577,16 @@ export type Database = {
           habit_streak?: number | null
           id?: string
           is_completed?: boolean | null
+          last_occurrence?: string | null
+          next_occurrence?: string | null
           parent_id?: string | null
           priority?: string
           progress?: number | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_pattern?: string | null
+          recurrence_start_date?: string | null
+          schedule_start_date?: string | null
           status?: string
           tags?: string[] | null
           task_type?: string
