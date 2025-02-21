@@ -165,7 +165,7 @@ export const SideNav = () => {
   );
 
   const MobileNav = () => (
-    <div className="fixed bottom-0 left-0 right-0 border-t bg-background py-2 lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 border-t bg-background py-2 lg:hidden z-50">
       <nav className="flex items-center justify-around">
         {mobileNavItems.map((item) => {
           const Icon = item.icon;

@@ -34,7 +34,7 @@ export const BoardColumns = ({ tasks, onTaskClick, onDragEnd }: BoardColumnsProp
       modifiers={[restrictToWindowEdges]}
       onDragEnd={onDragEnd}
     >
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pb-24 lg:pb-0">
         {columns.map((column) => (
           <DroppableColumn key={column.id} column={column}>
             {tasks
