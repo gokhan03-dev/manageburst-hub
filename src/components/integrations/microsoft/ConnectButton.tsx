@@ -9,6 +9,24 @@ interface ConnectButtonProps {
   userId: string;
 }
 
+// Function to generate random string for PKCE
+function generateRandomString(length: number) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+}
+
+// Function to generate code challenge from verifier
+async function generateCodeChallenge(codeVerifier: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
 export function ConnectButton({ userId }: ConnectButtonProps) {
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
@@ -16,13 +34,20 @@ export function ConnectButton({ userId }: ConnectButtonProps) {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
+      // Generate PKCE code verifier and challenge
+      const codeVerifier = generateRandomString(64);
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      // Store code verifier for later use
+      sessionStorage.setItem('code_verifier', codeVerifier);
+
       // Generate state parameter for security
       const stateParam = encodeURIComponent(JSON.stringify({
         userId,
         timestamp: Date.now()
       }));
 
-      // Construct Microsoft OAuth URL with all necessary parameters
+      // Construct Microsoft OAuth URL with PKCE parameters
       const authUrl = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
       
       // Add required query parameters
@@ -33,7 +58,9 @@ export function ConnectButton({ userId }: ConnectButtonProps) {
         scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
         response_mode: "query",
         state: stateParam,
-        prompt: "consent" // Force consent to ensure we get fresh tokens
+        code_challenge: codeChallenge,
+        code_challenge_method: "S256",
+        prompt: "consent"
       });
 
       authUrl.search = params.toString();

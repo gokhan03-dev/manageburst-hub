@@ -8,9 +8,10 @@ export const getRedirectUri = () => {
       return `http://localhost:8080/auth/microsoft/callback`;
     }
     
-    // For preview environment
-    if (typeof window !== 'undefined' && window.location.hostname.includes('preview--manageburst-hub.lovable.app')) {
-      return 'https://preview--manageburst-hub.lovable.app/auth/microsoft/callback';
+    // For preview environment with id
+    if (typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com')) {
+      const previewId = window.location.hostname.split('.')[0];
+      return `https://${previewId}.lovableproject.com/auth/microsoft/callback`;
     }
     
     // Production URL
