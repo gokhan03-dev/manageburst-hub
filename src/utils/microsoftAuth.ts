@@ -10,14 +10,15 @@ export const getRedirectUri = () => {
     
     // Default to current hostname for preview and production
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/microsoft/callback`;
+      const origin = window.location.origin;
+      return `${origin}/auth/microsoft/callback`;
     }
     
-    // Fallback
-    return `${window.location.origin}/auth/microsoft/callback`;
+    // Fallback for SSR context
+    return `/auth/microsoft/callback`;
   } catch (e) {
     console.error('Error getting redirect URI:', e);
-    return `${window.location.origin}/auth/microsoft/callback`;
+    return `/auth/microsoft/callback`;
   }
 };
 
