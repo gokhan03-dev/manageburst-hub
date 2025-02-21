@@ -19,13 +19,17 @@ export const DatePicker = ({ date, onSelect }: DatePickerProps) => {
         <Button
           variant={"outline"}
           className={cn(
-            "w-full justify-start text-left font-normal",
+            "w-full justify-start text-left font-normal truncate",
             !date && "text-muted-foreground"
           )}
           type="button"
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Pick a date</span>}
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+          {date ? (
+            <span className="truncate">{format(date, "PPP")}</span>
+          ) : (
+            <span className="truncate">Pick a date</span>
+          )}
         </Button>
       }
     >
