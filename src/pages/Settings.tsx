@@ -19,8 +19,12 @@ interface NotificationSettings {
   in_app: boolean;
 }
 
-interface UserProfile {
-  notification_settings: NotificationSettings;
+interface DatabaseUserProfile {
+  notification_settings: {
+    email: boolean;
+    push: boolean;
+    in_app: boolean;
+  } | null;
 }
 
 interface SettingsState {
@@ -54,7 +58,7 @@ const Settings = () => {
     const loadSettings = async () => {
       if (!user?.id) return;
       
-      const { data, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('user_profiles')
         .select('notification_settings')
         .eq('id', user.id)
@@ -65,7 +69,7 @@ const Settings = () => {
         return;
       }
 
-      const profile = data as UserProfile;
+      const profile = profileData as DatabaseUserProfile;
       if (profile?.notification_settings) {
         setSettings(prevSettings => ({
           ...prevSettings,
@@ -107,7 +111,7 @@ const Settings = () => {
           notification_settings: {
             email: settings.notifications.email,
             push: settings.notifications.push,
-            in_app: settings.notifications.inApp // Note: we map inApp to in_app for database consistency
+            in_app: settings.notifications.inApp
           }
         })
         .eq('id', user.id);
