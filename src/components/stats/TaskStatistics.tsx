@@ -98,7 +98,7 @@ export const TaskStatistics = () => {
         >
           <CarouselContent className="-ml-4">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-4 basis-[42%] min-w-0">
+              <CarouselItem key={index} className="pl-4 basis-[57%] min-w-0">
                 <StatCard {...stat} />
               </CarouselItem>
             ))}
