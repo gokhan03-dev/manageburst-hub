@@ -37,14 +37,20 @@ export function MicrosoftAuthCallback() {
       }
 
       try {
+        // Parse the state parameter to get the user ID
+        const { userId } = JSON.parse(decodeURIComponent(state));
+
         // Store the auth code in integration_settings
         const { error: updateError } = await supabase
           .from("integration_settings")
           .upsert({
-            user_id: state,
+            user_id: userId,
             integration_type: "microsoft_calendar",
             config: { auth_code: code },
-            is_active: true
+            is_active: true,
+            sync_enabled: false
+          }, {
+            onConflict: 'user_id,integration_type'
           });
 
         if (updateError) throw updateError;
