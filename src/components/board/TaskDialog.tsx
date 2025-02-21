@@ -1,50 +1,61 @@
-
 import React from "react";
-import { Task } from "@/types/task";
-import { TaskForm } from "../TaskForm";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Task } from "@/types/task";
+import { TaskForm } from "@/components/TaskForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskComments } from "@/components/TaskComments";
+import { TaskReminders } from "@/components/TaskReminders";
 
 interface TaskDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedTask?: Task;
-  onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
+  task?: Task;
+  onClose: () => void;
 }
 
-export const TaskDialog = ({
-  isOpen,
-  onOpenChange,
-  selectedTask,
-  onSubmit,
-}: TaskDialogProps) => {
+export function TaskDialog({ task, onClose }: TaskDialogProps) {
+  const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
+    console.log("Task data submitted:", data);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Task
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {selectedTask ? "Edit Task" : "Create New Task"}
-          </DialogTitle>
+          <DialogTitle>{task ? "Edit Task" : "Create Task"}</DialogTitle>
           <DialogDescription>
-            Fill in the details for your task below.
+            {task ? "Edit your task details below." : "Add a new task to your board."}
           </DialogDescription>
         </DialogHeader>
-        <TaskForm onSubmit={onSubmit} initialData={selectedTask} />
+        
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
+            <TabsTrigger value="reminders">Reminders</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details" className="mt-4">
+            <TaskForm
+              onSubmit={handleSubmit}
+              initialData={task}
+            />
+          </TabsContent>
+          
+          <TabsContent value="comments" className="mt-4">
+            {task && <TaskComments taskId={task.id} />}
+          </TabsContent>
+          
+          <TabsContent value="reminders" className="mt-4">
+            {task && <TaskReminders taskId={task.id} />}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
-};
+}
