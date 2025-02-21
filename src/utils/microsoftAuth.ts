@@ -3,22 +3,22 @@ import { MicrosoftAuthConfig } from "@/types/microsoft";
 
 export const getRedirectUri = () => {
   try {
+    // Always check if we're in a browser context first
+    if (typeof window === 'undefined') {
+      return '/auth/microsoft/callback';
+    }
+
     // For local development
-    if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+    if (window.location.hostname.includes('localhost')) {
       return `http://localhost:8080/auth/microsoft/callback`;
     }
     
-    // Default to current hostname for preview and production
-    if (typeof window !== 'undefined') {
-      const origin = window.location.origin;
-      return `${origin}/auth/microsoft/callback`;
-    }
+    // For all other environments, use the current origin
+    return `${window.location.origin}/auth/microsoft/callback`;
     
-    // Fallback for SSR context
-    return `/auth/microsoft/callback`;
   } catch (e) {
     console.error('Error getting redirect URI:', e);
-    return `/auth/microsoft/callback`;
+    return '/auth/microsoft/callback';
   }
 };
 
