@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "./ui/button";
-import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, Settings, HelpCircle } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, Settings, HelpCircle, LucideIcon } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 interface NavItem {
   title: string;
-  icon: React.ComponentType;
+  icon: LucideIcon;
   href: string;
 }
 
@@ -41,22 +41,25 @@ export const SideNav = () => {
 
   const NavContent = () => (
     <nav className="space-y-2">
-      {navItems.map((item) => (
-        <a
-          key={item.title}
-          href={item.href}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
-            "focus:outline-none focus:ring-2 focus:ring-primary",
-            window.location.pathname === item.href &&
-              "bg-gray-100 text-gray-900"
-          )}
-          aria-current={window.location.pathname === item.href ? "page" : undefined}
-        >
-          <item.icon className="h-5 w-5" />
-          {!isCollapsed && <span>{item.title}</span>}
-        </a>
-      ))}
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <a
+            key={item.title}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
+              "focus:outline-none focus:ring-2 focus:ring-primary",
+              window.location.pathname === item.href &&
+                "bg-gray-100 text-gray-900"
+            )}
+            aria-current={window.location.pathname === item.href ? "page" : undefined}
+          >
+            <Icon className="h-5 w-5" />
+            {!isCollapsed && <span>{item.title}</span>}
+          </a>
+        );
+      })}
     </nav>
   );
 
