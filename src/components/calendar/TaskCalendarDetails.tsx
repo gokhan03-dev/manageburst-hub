@@ -1,6 +1,6 @@
 
 import React from "react";
-import { EventType, Sensitivity, Attendee } from "@/types/task";
+import { EventType, Sensitivity, Attendee, AttendeeResponse } from "@/types/task";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
