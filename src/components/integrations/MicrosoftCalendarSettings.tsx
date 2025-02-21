@@ -33,7 +33,16 @@ export function MicrosoftCalendarSettings() {
           .maybeSingle();
 
         if (profileError) throw profileError;
-        setIsConnected(!!profile?.microsoft_refresh_token);
+        
+        // If no refresh token is found, mark as disconnected
+        if (!profile?.microsoft_refresh_token) {
+          setIsConnected(false);
+          setSyncEnabled(false);
+          setIsLoading(false);
+          return;
+        }
+
+        setIsConnected(true);
 
         // Then load sync settings
         const { data, error } = await supabase
@@ -49,11 +58,16 @@ export function MicrosoftCalendarSettings() {
         }
       } catch (error) {
         console.error("Error loading settings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load integration settings",
-          variant: "destructive",
-        });
+        // If we get a token refresh error, force disconnect
+        if (error.message?.includes("Failed to refresh Microsoft access token")) {
+          await handleForceDisconnect();
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to load integration settings",
+            variant: "destructive",
+          });
+        }
       } finally {
         setIsLoading(false);
       }
@@ -61,6 +75,44 @@ export function MicrosoftCalendarSettings() {
 
     loadSettings();
   }, [user, toast]);
+
+  const handleForceDisconnect = async () => {
+    if (!user) return;
+    
+    try {
+      // Clear the refresh token
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({ microsoft_refresh_token: null })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      // Disable sync settings
+      const { error: settingsError } = await supabase
+        .from("integration_settings")
+        .update({ sync_enabled: false, is_active: false })
+        .eq("user_id", user.id)
+        .eq("integration_type", "microsoft_calendar");
+
+      if (settingsError) throw settingsError;
+
+      setIsConnected(false);
+      setSyncEnabled(false);
+      toast({
+        title: "Connection expired",
+        description: "Your Microsoft Calendar connection has expired. Please reconnect.",
+        variant: "destructive",
+      });
+    } catch (error) {
+      console.error("Error force disconnecting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to handle expired connection",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDisconnect = async () => {
     if (!user) return;
