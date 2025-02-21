@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,12 +10,11 @@ import { MicrosoftAuthConfig } from "@/types/microsoft";
 // Ensure we have a valid origin, fallback to a default if needed
 const getRedirectUri = () => {
   try {
-    return typeof window !== 'undefined' ? 
-      `${window.location.origin}/auth/microsoft/callback` : 
-      'https://id-preview--80b304d4-57ab-4e15-8a68-c9216dbb308d.lovable.app/auth/microsoft/callback';
+    // Use a simpler, cleaner redirect URI that's more likely to be accepted by Azure
+    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
   } catch (e) {
     console.error('Error getting redirect URI:', e);
-    return 'https://id-preview--80b304d4-57ab-4e15-8a68-c9216dbb308d.lovable.app/auth/microsoft/callback';
+    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
   }
 };
 
