@@ -14,14 +14,38 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
 
   const handleSyncToggle = async (enabled: boolean) => {
     try {
-      const { error } = await supabase
+      // First, check if a record exists
+      const { data: existingSettings } = await supabase
         .from("integration_settings")
-        .upsert({
-          user_id: userId,
-          integration_type: "microsoft_calendar",
-          sync_enabled: enabled,
-          is_active: true,
-        });
+        .select("id")
+        .eq("user_id", userId)
+        .eq("integration_type", "microsoft_calendar")
+        .single();
+
+      let error;
+
+      if (existingSettings) {
+        // If record exists, update it
+        const { error: updateError } = await supabase
+          .from("integration_settings")
+          .update({
+            sync_enabled: enabled,
+            is_active: true,
+          })
+          .eq("id", existingSettings.id);
+        error = updateError;
+      } else {
+        // If no record exists, insert a new one
+        const { error: insertError } = await supabase
+          .from("integration_settings")
+          .insert({
+            user_id: userId,
+            integration_type: "microsoft_calendar",
+            sync_enabled: enabled,
+            is_active: true,
+          });
+        error = insertError;
+      }
 
       if (error) throw error;
 
