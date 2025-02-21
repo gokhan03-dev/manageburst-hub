@@ -40,7 +40,15 @@ export const SearchAndFilter = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="space-y-4">
+    <div 
+      className="space-y-4"
+      onBlur={(e) => {
+        // Only collapse if the next focused element is outside the component
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsExpanded(false);
+        }
+      }}
+    >
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <Input
@@ -55,7 +63,7 @@ export const SearchAndFilter = ({
         className={`transform transition-all duration-300 ease-in-out overflow-hidden ${
           isExpanded 
             ? "opacity-100 translate-y-0 h-auto" 
-            : "opacity-0 translate-y-4 h-0"
+            : "opacity-0 -translate-y-4 h-0"
         }`}
       >
         <div className="flex flex-wrap gap-4">
