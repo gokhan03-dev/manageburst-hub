@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
@@ -33,7 +33,7 @@ export function ConnectButton({ userId }: ConnectButtonProps) {
         scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
         response_mode: "query",
         state: stateParam,
-        prompt: "select_account"
+        prompt: "consent" // Force consent to ensure we get fresh tokens
       });
 
       authUrl.search = params.toString();

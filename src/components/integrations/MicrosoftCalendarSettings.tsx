@@ -13,6 +13,7 @@ export function MicrosoftCalendarSettings() {
   const { toast } = useToast();
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -22,6 +23,17 @@ export function MicrosoftCalendarSettings() {
       }
       
       try {
+        // First check if Microsoft is connected
+        const { data: profile, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("microsoft_refresh_token")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        setIsConnected(!!profile?.microsoft_refresh_token);
+
+        // Then load sync settings
         const { data, error } = await supabase
           .from("integration_settings")
           .select("sync_enabled")
@@ -74,12 +86,20 @@ export function MicrosoftCalendarSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col space-y-4">
-          <ConnectButton userId={user.id} />
-          <SyncToggle 
-            userId={user.id}
-            syncEnabled={syncEnabled}
-            onSyncChange={setSyncEnabled}
-          />
+          {isConnected ? (
+            <div className="text-sm text-green-600 dark:text-green-400 mb-2">
+              ✓ Connected to Microsoft Calendar
+            </div>
+          ) : (
+            <ConnectButton userId={user.id} />
+          )}
+          {isConnected && (
+            <SyncToggle 
+              userId={user.id}
+              syncEnabled={syncEnabled}
+              onSyncChange={setSyncEnabled}
+            />
+          )}
         </div>
       </CardContent>
     </Card>
