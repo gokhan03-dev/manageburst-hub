@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -12,41 +12,39 @@ import { MicrosoftAuthCallback } from "@/components/integrations/MicrosoftAuthCa
 
 function App() {
   return (
-    <Router>
-      <ThemeProvider>
-        <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/auth/microsoft/callback" 
-              element={
-                <ProtectedRoute>
-                  <MicrosoftAuthCallback />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/auth/microsoft/callback" 
+            element={
+              <ProtectedRoute>
+                <MicrosoftAuthCallback />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
