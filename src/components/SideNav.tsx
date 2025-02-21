@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { 
@@ -98,9 +99,9 @@ export const SideNav = () => {
               }}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground",
-                "focus:outline-none focus:ring-2 focus:ring-primary",
+                "focus:outline-none focus:ring-2 focus:ring-ring",
                 isCollapsed && "justify-center px-2",
-                isActive && "bg-accent text-foreground"
+                isActive && "bg-accent text-accent-foreground dark:bg-secondary dark:text-secondary-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -164,7 +165,7 @@ export const SideNav = () => {
       {/* Desktop Navigation */}
       <div 
         className={cn(
-          "hidden h-screen flex-col gap-4 border-r bg-card p-4 transition-all duration-300 ease-in-out lg:flex",
+          "hidden h-screen flex-col gap-4 border-r bg-background p-4 transition-all duration-300 ease-in-out lg:flex dark:bg-secondary",
           isCollapsed ? "w-16" : "w-64"
         )}
       >

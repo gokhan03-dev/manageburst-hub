@@ -19,7 +19,7 @@ export const DroppableColumn = ({ column, children }: DroppableColumnProps) => {
   return (
     <div
       ref={setNodeRef}
-      className="rounded-lg border bg-card p-4 shadow-sm min-h-[200px]"
+      className="rounded-lg border bg-background p-4 shadow-sm min-h-[200px] dark:bg-secondary"
     >
       <h2 className="mb-4 text-lg font-semibold text-foreground">
         {column.title}
