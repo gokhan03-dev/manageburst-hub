@@ -2,20 +2,12 @@
 import React, { useState, useMemo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskCard } from "./TaskCard";
-import { TaskForm } from "./TaskForm";
-import { CategoryManager } from "./CategoryManager";
 import { Task, TaskStatus, TaskPriority } from "@/types/task";
-import { Plus, Tags } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SearchAndFilter } from "./SearchAndFilter";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { TaskDialog } from "./board/TaskDialog";
+import { CategoryDialog } from "./board/CategoryDialog";
+import { DroppableColumn } from "./board/DroppableColumn";
+import { columns } from "./board/constants";
 import { 
   DndContext, 
   DragEndEvent,
@@ -23,15 +15,8 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-
-const columns: { id: TaskStatus; title: string }[] = [
-  { id: "todo", title: "To Do" },
-  { id: "in-progress", title: "In Progress" },
-  { id: "completed", title: "Completed" },
-];
 
 export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
@@ -123,70 +108,21 @@ export const TaskBoard = () => {
     setSelectedTask(undefined);
   };
 
-  const DroppableColumn = ({ column, children }: { column: typeof columns[0], children: React.ReactNode }) => {
-    const { setNodeRef } = useDroppable({
-      id: column.id,
-    });
-
-    return (
-      <div
-        ref={setNodeRef}
-        className="rounded-lg border bg-white p-4 shadow-sm min-h-[200px]"
-      >
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          {column.title}
-        </h2>
-        <div className="space-y-4">
-          {children}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-2">
-          <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {selectedTask ? "Edit Task" : "Create New Task"}
-                </DialogTitle>
-                <DialogDescription>
-                  Fill in the details for your task below.
-                </DialogDescription>
-              </DialogHeader>
-              <TaskForm
-                onSubmit={handleTaskSubmit}
-                initialData={selectedTask}
-              />
-            </DialogContent>
-          </Dialog>
+          <TaskDialog
+            isOpen={taskDialogOpen}
+            onOpenChange={setTaskDialogOpen}
+            selectedTask={selectedTask}
+            onSubmit={handleTaskSubmit}
+          />
 
-          <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Tags className="h-4 w-4" />
-                Manage Categories
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Manage Categories</DialogTitle>
-                <DialogDescription>
-                  Create and manage categories for your tasks.
-                </DialogDescription>
-              </DialogHeader>
-              <CategoryManager />
-            </DialogContent>
-          </Dialog>
+          <CategoryDialog
+            isOpen={categoryDialogOpen}
+            onOpenChange={setCategoryDialogOpen}
+          />
         </div>
       </div>
 
