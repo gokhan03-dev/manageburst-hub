@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskCard } from "./TaskCard";
@@ -17,9 +16,12 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { useFilter } from "@/hooks/useFilter";
+import { startOfDay, startOfWeek, endOfWeek } from "date-fns";
 
 export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
+  const { currentFilter, getFilteredTaskCount } = useFilter();
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
@@ -46,6 +48,33 @@ export const TaskBoard = () => {
   const filteredAndSortedTasks = useMemo(() => {
     return tasks
       .filter((task) => {
+        // First apply the sidebar filter
+        if (currentFilter !== "all") {
+          const taskDate = task.dueDate ? new Date(task.dueDate) : null;
+          const today = startOfDay(new Date());
+          const weekStart = startOfWeek(today);
+          const weekEnd = endOfWeek(today);
+
+          switch (currentFilter) {
+            case "today":
+              if (!taskDate || taskDate < today || taskDate >= new Date(today.getTime() + 24 * 60 * 60 * 1000)) {
+                return false;
+              }
+              break;
+            case "this-week":
+              if (!taskDate || taskDate < weekStart || taskDate > weekEnd) {
+                return false;
+              }
+              break;
+            case "upcoming":
+              if (!taskDate || taskDate <= weekEnd) {
+                return false;
+              }
+              break;
+          }
+        }
+
+        // Then apply the search and other filters
         const matchesSearch = searchQuery
           ? task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             task.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -76,7 +105,7 @@ export const TaskBoard = () => {
         }
         return sortDirection === "asc" ? comparison : -comparison;
       });
-  }, [tasks, searchQuery, statusFilter, priorityFilter, sortBy, sortDirection]);
+  }, [tasks, searchQuery, statusFilter, priorityFilter, sortBy, sortDirection, currentFilter]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;

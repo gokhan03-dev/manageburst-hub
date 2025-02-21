@@ -1,7 +1,20 @@
 
 import React from "react";
 import { Button } from "./ui/button";
-import { Menu, ArrowLeft, ArrowRight, LayoutDashboard, Settings, HelpCircle, LogOut, LucideIcon } from "lucide-react";
+import { 
+  Menu, 
+  ArrowLeft, 
+  ArrowRight, 
+  LayoutDashboard, 
+  Settings, 
+  HelpCircle, 
+  LogOut,
+  Calendar,
+  CalendarRange,
+  ListTodo,
+  ArrowUpRight,
+  LucideIcon 
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -11,18 +24,41 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTaskContext } from "@/contexts/TaskContext";
+import { useFilter } from "@/contexts/FilterContext";
+import { Badge } from "./ui/badge";
 
 interface NavItem {
   title: string;
   icon: LucideIcon;
   href: string;
+  filterType?: "all" | "today" | "this-week" | "upcoming";
 }
 
 const navItems: NavItem[] = [
   {
-    title: "Dashboard",
-    icon: LayoutDashboard,
+    title: "All Tasks",
+    icon: ListTodo,
     href: "/",
+    filterType: "all"
+  },
+  {
+    title: "Today",
+    icon: Calendar,
+    href: "/",
+    filterType: "today"
+  },
+  {
+    title: "This Week",
+    icon: CalendarRange,
+    href: "/",
+    filterType: "this-week"
+  },
+  {
+    title: "Upcoming",
+    icon: ArrowUpRight,
+    href: "/",
+    filterType: "upcoming"
   },
   {
     title: "Settings",
@@ -40,30 +76,47 @@ export const SideNav = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { signOut } = useAuth();
+  const { tasks } = useTaskContext();
+  const { currentFilter, setCurrentFilter, getFilteredTaskCount } = useFilter();
 
   const NavContent = () => (
     <div className="flex h-full flex-col justify-between">
       <nav className="space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = item.filterType ? currentFilter === item.filterType : window.location.pathname === item.href;
+          const taskCount = item.filterType ? getFilteredTaskCount(tasks, item.filterType) : null;
+
           return (
             <a
               key={item.title}
               href={item.href}
+              onClick={(e) => {
+                if (item.filterType) {
+                  e.preventDefault();
+                  setCurrentFilter(item.filterType);
+                }
+              }}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
                 "focus:outline-none focus:ring-2 focus:ring-primary",
                 isCollapsed && "justify-center px-2",
-                window.location.pathname === item.href &&
-                  "bg-gray-100 text-gray-900"
+                isActive && "bg-gray-100 text-gray-900"
               )}
-              aria-current={window.location.pathname === item.href ? "page" : undefined}
+              aria-current={isActive ? "page" : undefined}
             >
               <Icon className={cn(
                 "shrink-0 transition-all",
                 isCollapsed ? "h-6 w-6" : "h-5 w-5"
               )} />
-              {!isCollapsed && <span>{item.title}</span>}
+              {!isCollapsed && (
+                <span className="flex-1">{item.title}</span>
+              )}
+              {!isCollapsed && taskCount !== null && (
+                <Badge variant="secondary" className="ml-auto">
+                  {taskCount}
+                </Badge>
+              )}
             </a>
           );
         })}
