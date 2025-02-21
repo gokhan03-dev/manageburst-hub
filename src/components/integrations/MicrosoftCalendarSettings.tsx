@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,10 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MicrosoftAuthConfig } from "@/types/microsoft";
 
-// Ensure we have a valid origin, fallback to a default if needed
+// Ensure we have a valid origin, use current origin for preview
 const getRedirectUri = () => {
   try {
-    // Use a simpler, cleaner redirect URI that's more likely to be accepted by Azure
+    // Use current origin for preview environment
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/microsoft/callback`;
+    }
+    // Fallback for SSR or when window is not available
     return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
   } catch (e) {
     console.error('Error getting redirect URI:', e);
