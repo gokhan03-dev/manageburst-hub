@@ -89,15 +89,15 @@ export const TaskStatistics = () => {
           opts={{
             align: "start",
             containScroll: "trimSnaps",
-            loop: true,
+            dragFree: true,
           }}
           className="w-full"
           setApi={setApi}
         >
-          <CarouselContent className="-ml-2">
+          <CarouselContent className="-ml-4 pb-20">
             {statsCards.map((stat, index) => (
-              <CarouselItem key={index} className="pl-2 basis-[85%]">
-                <StatCard {...stat} />
+              <CarouselItem key={index} className="pl-4 basis-[85%] min-w-0">
+                <StatCard {...stat} isMobile />
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -119,25 +119,46 @@ export const TaskStatistics = () => {
   );
 };
 
-const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon }) => (
-  <Card className={cn(
-    "flex flex-col p-4 h-[100px] md:h-[120px] bg-white border-none",
-    "shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
-    "rounded-xl transition-all duration-200 ease-out hover:scale-[1.02]",
-    "cursor-pointer"
-  )}>
-    <div className="flex justify-between items-start mb-2">
-      <div className="space-y-0 leading-tight">
-        <p className="text-[14px] font-normal text-[#1D1D1F]">{titleLine1}</p>
-        <p className="text-[14px] font-normal text-[#1D1D1F]">{titleLine2}</p>
+interface StatCardProps {
+  titleLine1: string;
+  titleLine2: string;
+  value: string;
+  progress: number;
+  icon: React.ElementType;
+  isMobile?: boolean;
+}
+
+const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon, isMobile }: StatCardProps) => (
+  <Card 
+    className={cn(
+      "flex flex-col bg-white border-none transition-all duration-200 ease-out",
+      "shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+      "rounded-2xl cursor-pointer",
+      isMobile ? (
+        "p-4 h-[160px] active:scale-[0.98]"
+      ) : (
+        "p-4 h-[100px] md:h-[120px] hover:scale-[1.02]"
+      )
+    )}
+  >
+    <div className="flex justify-between items-start mb-3">
+      <div className="space-y-0.5">
+        <p className="text-[14px] font-normal text-[#1D1D1F] leading-tight">{titleLine1}</p>
+        <p className="text-[14px] font-normal text-[#1D1D1F] leading-tight">{titleLine2}</p>
       </div>
-      <Icon className="h-4 w-4 text-[#86868B] opacity-80" />
+      <Icon className={cn(
+        "text-[#86868B] opacity-80",
+        isMobile ? "h-6 w-6" : "h-4 w-4"
+      )} />
     </div>
-    <div className="mt-auto space-y-2">
+    <div className="mt-auto space-y-3">
       <div className="text-[32px] font-bold leading-none text-black">
         {value}
       </div>
-      <div className="w-[80%]">
+      <div className={cn(
+        "w-[80%]",
+        isMobile && "w-[90%]"
+      )}>
         <ProgressBar progress={progress} />
       </div>
     </div>
