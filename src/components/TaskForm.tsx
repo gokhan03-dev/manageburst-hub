@@ -1,6 +1,14 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Task, TaskPriority, TaskStatus, RecurrencePattern } from "@/types/task";
+import { 
+  Task, 
+  TaskPriority, 
+  TaskStatus, 
+  RecurrencePattern,
+  WeekDay,
+  MonthlyRecurrenceType
+} from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
