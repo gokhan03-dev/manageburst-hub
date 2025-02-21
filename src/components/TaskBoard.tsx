@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskCard } from "./TaskCard";
@@ -16,7 +17,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-import { useFilter } from "@/hooks/useFilter";
+import { useFilter } from "@/contexts/FilterContext";
 import { startOfDay, startOfWeek, endOfWeek } from "date-fns";
 
 export const TaskBoard = () => {
