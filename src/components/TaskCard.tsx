@@ -2,7 +2,7 @@
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Flag, Trash2, CheckSquare, Square } from "lucide-react";
+import { Calendar, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -10,7 +10,6 @@ import { TaskDependencyGraph } from "./TaskDependencyGraph";
 import { useDraggable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "./ui/button";
 
 interface TaskCardProps {
   task: Task;
@@ -20,7 +19,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onClick, className, showDependencies = true }: TaskCardProps) => {
-  const { tasks, updateTask, deleteTask } = useTaskContext();
+  const { tasks } = useTaskContext();
   
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -64,19 +63,6 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
     (category) => task.categoryIds?.includes(category.id)
   );
 
-  const handleStatusToggle = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    updateTask({
-      ...task,
-      status: task.status === 'completed' ? 'todo' : 'completed'
-    });
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    deleteTask(task.id);
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -93,42 +79,18 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       )}
     >
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleStatusToggle}
-            className="hover:text-primary transition-colors"
-            aria-label={task.status === 'completed' ? "Mark as incomplete" : "Mark as complete"}
-          >
-            {task.status === 'completed' ? (
-              <CheckSquare className="h-5 w-5" />
-            ) : (
-              <Square className="h-5 w-5" />
-            )}
-          </button>
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-              priorityColors[task.priority]
-            )}
-          >
-            <Flag className="mr-1 h-3 w-3" />
-            {task.priority}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="mr-1 h-4 w-4" />
-            {format(new Date(task.dueDate), "MMM dd")}
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Delete task"
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+            priorityColors[task.priority]
+          )}
+        >
+          <Flag className="mr-1 h-3 w-3" />
+          {task.priority}
+        </span>
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Calendar className="mr-1 h-4 w-4" />
+          {format(new Date(task.dueDate), "MMM dd")}
         </div>
       </div>
       
@@ -154,18 +116,8 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
         </div>
       )}
 
-      <h3 className={cn(
-        "text-lg font-semibold text-foreground",
-        task.status === 'completed' && "line-through text-muted-foreground"
-      )}>
-        {task.title}
-      </h3>
-      <p className={cn(
-        "mt-1 text-sm text-muted-foreground line-clamp-2",
-        task.status === 'completed' && "line-through"
-      )}>
-        {task.description}
-      </p>
+      <h3 className="text-lg font-semibold text-foreground">{task.title}</h3>
+      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{task.description}</p>
       
       {showDependencies && <TaskDependencyGraph task={task} allTasks={tasks} />}
       
