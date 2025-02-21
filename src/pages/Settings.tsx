@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { SideNav } from "@/components/SideNav";
 import { TaskProvider } from "@/contexts/TaskContext";
 import { FilterProvider } from "@/contexts/FilterContext";
+import { User } from "@supabase/supabase-js";
 
 interface NotificationSettings {
   email: boolean;
@@ -45,13 +47,15 @@ const SettingsContent = ({
   isDirty, 
   isSaving, 
   handleSettingChange, 
-  saveSettings 
+  saveSettings,
+  user
 }: {
   settings: SettingsState;
   isDirty: boolean;
   isSaving: boolean;
   handleSettingChange: (category: keyof SettingsState, key: string, value: any) => void;
   saveSettings: () => Promise<void>;
+  user: User | null;
 }) => (
   <div className="flex min-h-screen bg-background">
     <SideNav />
@@ -341,6 +345,7 @@ const Settings = () => {
           isSaving={isSaving}
           handleSettingChange={handleSettingChange}
           saveSettings={saveSettings}
+          user={user}
         />
       </FilterProvider>
     </TaskProvider>
