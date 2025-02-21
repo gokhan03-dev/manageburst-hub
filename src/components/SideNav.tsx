@@ -14,7 +14,7 @@ export const SideNav = () => {
   const { signOut } = useAuth();
 
   return (
-    <Sidebar defaultCollapsed={false}>
+    <Sidebar>
       <div className="flex h-full flex-col gap-4">
         <div className="flex-1 flex flex-col gap-2">
           <NavLink to="/" className="w-full">
