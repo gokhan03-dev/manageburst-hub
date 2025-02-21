@@ -3,15 +3,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { TaskDialog } from "./TaskDialog";
-import { CategoryDialog } from "./CategoryDialog";
 import { Task } from "@/types/task";
 
 interface BoardActionsProps {
   onAddTask: () => void;
   taskDialogOpen: boolean;
   setTaskDialogOpen: (open: boolean) => void;
-  categoryDialogOpen: boolean;
-  setCategoryDialogOpen: (open: boolean) => void;
   selectedTask: Task | undefined;
   onTaskSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
 }
@@ -20,8 +17,6 @@ export const BoardActions = ({
   onAddTask,
   taskDialogOpen,
   setTaskDialogOpen,
-  categoryDialogOpen,
-  setCategoryDialogOpen,
   selectedTask,
   onTaskSubmit,
 }: BoardActionsProps) => {
@@ -38,11 +33,6 @@ export const BoardActions = ({
           onOpenChange={setTaskDialogOpen}
           selectedTask={selectedTask}
           onSubmit={onTaskSubmit}
-        />
-
-        <CategoryDialog
-          isOpen={categoryDialogOpen}
-          onOpenChange={setCategoryDialogOpen}
         />
       </div>
     </div>
