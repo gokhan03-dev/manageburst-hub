@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "./ui/button";
-import { Menu, ChevronLeft, ChevronRight, LayoutDashboard, Settings, HelpCircle, LogOut, LucideIcon } from "lucide-react";
+import { Menu, ArrowLeft, ArrowRight, LayoutDashboard, Settings, HelpCircle, LogOut, LucideIcon } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -53,6 +53,7 @@ export const SideNav = () => {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
                 "focus:outline-none focus:ring-2 focus:ring-primary",
+                isCollapsed && "justify-center px-2",
                 window.location.pathname === item.href &&
                   "bg-gray-100 text-gray-900"
               )}
@@ -71,7 +72,7 @@ export const SideNav = () => {
         variant="ghost"
         className={cn(
           "mt-auto w-full justify-start gap-3",
-          isCollapsed && "justify-center px-0"
+          isCollapsed && "justify-center px-2"
         )}
         onClick={signOut}
       >
@@ -124,9 +125,9 @@ export const SideNav = () => {
             className="h-6 w-6"
           >
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             ) : (
-              <ChevronLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
             )}
           </Button>
         </div>
