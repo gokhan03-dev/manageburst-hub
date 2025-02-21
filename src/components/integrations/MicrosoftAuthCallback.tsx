@@ -18,6 +18,8 @@ export function MicrosoftAuthCallback() {
       const state = searchParams.get("state");
       const error = searchParams.get("error");
 
+      console.log("Received auth callback with:", { code: !!code, state: !!state, error });
+
       if (error) {
         console.error("OAuth error:", error);
         toast({
@@ -41,8 +43,25 @@ export function MicrosoftAuthCallback() {
 
       try {
         console.log("Starting token exchange...");
+        console.log("Redirect URI:", MICROSOFT_AUTH_CONFIG.redirectUri);
+        
         // Parse the state parameter to get the user ID
         const { userId } = JSON.parse(decodeURIComponent(state));
+        console.log("User ID from state:", userId);
+
+        const tokenRequestBody = {
+          client_id: MICROSOFT_AUTH_CONFIG.clientId,
+          scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
+          code: code,
+          redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
+          grant_type: "authorization_code",
+          client_secret: MICROSOFT_CLIENT_SECRET,
+        };
+
+        console.log("Token request parameters:", {
+          ...tokenRequestBody,
+          client_secret: "[REDACTED]"
+        });
 
         // Exchange the code for tokens
         const tokenResponse = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
@@ -50,30 +69,34 @@ export function MicrosoftAuthCallback() {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams({
-            client_id: MICROSOFT_AUTH_CONFIG.clientId,
-            scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
-            code: code,
-            redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
-            grant_type: "authorization_code",
-            client_secret: MICROSOFT_CLIENT_SECRET,
-          }),
+          body: new URLSearchParams(tokenRequestBody),
         });
 
-        if (!tokenResponse.ok) {
-          const errorData = await tokenResponse.text();
-          console.error("Token exchange error:", errorData);
-          throw new Error("Failed to exchange code for tokens");
+        const responseText = await tokenResponse.text();
+        console.log("Token response status:", tokenResponse.status);
+        
+        let tokens;
+        try {
+          tokens = JSON.parse(responseText);
+          console.log("Token response parsed successfully");
+        } catch (e) {
+          console.error("Failed to parse token response:", responseText);
+          throw new Error("Invalid token response");
         }
 
-        const tokens = await tokenResponse.json();
-        console.log("Token exchange successful");
+        if (!tokenResponse.ok || !tokens.refresh_token) {
+          console.error("Token exchange failed:", responseText);
+          throw new Error("Failed to obtain valid tokens");
+        }
+
+        console.log("Token exchange successful, updating user profile...");
 
         // Store the refresh token in the user's profile
         const { error: updateError } = await supabase
           .from("user_profiles")
           .update({
             microsoft_refresh_token: tokens.refresh_token,
+            updated_at: new Date().toISOString()
           })
           .eq("id", userId);
 
@@ -95,6 +118,7 @@ export function MicrosoftAuthCallback() {
             config: {
               scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
             },
+            updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id,integration_type'
           });
@@ -110,6 +134,12 @@ export function MicrosoftAuthCallback() {
           title: "Success",
           description: "Successfully connected to Microsoft Calendar",
         });
+
+        // Add a small delay before redirecting to ensure state updates are complete
+        setTimeout(() => {
+          navigate("/settings");
+        }, 1000);
+
       } catch (error) {
         console.error("Error saving Microsoft integration:", error);
         toast({
@@ -117,9 +147,8 @@ export function MicrosoftAuthCallback() {
           description: "Failed to save Microsoft Calendar integration",
           variant: "destructive",
         });
+        navigate("/settings");
       }
-
-      navigate("/settings");
     };
 
     handleCallback();
