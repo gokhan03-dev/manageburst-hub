@@ -3,7 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Loader2 } from "lucide-react";
 
 interface SyncToggleProps {
   userId: string;
@@ -110,7 +110,7 @@ export function SyncToggle({ userId, syncEnabled, onSyncChange }: SyncToggleProp
       />
       <label htmlFor="sync-enabled" className="text-sm flex items-center gap-2">
         Enable task synchronization
-        {isSyncing && <LoadingSpinner className="h-4 w-4" />}
+        {isSyncing && <Loader2 className="h-4 w-4 animate-spin" />}
       </label>
     </div>
   );
