@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
 
+const MICROSOFT_CLIENT_SECRET = "Oe48Q~nOePX-G6PBxWuQJmilQHp4kewkiZkISc~k"; // This should match your Microsoft App registration
+
 export function MicrosoftAuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ export function MicrosoftAuthCallback() {
       }
 
       try {
+        console.log("Starting token exchange...");
         // Parse the state parameter to get the user ID
         const { userId } = JSON.parse(decodeURIComponent(state));
 
@@ -53,15 +56,18 @@ export function MicrosoftAuthCallback() {
             code: code,
             redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
             grant_type: "authorization_code",
-            client_secret: process.env.MICROSOFT_CLIENT_SECRET || "",
+            client_secret: MICROSOFT_CLIENT_SECRET,
           }),
         });
 
         if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.text();
+          console.error("Token exchange error:", errorData);
           throw new Error("Failed to exchange code for tokens");
         }
 
         const tokens = await tokenResponse.json();
+        console.log("Token exchange successful");
 
         // Store the refresh token in the user's profile
         const { error: updateError } = await supabase
@@ -71,7 +77,12 @@ export function MicrosoftAuthCallback() {
           })
           .eq("id", userId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Profile update error:", updateError);
+          throw updateError;
+        }
+
+        console.log("Refresh token stored successfully");
 
         // Create or update integration settings
         const { error: settingsError } = await supabase
@@ -88,7 +99,12 @@ export function MicrosoftAuthCallback() {
             onConflict: 'user_id,integration_type'
           });
 
-        if (settingsError) throw settingsError;
+        if (settingsError) {
+          console.error("Settings update error:", settingsError);
+          throw settingsError;
+        }
+
+        console.log("Integration settings updated successfully");
 
         toast({
           title: "Success",
