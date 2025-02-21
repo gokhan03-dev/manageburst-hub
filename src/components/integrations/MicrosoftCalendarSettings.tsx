@@ -11,15 +11,21 @@ import { MicrosoftAuthConfig } from "@/types/microsoft";
 // Ensure we have a valid origin, use current origin for preview
 const getRedirectUri = () => {
   try {
-    // Use current origin for preview environment
-    if (typeof window !== 'undefined') {
+    // For local development and preview
+    if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+      return `http://localhost:8080/auth/microsoft/callback`;
+    }
+    
+    // For preview environment
+    if (typeof window !== 'undefined' && window.location.hostname.includes('lovableproject.com')) {
       return `${window.location.origin}/auth/microsoft/callback`;
     }
-    // Fallback for SSR or when window is not available
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
+    
+    // Fallback to a temporary URL - you can update this later
+    return 'https://lovable-tasks.up.railway.app/auth/microsoft/callback';
   } catch (e) {
     console.error('Error getting redirect URI:', e);
-    return 'https://lovable-calendar-app.up.railway.app/auth/microsoft/callback';
+    return 'https://lovable-tasks.up.railway.app/auth/microsoft/callback';
   }
 };
 
