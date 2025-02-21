@@ -71,7 +71,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       {...listeners}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing dark:bg-secondary",
+        "group relative overflow-hidden rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing dark:bg-card dark:border-border/50",
         "border-l-4",
         statusColors[task.status],
         isDragging && "opacity-50",
