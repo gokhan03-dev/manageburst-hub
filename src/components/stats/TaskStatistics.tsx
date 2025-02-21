@@ -131,8 +131,11 @@ interface StatCardProps {
 const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon, isMobile }: StatCardProps) => (
   <Card 
     className={cn(
-      "flex flex-col bg-white border-none transition-all duration-200 ease-out",
+      "flex flex-col transition-all duration-200 ease-out",
+      "bg-card border-none",
       "shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+      "dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
+      "dark:bg-card/80 dark:backdrop-blur-sm dark:border dark:border-border/50",
       "rounded-xl cursor-pointer",
       isMobile ? (
         "p-3 h-[140px] active:scale-[0.98]"
@@ -143,16 +146,16 @@ const StatCard = ({ titleLine1, titleLine2, value, progress, icon: Icon, isMobil
   >
     <div className="flex justify-between items-start mb-1">
       <div className="space-y-0.5">
-        <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine1}</p>
-        <p className="text-[13px] font-normal text-[#1D1D1F] leading-tight">{titleLine2}</p>
+        <p className="text-[13px] font-normal text-foreground/80 leading-tight">{titleLine1}</p>
+        <p className="text-[13px] font-normal text-foreground/80 leading-tight">{titleLine2}</p>
       </div>
       <Icon className={cn(
-        "text-[#86868B] opacity-80",
+        "text-muted-foreground opacity-80",
         isMobile ? "h-5 w-5" : "h-4 w-4"
       )} />
     </div>
     <div className="mt-auto space-y-2">
-      <div className="text-[28px] font-bold leading-none text-black">
+      <div className="text-[28px] font-bold leading-none text-foreground">
         {value}
       </div>
       <div className={cn(
