@@ -43,15 +43,15 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   });
   
   const priorityColors = {
-    low: "bg-task-low text-gray-700",
-    medium: "bg-task-medium text-amber-700",
-    high: "bg-task-high text-red-700",
+    low: "bg-task-low text-gray-700 dark:bg-blue-900/30 dark:text-blue-200",
+    medium: "bg-task-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-200",
+    high: "bg-task-high text-red-700 dark:bg-red-900/30 dark:text-red-200",
   };
 
   const statusColors = {
-    todo: "border-l-gray-300",
-    "in-progress": "border-l-blue-400",
-    completed: "border-l-green-400",
+    todo: "border-l-gray-300 dark:border-l-gray-600",
+    "in-progress": "border-l-blue-400 dark:border-l-blue-500",
+    completed: "border-l-green-400 dark:border-l-green-500",
   };
 
   const style = transform ? {
@@ -71,7 +71,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       {...listeners}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing",
+        "group relative overflow-hidden rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing dark:bg-secondary",
         "border-l-4",
         statusColors[task.status],
         isDragging && "opacity-50",
@@ -88,7 +88,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
           <Flag className="mr-1 h-3 w-3" />
           {task.priority}
         </span>
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-1 h-4 w-4" />
           {format(new Date(task.dueDate), "MMM dd")}
         </div>
@@ -116,8 +116,8 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
         </div>
       )}
 
-      <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-      <p className="mt-1 text-sm text-gray-500 line-clamp-2">{task.description}</p>
+      <h3 className="text-lg font-semibold text-foreground">{task.title}</h3>
+      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{task.description}</p>
       
       {showDependencies && <TaskDependencyGraph task={task} allTasks={tasks} />}
       
