@@ -8,6 +8,8 @@ import { TaskDialog } from "./board/TaskDialog";
 import { CategoryDialog } from "./board/CategoryDialog";
 import { DroppableColumn } from "./board/DroppableColumn";
 import { columns } from "./board/constants";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
 import { 
   DndContext, 
   DragEndEvent,
@@ -142,6 +144,16 @@ export const TaskBoard = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              setSelectedTask(undefined);
+              setTaskDialogOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add a task
+          </Button>
+
           <TaskDialog
             isOpen={taskDialogOpen}
             onOpenChange={setTaskDialogOpen}
