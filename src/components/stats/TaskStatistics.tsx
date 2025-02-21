@@ -94,14 +94,14 @@ export const TaskStatistics = () => {
           className="w-full"
           setApi={setApi}
         >
-          <CarouselContent className="-ml-2 pb-12">
+          <CarouselContent className="-ml-2 pb-4">
             {statsCards.map((stat, index) => (
               <CarouselItem key={index} className="pl-2 basis-[44%] min-w-0">
                 <StatCard {...stat} isMobile />
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="flex justify-center gap-1.5 mt-2">
+          <div className="flex justify-center gap-1.5 mt-1 mb-2">
             {statsCards.map((_, index) => (
               <button
                 key={index}
