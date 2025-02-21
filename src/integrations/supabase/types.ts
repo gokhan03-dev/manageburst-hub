@@ -100,35 +100,56 @@ export type Database = {
       }
       integration_settings: {
         Row: {
+          auto_create_online_meetings: boolean | null
+          calendar_color: string | null
           config: Json
           created_at: string | null
+          default_meeting_duration: unknown | null
+          default_reminder_minutes: number | null
           id: string
           integration_type: string
           is_active: boolean | null
           last_sync: string | null
+          last_sync_status: string | null
+          last_sync_time: string | null
           sync_enabled: boolean | null
+          sync_frequency: unknown | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          auto_create_online_meetings?: boolean | null
+          calendar_color?: string | null
           config?: Json
           created_at?: string | null
+          default_meeting_duration?: unknown | null
+          default_reminder_minutes?: number | null
           id?: string
           integration_type: string
           is_active?: boolean | null
           last_sync?: string | null
+          last_sync_status?: string | null
+          last_sync_time?: string | null
           sync_enabled?: boolean | null
+          sync_frequency?: unknown | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          auto_create_online_meetings?: boolean | null
+          calendar_color?: string | null
           config?: Json
           created_at?: string | null
+          default_meeting_duration?: unknown | null
+          default_reminder_minutes?: number | null
           id?: string
           integration_type?: string
           is_active?: boolean | null
           last_sync?: string | null
+          last_sync_status?: string | null
+          last_sync_time?: string | null
           sync_enabled?: boolean | null
+          sync_frequency?: unknown | null
           updated_at?: string | null
           user_id?: string
         }
@@ -517,18 +538,25 @@ export type Database = {
       }
       tasks: {
         Row: {
+          attendees: Json | null
           category_ids: string[] | null
           created_at: string | null
           description: string | null
           due_date: string | null
+          end_time: string | null
+          event_type: string | null
           goal_deadline: string | null
           goal_target: string | null
           habit_frequency: string | null
           habit_streak: number | null
           id: string
+          is_all_day: boolean | null
           is_completed: boolean | null
           last_occurrence: string | null
+          location: string | null
+          microsoft_event_id: string | null
           next_occurrence: string | null
+          online_meeting_url: string | null
           parent_id: string | null
           priority: string
           progress: number | null
@@ -536,7 +564,10 @@ export type Database = {
           recurrence_interval: number | null
           recurrence_pattern: string | null
           recurrence_start_date: string | null
+          reminder_minutes: number | null
           schedule_start_date: string | null
+          sensitivity: string | null
+          start_time: string | null
           status: string
           tags: string[] | null
           task_type: string
@@ -545,18 +576,25 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attendees?: Json | null
           category_ids?: string[] | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          end_time?: string | null
+          event_type?: string | null
           goal_deadline?: string | null
           goal_target?: string | null
           habit_frequency?: string | null
           habit_streak?: number | null
           id?: string
+          is_all_day?: boolean | null
           is_completed?: boolean | null
           last_occurrence?: string | null
+          location?: string | null
+          microsoft_event_id?: string | null
           next_occurrence?: string | null
+          online_meeting_url?: string | null
           parent_id?: string | null
           priority?: string
           progress?: number | null
@@ -564,7 +602,10 @@ export type Database = {
           recurrence_interval?: number | null
           recurrence_pattern?: string | null
           recurrence_start_date?: string | null
+          reminder_minutes?: number | null
           schedule_start_date?: string | null
+          sensitivity?: string | null
+          start_time?: string | null
           status?: string
           tags?: string[] | null
           task_type?: string
@@ -573,18 +614,25 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attendees?: Json | null
           category_ids?: string[] | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
+          end_time?: string | null
+          event_type?: string | null
           goal_deadline?: string | null
           goal_target?: string | null
           habit_frequency?: string | null
           habit_streak?: number | null
           id?: string
+          is_all_day?: boolean | null
           is_completed?: boolean | null
           last_occurrence?: string | null
+          location?: string | null
+          microsoft_event_id?: string | null
           next_occurrence?: string | null
+          online_meeting_url?: string | null
           parent_id?: string | null
           priority?: string
           progress?: number | null
@@ -592,7 +640,10 @@ export type Database = {
           recurrence_interval?: number | null
           recurrence_pattern?: string | null
           recurrence_start_date?: string | null
+          reminder_minutes?: number | null
           schedule_start_date?: string | null
+          sensitivity?: string | null
+          start_time?: string | null
           status?: string
           tags?: string[] | null
           task_type?: string
