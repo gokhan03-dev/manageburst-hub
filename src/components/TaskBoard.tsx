@@ -13,7 +13,6 @@ export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
   const { currentFilter } = useFilter();
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -70,8 +69,6 @@ export const TaskBoard = () => {
         }}
         taskDialogOpen={taskDialogOpen}
         setTaskDialogOpen={setTaskDialogOpen}
-        categoryDialogOpen={categoryDialogOpen}
-        setCategoryDialogOpen={setCategoryDialogOpen}
         selectedTask={selectedTask}
         onTaskSubmit={handleTaskSubmit}
       />
