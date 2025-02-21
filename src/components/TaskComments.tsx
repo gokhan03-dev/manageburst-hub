@@ -37,7 +37,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
           content,
           created_at,
           user_id,
-          user_profiles (
+          user_profiles:user_id (
             email,
             full_name
           )
