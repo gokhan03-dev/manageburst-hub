@@ -44,11 +44,14 @@ export const TaskReminders = ({ taskId }: { taskId: string }) => {
         .insert({
           task_id: taskId,
           user_id: user.id,
-          reminder_type: "notification",
+          reminder_type: "email", // Changed from "notification" to "email"
           reminder_time: reminderTime.toISOString(),
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding reminder:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders", taskId] });
@@ -56,6 +59,14 @@ export const TaskReminders = ({ taskId }: { taskId: string }) => {
       toast({
         title: "Reminder set",
         description: "You will be notified at the specified time.",
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to set reminder:", error);
+      toast({
+        title: "Error",
+        description: "Failed to set reminder. Please try again.",
+        variant: "destructive",
       });
     },
   });

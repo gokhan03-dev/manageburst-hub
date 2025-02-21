@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Comment {
   id: string;
@@ -20,6 +22,8 @@ interface Comment {
 export const TaskComments = ({ taskId }: { taskId: string }) => {
   const [newComment, setNewComment] = useState("");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ["comments", taskId],
     queryFn: async () => {
@@ -44,9 +48,15 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
 
   const addCommentMutation = useMutation({
     mutationFn: async (content: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
       const { error } = await supabase
         .from("task_comments")
-        .insert([{ task_id: taskId, content }]);
+        .insert([{ 
+          task_id: taskId, 
+          content,
+          user_id: user.id 
+        }]);
 
       if (error) throw error;
     },
@@ -59,6 +69,7 @@ export const TaskComments = ({ taskId }: { taskId: string }) => {
       });
     },
     onError: (error) => {
+      console.error("Error adding comment:", error);
       toast({
         title: "Error",
         description: "Failed to add comment. Please try again.",
