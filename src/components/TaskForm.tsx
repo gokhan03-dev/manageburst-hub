@@ -5,24 +5,14 @@ import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useTaskContext } from "@/contexts/TaskContext";
-import { CustomPopover } from "@/components/ui/custom-popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { DependencySelect } from "./task-form/DependencySelect";
 import { CategorySelect } from "./task-form/CategorySelect";
+import { PrioritySelect } from "./task-form/PrioritySelect";
+import { DatePicker } from "./task-form/DatePicker";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -101,49 +91,17 @@ export const TaskForm = ({ onSubmit, initialData }: TaskFormProps) => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Select
-            onValueChange={(value: TaskPriority) => setValue("priority", value)}
+          <PrioritySelect
             defaultValue={initialData?.priority || "low"}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value: TaskPriority) => setValue("priority", value)}
+          />
         </div>
 
         <div className="space-y-2">
-          <CustomPopover
-            trigger={
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-                type="button"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            }
-          >
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(newDate) => {
-                setDate(newDate);
-              }}
-              disabled={(date) =>
-                date < new Date(new Date().setHours(0, 0, 0, 0))
-              }
-              initialFocus
-            />
-          </CustomPopover>
+          <DatePicker
+            date={date}
+            onSelect={(newDate) => setDate(newDate)}
+          />
         </div>
       </div>
 
