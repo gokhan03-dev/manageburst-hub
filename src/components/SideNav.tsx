@@ -202,7 +202,9 @@ export const SideNav = () => {
               size="sm"
               className={cn(
                 "flex flex-col items-center gap-1 h-16",
-                isAddTask ? "px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg" : "px-4",
+                isAddTask ? 
+                  "px-6 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground rounded-lg shadow-sm transition-all duration-200" : 
+                  "px-4",
                 isActive && !isAddTask && "text-primary"
               )}
               onClick={() => {
