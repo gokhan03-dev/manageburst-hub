@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { MICROSOFT_AUTH_CONFIG } from "@/utils/microsoftAuth";
 
 export function MicrosoftAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -40,20 +41,54 @@ export function MicrosoftAuthCallback() {
         // Parse the state parameter to get the user ID
         const { userId } = JSON.parse(decodeURIComponent(state));
 
-        // Store the auth code in integration_settings
+        // Exchange the code for tokens
+        const tokenResponse = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            client_id: MICROSOFT_AUTH_CONFIG.clientId,
+            scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
+            code: code,
+            redirect_uri: MICROSOFT_AUTH_CONFIG.redirectUri,
+            grant_type: "authorization_code",
+            client_secret: process.env.MICROSOFT_CLIENT_SECRET || "",
+          }),
+        });
+
+        if (!tokenResponse.ok) {
+          throw new Error("Failed to exchange code for tokens");
+        }
+
+        const tokens = await tokenResponse.json();
+
+        // Store the refresh token in the user's profile
         const { error: updateError } = await supabase
+          .from("user_profiles")
+          .update({
+            microsoft_refresh_token: tokens.refresh_token,
+          })
+          .eq("id", userId);
+
+        if (updateError) throw updateError;
+
+        // Create or update integration settings
+        const { error: settingsError } = await supabase
           .from("integration_settings")
           .upsert({
             user_id: userId,
             integration_type: "microsoft_calendar",
-            config: { auth_code: code },
             is_active: true,
-            sync_enabled: false
+            sync_enabled: false,
+            config: {
+              scope: MICROSOFT_AUTH_CONFIG.scopes.join(" "),
+            },
           }, {
             onConflict: 'user_id,integration_type'
           });
 
-        if (updateError) throw updateError;
+        if (settingsError) throw settingsError;
 
         toast({
           title: "Success",
