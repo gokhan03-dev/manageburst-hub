@@ -13,7 +13,10 @@ const MICROSOFT_AUTH_CONFIG: MicrosoftAuthConfig = {
   redirectUri: `${window.location.origin}/auth/microsoft/callback`,
   scopes: [
     "Calendars.ReadWrite",
-    "offline_access"
+    "offline_access",
+    "openid",
+    "profile",
+    "email"
   ]
 };
 
@@ -47,16 +50,17 @@ export function MicrosoftCalendarSettings() {
     
     setIsConnecting(true);
     try {
-      // Build Microsoft OAuth URL
-      const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?` +
-        `client_id=${MICROSOFT_AUTH_CONFIG.clientId}` +
+      // Build Microsoft OAuth URL with proper encoding and all required parameters
+      const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` +
+        `?client_id=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.clientId)}` +
         `&response_type=code` +
         `&redirect_uri=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.redirectUri)}` +
         `&scope=${encodeURIComponent(MICROSOFT_AUTH_CONFIG.scopes.join(' '))}` +
         `&response_mode=query` +
-        `&state=${user.id}`;
+        `&state=${encodeURIComponent(user.id)}` +
+        `&prompt=select_account`;
 
-      // Redirect to Microsoft login
+      console.log("Redirect URL:", MICROSOFT_AUTH_CONFIG.redirectUri);
       window.location.href = authUrl;
     } catch (error) {
       console.error("Error connecting to Microsoft:", error);
