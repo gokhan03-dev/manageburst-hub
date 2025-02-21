@@ -18,7 +18,7 @@ const Index = () => {
         <TaskProvider>
           <div className="flex min-h-screen bg-background">
             <SideNav />
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 lg:ml-64 overflow-auto"> {/* Added margin for sidebar width */}
               <div className="px-4 py-8 lg:px-8">
                 <div className="mx-auto max-w-7xl">
                   <header className="mb-8">
