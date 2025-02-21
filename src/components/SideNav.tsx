@@ -17,17 +17,13 @@ export const SideNav = () => {
     <Sidebar>
       <div className="flex h-full flex-col gap-4">
         <div className="flex-1 flex flex-col gap-2">
-          <NavLink to="/" className="w-full">
-            {({ isActive }) => (
-              <Button
-                variant={isActive ? "default" : "ghost"}
-                className="w-full justify-start gap-2"
-              >
-                <ListTodo className="h-4 w-4" />
-                Tasks
-              </Button>
-            )}
-          </NavLink>
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2"
+          >
+            <ListTodo className="h-4 w-4" />
+            Tasks
+          </Button>
           <NavLink to="/settings" className="w-full">
             {({ isActive }) => (
               <Button
