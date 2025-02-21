@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { 
@@ -28,6 +27,7 @@ import { useTaskContext } from "@/contexts/TaskContext";
 import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "./ui/badge";
 import { TaskPriority, TaskStatus } from "@/types/task";
+import { TaskDialog } from "./board/TaskDialog";
 
 type FilterType = "all" | "today" | "this-week" | "upcoming";
 
@@ -102,19 +102,14 @@ const mobileNavItems: MobileNavItem[] = [
 export const SideNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const { signOut } = useAuth();
   const { tasks, addTask } = useTaskContext();
   const { currentFilter, setCurrentFilter, getFilteredTaskCount } = useFilter();
 
-  const handleAddTask = () => {
-    const newTask = {
-      title: "New Task",
-      description: "",
-      status: "todo" as TaskStatus,
-      priority: "medium" as TaskPriority,
-      dueDate: new Date().toISOString(),
-    };
-    addTask(newTask);
+  const handleTaskSubmit = (data: Omit<Task, "id" | "createdAt">) => {
+    addTask(data);
+    setTaskDialogOpen(false);
   };
 
   const getTodayTaskCount = () => {
@@ -212,7 +207,7 @@ export const SideNav = () => {
                   setCurrentFilter(item.filterType);
                 }
                 if (isAddTask) {
-                  handleAddTask();
+                  setTaskDialogOpen(true);
                 }
               }}
             >
@@ -232,6 +227,12 @@ export const SideNav = () => {
           );
         })}
       </nav>
+
+      <TaskDialog
+        isOpen={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        onSubmit={handleTaskSubmit}
+      />
     </div>
   );
 
