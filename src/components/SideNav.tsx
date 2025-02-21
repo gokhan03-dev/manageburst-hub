@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { 
   Menu, 
@@ -73,8 +72,8 @@ const navItems: NavItem[] = [
 ];
 
 export const SideNav = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { signOut } = useAuth();
   const { tasks } = useTaskContext();
   const { currentFilter, setCurrentFilter, getFilteredTaskCount } = useFilter();
@@ -98,10 +97,10 @@ export const SideNav = () => {
                 }
               }}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground",
                 "focus:outline-none focus:ring-2 focus:ring-primary",
                 isCollapsed && "justify-center px-2",
-                isActive && "bg-gray-100 text-gray-900"
+                isActive && "bg-accent text-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -165,7 +164,7 @@ export const SideNav = () => {
       {/* Desktop Navigation */}
       <div 
         className={cn(
-          "hidden h-screen flex-col gap-4 border-r bg-white p-4 transition-all duration-300 ease-in-out lg:flex",
+          "hidden h-screen flex-col gap-4 border-r bg-card p-4 transition-all duration-300 ease-in-out lg:flex",
           isCollapsed ? "w-16" : "w-64"
         )}
       >
