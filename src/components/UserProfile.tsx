@@ -38,16 +38,35 @@ export const UserProfile = () => {
         .single();
 
       if (error) throw error;
-      return data as UserProfile;
+      
+      // Transform the JSON notification_settings into the expected format
+      const transformedData: UserProfile = {
+        ...data,
+        notification_settings: {
+          email: data.notification_settings?.email ?? true,
+          push: data.notification_settings?.push ?? true,
+          daily_digest: data.notification_settings?.daily_digest ?? false,
+        },
+      };
+      
+      return transformedData;
     },
     enabled: !!user,
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<UserProfile>) => {
+      // Transform notification_settings back to JSON if it's being updated
+      const updatesToSend = {
+        ...updates,
+        notification_settings: updates.notification_settings 
+          ? JSON.stringify(updates.notification_settings)
+          : undefined
+      };
+
       const { error } = await supabase
         .from("user_profiles")
-        .update(updates)
+        .update(updatesToSend)
         .eq("id", user?.id);
 
       if (error) throw error;
