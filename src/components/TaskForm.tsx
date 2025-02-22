@@ -35,15 +35,14 @@ interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
   initialData?: Task;
   taskType: EventType;
+  onCancel: () => void;
 }
 
-export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => {
+export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>([]); // For simple subtask list
   const [newSubtask, setNewSubtask] = useState("");
-  const [startTime, setStartTime] = useState<Date>();
-  const [endTime, setEndTime] = useState<Date>();
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
 
   const { register, handleSubmit, setValue, watch } = useForm({
@@ -53,6 +52,8 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
       priority: "low" as TaskPriority,
       status: "todo" as TaskStatus,
       dueDate: new Date().toISOString(),
+      startTime: new Date().toISOString(),
+      endTime: new Date(Date.now() + 30 * 60000).toISOString(), // 30 minutes from now
     },
   });
 
@@ -88,6 +89,12 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
     setSubtasks(subtasks.filter((_, i) => i !== index));
   };
 
+  const handleMeetingDurationChange = (duration: string) => {
+    const startDate = new Date(watch("startTime"));
+    const endDate = new Date(startDate.getTime() + parseInt(duration) * 60000);
+    setValue("endTime", endDate.toISOString());
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
@@ -116,7 +123,18 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
             <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
             <DatePicker
               date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
-              onSelect={(date) => setValue("dueDate", date?.toISOString())}
+              onSelect={(date) => {
+                if (taskType === 'meeting') {
+                  setValue("startTime", date?.toISOString());
+                  // Set end time to 30 minutes after start time
+                  if (date) {
+                    const endDate = new Date(date.getTime() + 30 * 60000);
+                    setValue("endTime", endDate.toISOString());
+                  }
+                } else {
+                  setValue("dueDate", date?.toISOString());
+                }
+              }}
               showTimePicker={taskType === 'meeting'}
             />
           </div>
@@ -126,7 +144,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
           <div className="space-y-4">
             <div>
               <Label>Duration</Label>
-              <Select onValueChange={(value) => setValue("duration", value)}>
+              <Select onValueChange={handleMeetingDurationChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
@@ -149,14 +167,21 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
               <Button
                 type="button"
                 variant={isOnlineMeeting ? "default" : "outline"}
-                onClick={() => setIsOnlineMeeting(true)}
+                onClick={() => {
+                  setIsOnlineMeeting(true);
+                  setValue("location", "online");
+                }}
               >
                 Online
               </Button>
               <Button
                 type="button"
                 variant={!isOnlineMeeting ? "default" : "outline"}
-                onClick={() => setIsOnlineMeeting(false)}
+                onClick={() => {
+                  setIsOnlineMeeting(false);
+                  setValue("location", "");
+                  setValue("onlineMeetingUrl", undefined);
+                }}
               >
                 In Person
               </Button>
@@ -281,7 +306,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType }: TaskFormProps) => 
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit">

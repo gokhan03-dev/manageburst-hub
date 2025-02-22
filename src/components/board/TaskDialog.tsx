@@ -74,6 +74,7 @@ export function TaskDialog({
             onSubmit={handleSubmit}
             initialData={selectedTask}
             taskType={selectedType}
+            onCancel={() => onOpenChange(false)}
           />
         </div>
       </DialogContent>
