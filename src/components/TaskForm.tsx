@@ -301,6 +301,21 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               )}
             </div>
           )}
+
+          <TagList
+            tags={tags}
+            onAddTag={(tag) => setTags([...tags, tag])}
+            onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+          />
+
+          <SubtaskList
+            subtasks={subtasks}
+            onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+            onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+              i === index ? { ...subtask, completed: !subtask.completed } : subtask
+            ))}
+            onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+          />
         </div>
       )}
 
@@ -426,21 +441,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         onAddCategory={handleAddCategory}
         onRemoveCategory={handleRemoveCategory}
         onOpenDialog={() => setCategoryDialogOpen(true)}
-      />
-
-      <TagList
-        tags={tags}
-        onAddTag={(tag) => setTags([...tags, tag])}
-        onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-      />
-
-      <SubtaskList
-        subtasks={subtasks}
-        onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
-        onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
-          i === index ? { ...subtask, completed: !subtask.completed } : subtask
-        ))}
-        onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
       />
 
       <DependencySelect
