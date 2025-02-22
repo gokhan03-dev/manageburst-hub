@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -12,18 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useTaskContext } from "@/contexts/TaskContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { DependencySelect } from "./task-form/DependencySelect";
 import { CategorySelect } from "./task-form/CategorySelect";
 import { PrioritySelect } from "./task-form/PrioritySelect";
 import { DatePicker } from "./task-form/DatePicker";
 import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { Repeat, Bell, Plus, X, Settings, Tag, Link2, Users, CheckCircle2, Circle } from "lucide-react";
-import { TaskAttendees } from "./calendar/TaskAttendees";
+import { SubtaskList } from "./task-form/SubtaskList";
+import { TagList } from "./task-form/TagList";
+import { MeetingSettings } from "./task-form/MeetingSettings";
+import { Repeat, Bell, Settings, Circle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -55,10 +54,8 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
-  const [newSubtask, setNewSubtask] = useState("");
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>([]);
-  const [newTag, setNewTag] = useState("");
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -95,35 +92,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       return data;
     },
   });
-
-  const handleAddSubtask = () => {
-    if (newSubtask.trim()) {
-      setSubtasks([...subtasks, { text: newSubtask.trim(), completed: false }]);
-      setNewSubtask("");
-    }
-  };
-
-  const toggleSubtask = (index: number) => {
-    setSubtasks(subtasks.map((subtask, i) => 
-      i === index ? { ...subtask, completed: !subtask.completed } : subtask
-    ));
-  };
-
-  const removeSubtask = (index: number) => {
-    setSubtasks(subtasks.filter((_, i) => i !== index));
-  };
-
-  const handleAddTag = () => {
-    if (newTag.trim()) {
-      const newTagObj = {
-        id: Date.now().toString(),
-        name: newTag.trim(),
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-      };
-      setTags([...tags, newTagObj]);
-      setNewTag("");
-    }
-  };
 
   const handleMeetingDurationChange = (duration: string) => {
     const startDate = new Date(watch("startTime"));
@@ -186,71 +154,17 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         </div>
 
         {taskType === 'meeting' && (
-          <div className="space-y-4 bg-muted/50 p-4 rounded-lg">
-            <div>
-              <Label>Duration</Label>
-              <Select 
-                defaultValue="30"
-                onValueChange={handleMeetingDurationChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Attendees
-              </Label>
-              <TaskAttendees
-                attendees={initialData?.attendees || []}
-                onAddAttendee={() => {}}
-                onRemoveAttendee={() => {}}
-                onUpdateAttendeeResponse={() => {}}
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Button
-                type="button"
-                variant={isOnlineMeeting ? "default" : "outline"}
-                onClick={() => {
-                  setIsOnlineMeeting(true);
-                  setValue("location", "online");
-                }}
-                className="flex-1"
-              >
-                <Link2 className="h-4 w-4 mr-2" />
-                Online
-              </Button>
-              <Button
-                type="button"
-                variant={!isOnlineMeeting ? "default" : "outline"}
-                onClick={() => {
-                  setIsOnlineMeeting(false);
-                  setValue("location", "");
-                  setValue("onlineMeetingUrl", undefined);
-                }}
-                className="flex-1"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                In Person
-              </Button>
-            </div>
-
-            {isOnlineMeeting && (
-              <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground">Zoom meeting link will be generated</p>
-              </div>
-            )}
-          </div>
+          <MeetingSettings
+            attendees={initialData?.attendees || []}
+            isOnlineMeeting={isOnlineMeeting}
+            onOnlineMeetingChange={setIsOnlineMeeting}
+            onDurationChange={handleMeetingDurationChange}
+            onLocationChange={(location) => setValue("location", location)}
+            onMeetingUrlChange={(url) => setValue("onlineMeetingUrl", url)}
+            onAddAttendee={() => {}}
+            onRemoveAttendee={() => {}}
+            onUpdateAttendeeResponse={() => {}}
+          />
         )}
 
         <div className="flex gap-4">
@@ -335,79 +249,21 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           />
         </div>
 
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
-            Tags
-          </Label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {tags.map((tag) => (
-              <Badge
-                key={tag.id}
-                style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color }}
-                className="flex items-center gap-1"
-              >
-                {tag.name}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setTags(tags.filter(t => t.id !== tag.id))}
-                />
-              </Badge>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              placeholder="Add new tag"
-              onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-            />
-            <Button type="button" size="icon" onClick={handleAddTag}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <TagList
+          tags={tags}
+          onAddTag={(tag) => setTags([...tags, tag])}
+          onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+        />
 
         {taskType === 'task' && (
-          <div className="space-y-2">
-            <Label>Subtasks</Label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  value={newSubtask}
-                  onChange={(e) => setNewSubtask(e.target.value)}
-                  placeholder="Add subtask"
-                  onKeyPress={(e) => e.key === "Enter" && handleAddSubtask()}
-                />
-                <Button type="button" size="icon" onClick={handleAddSubtask}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {subtasks.map((subtask, index) => (
-                <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded">
-                  <Checkbox
-                    checked={subtask.completed}
-                    onCheckedChange={() => toggleSubtask(index)}
-                    className="h-4 w-4"
-                  />
-                  <span className={cn(
-                    "flex-1",
-                    subtask.completed && "line-through text-muted-foreground"
-                  )}>
-                    {subtask.text}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeSubtask(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SubtaskList
+            subtasks={subtasks}
+            onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+            onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+              i === index ? { ...subtask, completed: !subtask.completed } : subtask
+            ))}
+            onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+          />
         )}
       </div>
 
