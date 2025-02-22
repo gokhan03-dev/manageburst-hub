@@ -38,6 +38,36 @@ interface Subtask {
   completed: boolean;
 }
 
+const transformDatabaseTask = (task: any): Task => ({
+  id: task.id,
+  title: task.title,
+  description: task.description,
+  priority: task.priority,
+  status: task.status,
+  dueDate: task.due_date,
+  createdAt: task.created_at,
+  dependencies: task.dependencies || [],
+  categoryIds: task.category_ids || [],
+  subtasks: task.subtasks || [],
+  tags: task.tags || [],
+  eventType: task.event_type,
+  startTime: task.start_time,
+  endTime: task.end_time,
+  isAllDay: task.is_all_day,
+  location: task.location,
+  attendees: task.attendees || [],
+  recurrencePattern: task.recurrence_pattern,
+  recurrenceInterval: task.recurrence_interval,
+  recurrenceStartDate: task.recurrence_start_date,
+  recurrenceEndDate: task.recurrence_end_date,
+  weeklyRecurrenceDays: task.weekly_recurrence_days || [],
+  monthlyRecurrenceType: task.monthly_recurrence_type,
+  monthlyRecurrenceDay: task.monthly_recurrence_day,
+  reminderMinutes: task.reminder_minutes,
+  onlineMeetingUrl: task.online_meeting_url,
+  sensitivity: task.sensitivity,
+});
+
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
@@ -111,9 +141,19 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         return [];
       }
       
-      return tasksData;
+      return tasksData.map(transformDatabaseTask);
     },
   });
+
+  const handleAddCategory = (categoryId: string) => {
+    if (!selectedCategories.includes(categoryId)) {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
+  };
 
   const handleFormSubmit = async (data: any) => {
     if (taskType === 'meeting' && attendees.length > 0) {
