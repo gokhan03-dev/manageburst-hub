@@ -1,219 +1,188 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface SyncPayload {
-  userId: string;
-  action?: 'test-connection' | 'sync';
-  direction?: 'push' | 'pull';
 }
 
-async function refreshMicrosoftToken(refreshToken: string) {
-  const clientId = Deno.env.get('MICROSOFT_CLIENT_ID');
-  const clientSecret = Deno.env.get('MICROSOFT_CLIENT_SECRET');
-  
-  if (!clientId || !clientSecret) {
-    console.error('Microsoft OAuth credentials not configured');
-    throw new Error('Microsoft OAuth credentials not configured');
+interface MicrosoftTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
   }
 
-  const tokenEndpoint = 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token';
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
-    refresh_token: refreshToken,
-    grant_type: 'refresh_token',
-    scope: 'https://graph.microsoft.com/.default offline_access',
-  });
-
   try {
-    console.log('Attempting to refresh Microsoft token...');
-    const response = await fetch(tokenEndpoint, {
+    const { userId, action, direction } = await req.json()
+    
+    if (!userId) {
+      throw new Error('User ID is required')
+    }
+
+    // Initialize Supabase client with service role key
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false,
+        }
+      }
+    )
+
+    // Get user's Microsoft refresh token
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('microsoft_refresh_token')
+      .eq('id', userId)
+      .single()
+
+    if (profileError || !profile?.microsoft_refresh_token) {
+      throw new Error('Failed to get Microsoft refresh token')
+    }
+
+    // Exchange refresh token for access token
+    const tokenResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: params.toString(),
-    });
+      body: new URLSearchParams({
+        client_id: Deno.env.get('MICROSOFT_CLIENT_ID') || '',
+        client_secret: Deno.env.get('MICROSOFT_CLIENT_SECRET') || '',
+        refresh_token: profile.microsoft_refresh_token,
+        grant_type: 'refresh_token',
+        scope: 'Calendars.ReadWrite offline_access',
+      }),
+    })
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Token refresh error response:', errorData);
-      
-      if (errorData.error === 'invalid_grant' && errorData.error_description?.includes('AADSTS50020')) {
-        console.error('Tenant mismatch detected in token refresh');
-        throw new Error('Authentication failed due to tenant mismatch. Please reconnect your Microsoft account.');
-      }
-      
-      throw new Error('Failed to refresh Microsoft token: ' + (errorData.error_description || 'Unknown error'));
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Token refresh failed:', errorText)
+      throw new Error('Failed to refresh Microsoft access token')
     }
 
-    const data = await response.json();
-    console.log('Token refresh successful');
-    
-    if (data.refresh_token) {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
-      
-      const { error: updateError } = await supabaseClient
-        .from('user_profiles')
-        .update({ 
-          microsoft_refresh_token: data.refresh_token,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-        
-      if (updateError) {
-        console.error('Failed to update refresh token:', updateError);
-      }
-    }
+    const tokens: MicrosoftTokenResponse = await tokenResponse.json()
 
-    return data.access_token;
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    throw new Error('Failed to refresh Microsoft access token. Please reconnect your Microsoft account.');
-  }
-}
-
-async function testConnection(userId: string, supabaseClient: any) {
-  console.log('Testing Microsoft connection for user:', userId);
-  
-  const { data: userData, error: userError } = await supabaseClient
-    .from('user_profiles')
-    .select('microsoft_refresh_token')
-    .eq('id', userId)
-    .single();
-
-  if (userError) {
-    console.error('User profile fetch error:', userError);
-    throw new Error('Failed to fetch user profile');
-  }
-
-  if (!userData?.microsoft_refresh_token) {
-    throw new Error('Microsoft account not connected');
-  }
-
-  await refreshMicrosoftToken(userData.microsoft_refresh_token);
-  console.log('Connection test successful');
-}
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { userId, action = 'sync', direction = 'push' } = await req.json() as SyncPayload;
-
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
-    console.log('Request received:', { userId, action, direction });
-
-    if (action === 'test-connection') {
-      await testConnection(userId, supabaseClient);
-      return new Response(
-        JSON.stringify({ message: 'Connection test successful' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
-    }
-
-    const { data: userData, error: userError } = await supabaseClient
+    // Update the refresh token in the database
+    const { error: updateError } = await supabaseAdmin
       .from('user_profiles')
-      .select('microsoft_refresh_token')
+      .update({ 
+        microsoft_refresh_token: tokens.refresh_token,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', userId)
-      .single();
 
-    if (userError) {
-      console.error('User profile fetch error:', userError);
-      throw new Error('Failed to fetch user profile');
+    if (updateError) {
+      console.error('Failed to update refresh token:', updateError)
+      throw new Error('Failed to update refresh token')
     }
 
-    if (!userData?.microsoft_refresh_token) {
-      throw new Error('Microsoft account not connected. Please connect your account first.');
+    // If this is just a test connection, return success
+    if (action === 'test-connection') {
+      return new Response(
+        JSON.stringify({ message: 'Connection successful' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const accessToken = await refreshMicrosoftToken(userData.microsoft_refresh_token);
-
-    await supabaseClient
-      .from('integration_settings')
-      .update({
-        last_sync_attempt: new Date().toISOString(),
-      })
+    // Get tasks that need to be synced
+    const { data: tasks, error: tasksError } = await supabaseAdmin
+      .from('tasks')
+      .select('*')
       .eq('user_id', userId)
-      .eq('integration_type', 'microsoft_calendar');
+      .is('microsoft_event_id', null)
+      .in('event_type', ['meeting', 'reminder'])
 
-    if (direction === 'push') {
-      console.log('Push sync not yet implemented');
+    if (tasksError) {
+      throw new Error('Failed to fetch tasks')
     }
 
-    await supabaseClient
+    // Create calendar events for each task
+    const syncPromises = tasks.map(async (task) => {
+      try {
+        const event = {
+          subject: task.title,
+          body: {
+            content: task.description || '',
+            contentType: 'text',
+          },
+          start: {
+            dateTime: task.start_time || task.due_date,
+            timeZone: 'UTC',
+          },
+          end: {
+            dateTime: task.end_time || task.due_date,
+            timeZone: 'UTC',
+          },
+        }
+
+        const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${tokens.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(event),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to create event: ${await response.text()}`)
+        }
+
+        const eventData = await response.json()
+
+        // Update task with Microsoft event ID
+        await supabaseAdmin
+          .from('tasks')
+          .update({ 
+            microsoft_event_id: eventData.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', task.id)
+
+      } catch (error) {
+        console.error(`Failed to sync task ${task.id}:`, error)
+        return { taskId: task.id, error: error.message }
+      }
+    })
+
+    const results = await Promise.all(syncPromises)
+    const failedTasks = results.filter(result => result?.error)
+
+    // Update last sync status
+    await supabaseAdmin
       .from('integration_settings')
-      .update({
+      .update({ 
         last_sync_time: new Date().toISOString(),
-        last_sync_status: 'success'
+        last_sync_status: failedTasks.length > 0 ? 'partial' : 'success'
       })
       .eq('user_id', userId)
-      .eq('integration_type', 'microsoft_calendar');
+      .eq('integration_type', 'microsoft_calendar')
 
     return new Response(
-      JSON.stringify({ 
-        message: 'Calendar sync completed successfully',
+      JSON.stringify({
+        message: 'Sync completed',
+        failedTasks: failedTasks.length > 0 ? failedTasks : undefined,
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error) {
-    console.error('Function error:', error);
-    
-    try {
-      const { userId } = await req.json() as SyncPayload;
-      if (userId) {
-        const supabaseClient = createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-        
-        await supabaseClient
-          .from('integration_settings')
-          .update({
-            last_sync_time: new Date().toISOString(),
-            last_sync_status: 'error'
-          })
-          .eq('user_id', userId)
-          .eq('integration_type', 'microsoft_calendar');
-      }
-    } catch (updateError) {
-      console.error('Failed to update sync status:', updateError);
-    }
-
+    console.error('Calendar sync error:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'An unexpected error occurred during sync'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      JSON.stringify({ error: error.message }),
+      { 
         status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    );
+    )
   }
-});
+})
