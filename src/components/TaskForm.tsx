@@ -11,6 +11,7 @@ import {
   RecurrencePattern,
   WeekDay,
   MonthlyRecurrenceType,
+  Sensitivity,
 } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +42,36 @@ interface Subtask {
   text: string;
   completed: boolean;
 }
+
+type DatabaseTask = {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  status: string;
+  due_date: string | null;
+  created_at: string;
+  category_ids: string[] | null;
+  event_type: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  is_all_day: boolean;
+  location: string | null;
+  attendees: any[] | null;
+  recurrence_pattern: string | null;
+  recurrence_interval: number | null;
+  recurrence_start_date: string | null;
+  recurrence_end_date: string | null;
+  next_occurrence: string | null;
+  last_occurrence: string | null;
+  schedule_start_date: string | null;
+  reminder_minutes: number | null;
+  online_meeting_url: string | null;
+  sensitivity: string | null;
+  weekly_recurrence_days: string[] | null;
+  monthly_recurrence_type: string | null;
+  monthly_recurrence_day: number | null;
+};
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
@@ -87,7 +118,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
-  const { data: allTasks = [] } = useQuery({
+  const { data: allTasks = [] } = useQuery<Task[]>({
     queryKey: ['tasks'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -105,37 +136,38 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       }
       
       // Transform the data to match our Task type
-      return data.map(task => ({
+      return (data as DatabaseTask[]).map(task => ({
         id: task.id,
         title: task.title,
-        description: task.description,
-        priority: task.priority as TaskPriority,
-        status: task.status as TaskStatus,
-        dueDate: task.due_date,
+        description: task.description || "",
+        priority: (task.priority || "medium") as TaskPriority,
+        status: (task.status || "todo") as TaskStatus,
+        dueDate: task.due_date || new Date().toISOString(),
         createdAt: task.created_at,
         dependencies: [],
-        categoryIds: task.category_ids,
+        categoryIds: task.category_ids || [],
         subtasks: [],
         tags: [],
-        eventType: task.event_type as EventType,
-        startTime: task.start_time,
-        endTime: task.end_time,
-        isAllDay: task.is_all_day,
-        location: task.location,
-        attendees: (task.attendees || []) as Attendee[],
-        recurrencePattern: task.recurrence_pattern as RecurrencePattern || undefined,
-        recurrenceInterval: task.recurrence_interval,
-        recurrenceStartDate: task.recurrence_start_date,
-        recurrenceEndDate: task.recurrence_end_date,
-        nextOccurrence: task.next_occurrence,
-        lastOccurrence: task.last_occurrence,
-        scheduleStartDate: task.schedule_start_date,
-        weeklyRecurrenceDays: task.weekly_recurrence_days as WeekDay[] || undefined,
-        monthlyRecurrenceType: task.monthly_recurrence_type as MonthlyRecurrenceType || undefined,
+        eventType: (task.event_type || taskType) as EventType,
+        startTime: task.start_time || undefined,
+        endTime: task.end_time || undefined,
+        isAllDay: task.is_all_day || false,
+        location: task.location || undefined,
+        attendees: ((task.attendees || []) as Array<{ email: string; required: boolean }>)
+          .map(a => ({ email: a.email, required: a.required })),
+        recurrencePattern: (task.recurrence_pattern as RecurrencePattern) || undefined,
+        recurrenceInterval: task.recurrence_interval || undefined,
+        recurrenceStartDate: task.recurrence_start_date || undefined,
+        recurrenceEndDate: task.recurrence_end_date || undefined,
+        nextOccurrence: task.next_occurrence || undefined,
+        lastOccurrence: task.last_occurrence || undefined,
+        scheduleStartDate: task.schedule_start_date || undefined,
+        weeklyRecurrenceDays: (task.weekly_recurrence_days as WeekDay[]) || undefined,
+        monthlyRecurrenceType: (task.monthly_recurrence_type as MonthlyRecurrenceType) || undefined,
         monthlyRecurrenceDay: task.monthly_recurrence_day || undefined,
-        reminderMinutes: task.reminder_minutes,
-        onlineMeetingUrl: task.online_meeting_url,
-        sensitivity: task.sensitivity,
+        reminderMinutes: task.reminder_minutes || undefined,
+        onlineMeetingUrl: task.online_meeting_url || undefined,
+        sensitivity: (task.sensitivity || "normal") as Sensitivity,
       }));
     },
   });
