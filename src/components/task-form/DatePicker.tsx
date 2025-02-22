@@ -73,7 +73,10 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
             {selectedDate ? format(selectedDate, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent 
+          className="w-auto p-0 bg-popover" 
+          align="start"
+        >
           <Calendar
             mode="single"
             selected={selectedDate}
