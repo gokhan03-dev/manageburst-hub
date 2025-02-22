@@ -1,21 +1,12 @@
 
 import React from "react";
-import { format } from "date-fns";
 import { RecurrencePattern, WeekDay, MonthlyRecurrenceType } from "@/types/task";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "./DatePicker";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Repeat } from "lucide-react";
+import { WeeklyDaySelector } from "./WeeklyDaySelector";
+import { MonthlySettings } from "./MonthlySettings";
+import { RecurrencePatternSelector } from "./RecurrencePatternSelector";
 
 interface RecurrenceSettingsProps {
   enabled: boolean;
@@ -35,16 +26,6 @@ interface RecurrenceSettingsProps {
   monthlyDay?: number;
   onMonthlyDayChange?: (day: number) => void;
 }
-
-const DAYS_OF_WEEK: { label: string; value: WeekDay; shortLabel: string }[] = [
-  { label: "Sunday", value: "sunday", shortLabel: "Sun" },
-  { label: "Monday", value: "monday", shortLabel: "Mon" },
-  { label: "Tuesday", value: "tuesday", shortLabel: "Tue" },
-  { label: "Wednesday", value: "wednesday", shortLabel: "Wed" },
-  { label: "Thursday", value: "thursday", shortLabel: "Thu" },
-  { label: "Friday", value: "friday", shortLabel: "Fri" },
-  { label: "Saturday", value: "saturday", shortLabel: "Sat" },
-];
 
 export function RecurrenceSettings({
   enabled,
@@ -85,7 +66,7 @@ export function RecurrenceSettings({
       case "weekly":
         if (weeklyDays.length === 0) {
           const today = new Date().getDay();
-          onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
+          onWeeklyDaysChange([["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][today]]);
         }
         break;
       case "monthly":
@@ -117,80 +98,27 @@ export function RecurrenceSettings({
 
       {enabled && (
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Repeat className="h-4 w-4 text-muted-foreground" />
-            <Label className="whitespace-nowrap">Repeat every</Label>
-            <Input
-              type="number"
-              min={1}
-              value={interval}
-              onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
-              className="w-20"
-            />
-            <Select
-              value={selectedPattern}
-              onValueChange={handlePatternChange}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Days</SelectItem>
-                <SelectItem value="weekly">Weeks</SelectItem>
-                <SelectItem value="monthly">Months</SelectItem>
-                <SelectItem value="yearly">Years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <RecurrencePatternSelector
+            pattern={selectedPattern}
+            onPatternChange={handlePatternChange}
+            interval={interval}
+            onIntervalChange={onIntervalChange}
+          />
 
           {selectedPattern === "weekly" && (
-            <div className="flex flex-wrap gap-2">
-              {DAYS_OF_WEEK.map(({ label, value, shortLabel }) => (
-                <Button
-                  key={value}
-                  type="button"
-                  variant={weeklyDays.includes(value) ? "default" : "outline"}
-                  onClick={() => handleWeeklyDayToggle(value)}
-                  className={`w-16 transition-all ${
-                    weeklyDays.includes(value) 
-                      ? "bg-primary text-primary-foreground shadow-sm" 
-                      : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  size="sm"
-                >
-                  {shortLabel}
-                </Button>
-              ))}
-            </div>
+            <WeeklyDaySelector
+              selectedDays={weeklyDays}
+              onDayToggle={handleWeeklyDayToggle}
+            />
           )}
 
           {selectedPattern === "monthly" && (
-            <div className="space-y-4">
-              <Label>Repeat on</Label>
-              <RadioGroup 
-                value={monthlyType} 
-                onValueChange={(value) => onMonthlyTypeChange(value as MonthlyRecurrenceType)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="date" id="monthly-date" />
-                  <Label htmlFor="monthly-date">Day of month</Label>
-                  {monthlyType === "date" && (
-                    <Input
-                      type="number"
-                      min={1}
-                      max={31}
-                      value={monthlyDay}
-                      onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
-                      className="w-20 ml-2"
-                    />
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="end-of-month" id="monthly-end" />
-                  <Label htmlFor="monthly-end">End of month</Label>
-                </div>
-              </RadioGroup>
-            </div>
+            <MonthlySettings
+              monthlyType={monthlyType}
+              onMonthlyTypeChange={onMonthlyTypeChange}
+              monthlyDay={monthlyDay}
+              onMonthlyDayChange={onMonthlyDayChange}
+            />
           )}
 
           <div className="grid grid-cols-2 gap-4">
