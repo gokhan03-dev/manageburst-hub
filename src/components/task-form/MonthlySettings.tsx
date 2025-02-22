@@ -1,13 +1,7 @@
 
 import React from "react";
 import { MonthlyRecurrenceType } from "@/types/task";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
 interface MonthlySettingsProps {
@@ -24,44 +18,44 @@ export function MonthlySettings({
   onMonthlyDayChange,
 }: MonthlySettingsProps) {
   return (
-    <div className="space-y-4">
-      <RadioGroup
-        value={monthlyType}
-        onValueChange={(value) => onMonthlyTypeChange(value as MonthlyRecurrenceType)}
-        className="gap-4"
+    <div className="flex flex-wrap items-center gap-3">
+      <div 
+        className={cn(
+          "rounded-full px-4 py-2 cursor-pointer transition-all flex items-center gap-2",
+          monthlyType === "date" 
+            ? "bg-foreground text-background" 
+            : "bg-background border border-input hover:bg-accent hover:text-accent-foreground"
+        )}
+        onClick={() => onMonthlyTypeChange("date")}
       >
-        <Card className={cn(
-          "transition-all hover:border-primary cursor-pointer",
-          monthlyType === "date" && "border-primary"
-        )}>
-          <CardContent className="p-4 flex items-center space-x-2">
-            <RadioGroupItem value="date" id="monthly-date" />
-            <div className="flex items-center gap-2">
-              <span>Day</span>
-              <Input
-                type="number"
-                min={1}
-                max={31}
-                value={monthlyDay}
-                onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
-                className="w-20"
-                disabled={monthlyType !== "date"}
-              />
-              <span>of the month</span>
-            </div>
-          </CardContent>
-        </Card>
+        <Input
+          type="number"
+          min={1}
+          max={31}
+          value={monthlyDay}
+          onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
+          className={cn(
+            "w-12 h-8 px-2 text-center",
+            monthlyType === "date" 
+              ? "bg-transparent border-white text-background placeholder:text-background focus-visible:ring-white" 
+              : "bg-background border-input"
+          )}
+          disabled={monthlyType !== "date"}
+        />
+        <span>day of month</span>
+      </div>
 
-        <Card className={cn(
-          "transition-all hover:border-primary cursor-pointer",
-          monthlyType === "end-of-month" && "border-primary"
-        )}>
-          <CardContent className="p-4 flex items-center space-x-2">
-            <RadioGroupItem value="end-of-month" id="monthly-end" />
-            <Label htmlFor="monthly-end">End of month</Label>
-          </CardContent>
-        </Card>
-      </RadioGroup>
+      <div 
+        className={cn(
+          "rounded-full px-4 py-2 cursor-pointer transition-all",
+          monthlyType === "end-of-month" 
+            ? "bg-foreground text-background" 
+            : "bg-background border border-input hover:bg-accent hover:text-accent-foreground"
+        )}
+        onClick={() => onMonthlyTypeChange("end-of-month")}
+      >
+        End of month
+      </div>
     </div>
   );
 }
