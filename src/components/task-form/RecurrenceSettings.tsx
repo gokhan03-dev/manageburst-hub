@@ -48,15 +48,21 @@ export function RecurrenceSettings({
   onMonthlyDayChange = () => {},
 }: RecurrenceSettingsProps) {
   const [selectedPattern, setSelectedPattern] = React.useState<RecurrencePattern>(pattern);
+  const [localWeeklyDays, setLocalWeeklyDays] = React.useState<WeekDay[]>(weeklyDays);
 
   React.useEffect(() => {
     setSelectedPattern(pattern);
   }, [pattern]);
 
+  React.useEffect(() => {
+    setLocalWeeklyDays(weeklyDays);
+  }, [weeklyDays]);
+
   const handleWeeklyDayToggle = (day: WeekDay) => {
-    const newDays = weeklyDays.includes(day)
-      ? weeklyDays.filter(d => d !== day)
-      : [...weeklyDays, day];
+    const newDays = localWeeklyDays.includes(day)
+      ? localWeeklyDays.filter(d => d !== day)
+      : [...localWeeklyDays, day];
+    setLocalWeeklyDays(newDays);
     onWeeklyDaysChange(newDays);
   };
 
@@ -68,7 +74,9 @@ export function RecurrenceSettings({
       case "weekly":
         if (weeklyDays.length === 0) {
           const today = new Date().getDay();
-          onWeeklyDaysChange([WEEKDAYS[today]]);
+          const newDays = [WEEKDAYS[today]];
+          setLocalWeeklyDays(newDays);
+          onWeeklyDaysChange(newDays);
         }
         break;
       case "monthly":
@@ -109,7 +117,7 @@ export function RecurrenceSettings({
 
           {selectedPattern === "weekly" && (
             <WeeklyDaySelector
-              selectedDays={weeklyDays}
+              selectedDays={localWeeklyDays}
               onDayToggle={handleWeeklyDayToggle}
             />
           )}
