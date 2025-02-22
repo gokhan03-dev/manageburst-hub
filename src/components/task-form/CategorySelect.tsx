@@ -1,8 +1,7 @@
 
 import React, { useState } from "react";
 import { Category } from "@/types/task";
-import { X, Tags, Settings } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Tags, Settings } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -40,39 +39,56 @@ export const CategorySelect = ({
   const handleDialogChange = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
-      // Only call onOpenDialog when the dialog is being opened
       onOpenDialog();
     }
   };
+
+  const handleCategoryChange = (value: string) => {
+    // Remove current category if exists
+    if (selectedCategories.length > 0) {
+      onRemoveCategory(selectedCategories[0]);
+    }
+    // Add new category
+    onAddCategory(value);
+  };
+
+  const currentCategory = categories.find(cat => cat.id === selectedCategories[0]);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Tags className="h-4 w-4 text-muted-foreground" />
         <Select
-          onValueChange={(value: string) => {
-            if (!selectedCategories.includes(value)) {
-              onAddCategory(value);
-            }
-          }}
+          value={selectedCategories[0] || ""}
+          onValueChange={handleCategoryChange}
         >
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder="Add category" />
+            <SelectValue>
+              {currentCategory ? (
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: currentCategory.color }}
+                  />
+                  {currentCategory.name}
+                </div>
+              ) : (
+                "Select category"
+              )}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {categories
-              .filter(category => !selectedCategories.includes(category.id))
-              .map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    {category.name}
-                  </div>
-                </SelectItem>
-              ))}
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  {category.name}
+                </div>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button
@@ -85,43 +101,6 @@ export const CategorySelect = ({
           <Settings className="h-4 w-4" />
         </Button>
       </div>
-      
-      {selectedCategories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedCategories.map((categoryId) => {
-            const category = categories.find((c) => c.id === categoryId);
-            if (!category) return null;
-            return (
-              <Badge
-                key={categoryId}
-                variant="secondary"
-                className="flex items-center gap-1 px-3 py-0.5 text-xs font-medium"
-                style={{
-                  backgroundColor: `${category.color}20`,
-                  borderColor: category.color,
-                }}
-              >
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: category.color }}
-                />
-                {category.name}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onRemoveCategory(categoryId);
-                  }}
-                  className="ml-1 rounded-full p-1 hover:bg-secondary"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            );
-          })}
-        </div>
-      )}
 
       <CategoryDialog 
         isOpen={dialogOpen} 
