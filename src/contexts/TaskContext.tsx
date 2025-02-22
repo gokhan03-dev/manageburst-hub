@@ -22,7 +22,7 @@ interface TaskContextType {
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -32,11 +32,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { addDependency, removeDependency } = useTaskDependencies(tasks, setTasks);
 
   useEffect(() => {
-    if (!user) {
-      setTasks([]);
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     const fetchTasks = async () => {
       try {

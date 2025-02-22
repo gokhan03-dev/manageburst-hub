@@ -21,36 +21,16 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt">) => {
     try {
-      const taskData = {
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        status: task.status,
-        due_date: task.dueDate,
-        user_id: userId,
-        subtasks: JSON.stringify(task.subtasks || []),
-        attendees: JSON.stringify(task.attendees || []),
-        event_type: task.eventType,
-        start_time: task.startTime,
-        end_time: task.endTime,
-        is_all_day: task.isAllDay,
-        location: task.location,
-        online_meeting_url: task.onlineMeetingUrl,
-        reminder_minutes: task.reminderMinutes,
-        tags: task.tags?.map(tag => tag.name) || [],
-        category_ids: task.categoryIds || [],
-        recurrence_pattern: task.recurrencePattern,
-        recurrence_interval: task.recurrenceInterval,
-        recurrence_start_date: task.recurrenceStartDate,
-        recurrence_end_date: task.recurrenceEndDate,
-        weekly_recurrence_days: task.weeklyRecurrenceDays,
-        monthly_recurrence_type: task.monthlyRecurrenceType,
-        monthly_recurrence_day: task.monthlyRecurrenceDay
-      };
-
       const { data, error } = await supabase
         .from("tasks")
-        .insert([taskData])
+        .insert([{ 
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          due_date: task.dueDate,
+          user_id: userId 
+        }])
         .select()
         .single();
 
@@ -97,35 +77,15 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
         }
       }
 
-      const taskData = {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        priority: updatedTask.priority,
-        status: updatedTask.status,
-        due_date: updatedTask.dueDate,
-        subtasks: JSON.stringify(updatedTask.subtasks || []),
-        attendees: JSON.stringify(updatedTask.attendees || []),
-        event_type: updatedTask.eventType,
-        start_time: updatedTask.startTime,
-        end_time: updatedTask.endTime,
-        is_all_day: updatedTask.isAllDay,
-        location: updatedTask.location,
-        online_meeting_url: updatedTask.onlineMeetingUrl,
-        reminder_minutes: updatedTask.reminderMinutes,
-        tags: updatedTask.tags?.map(tag => tag.name) || [],
-        category_ids: updatedTask.categoryIds || [],
-        recurrence_pattern: updatedTask.recurrencePattern,
-        recurrence_interval: updatedTask.recurrenceInterval,
-        recurrence_start_date: updatedTask.recurrenceStartDate,
-        recurrence_end_date: updatedTask.recurrenceEndDate,
-        weekly_recurrence_days: updatedTask.weeklyRecurrenceDays,
-        monthly_recurrence_type: updatedTask.monthlyRecurrenceType,
-        monthly_recurrence_day: updatedTask.monthlyRecurrenceDay
-      };
-
       const { error } = await supabase
         .from("tasks")
-        .update(taskData)
+        .update({
+          title: updatedTask.title,
+          description: updatedTask.description,
+          priority: updatedTask.priority,
+          status: updatedTask.status,
+          due_date: updatedTask.dueDate,
+        })
         .eq("id", updatedTask.id);
 
       if (error) throw error;
