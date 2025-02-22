@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Category } from "@/types/task";
 import { X, Tags, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CategoryDialog } from "@/components/board/CategoryDialog";
 
 interface CategorySelectProps {
   categories: Category[];
@@ -27,6 +28,13 @@ export const CategorySelect = ({
   onRemoveCategory,
   onOpenDialog,
 }: CategorySelectProps) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleOpenDialog = () => {
+    setDialogOpen(true);
+    onOpenDialog();
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -61,7 +69,7 @@ export const CategorySelect = ({
           variant="ghost"
           size="icon"
           className="h-9 w-9"
-          onClick={onOpenDialog}
+          onClick={handleOpenDialog}
         >
           <Settings className="h-4 w-4" />
         </Button>
@@ -99,6 +107,8 @@ export const CategorySelect = ({
           })}
         </div>
       )}
+
+      <CategoryDialog isOpen={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 };
