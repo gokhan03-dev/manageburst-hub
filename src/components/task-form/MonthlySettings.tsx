@@ -18,44 +18,47 @@ export function MonthlySettings({
   onMonthlyDayChange,
 }: MonthlySettingsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap gap-2">
       <div 
         className={cn(
-          "rounded-full px-4 py-2 cursor-pointer transition-all flex items-center gap-2",
+          "h-9 transition-all flex items-center rounded-md text-sm font-medium",
           monthlyType === "date" 
-            ? "bg-foreground text-background" 
-            : "bg-background border border-input hover:bg-accent hover:text-accent-foreground"
+            ? "bg-primary text-primary-foreground" 
+            : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
         )}
         onClick={() => onMonthlyTypeChange("date")}
       >
-        <Input
-          type="number"
-          min={1}
-          max={31}
-          value={monthlyDay}
-          onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
-          className={cn(
-            "w-12 h-8 px-2 text-center",
-            monthlyType === "date" 
-              ? "bg-transparent border-white text-background placeholder:text-background focus-visible:ring-white" 
-              : "bg-background border-input"
-          )}
-          disabled={monthlyType !== "date"}
-        />
-        <span>day of month</span>
+        <div className="flex items-center px-3">
+          <Input
+            type="number"
+            min={1}
+            max={31}
+            value={monthlyDay}
+            onChange={(e) => onMonthlyDayChange(parseInt(e.target.value) || 1)}
+            className={cn(
+              "w-10 h-7 px-1 text-center border-0 focus-visible:ring-0",
+              monthlyType === "date" 
+                ? "bg-transparent text-primary-foreground placeholder:text-primary-foreground" 
+                : "bg-transparent"
+            )}
+            disabled={monthlyType !== "date"}
+          />
+          <span className="pr-3">day of month</span>
+        </div>
       </div>
 
-      <div 
-        className={cn(
-          "rounded-full px-4 py-2 cursor-pointer transition-all",
-          monthlyType === "end-of-month" 
-            ? "bg-foreground text-background" 
-            : "bg-background border border-input hover:bg-accent hover:text-accent-foreground"
-        )}
+      <button
+        type="button"
         onClick={() => onMonthlyTypeChange("end-of-month")}
+        className={cn(
+          "h-9 px-3 rounded-md text-sm font-medium transition-all",
+          monthlyType === "end-of-month"
+            ? "bg-primary text-primary-foreground"
+            : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+        )}
       >
         End of month
-      </div>
+      </button>
     </div>
   );
 }
