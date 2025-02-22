@@ -216,6 +216,30 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     setValue("categoryIds", newCategories);
   };
 
+  const handleDurationChange = (value: string) => {
+    const startTimeValue = watch('startTime');
+    if (!startTimeValue) {
+      toast({
+        title: "Please select a start time first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const startTime = new Date(startTimeValue);
+      const endTime = new Date(startTime.getTime() + parseInt(value) * 60000);
+      setValue('endTime', endTime.toISOString());
+    } catch (error) {
+      console.error('Error calculating end time:', error);
+      toast({
+        title: "Error setting meeting duration",
+        description: "Please try selecting the start time again",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
@@ -248,10 +272,13 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                 <DatePicker
                   date={initialData?.startTime ? new Date(initialData.startTime) : undefined}
                   onSelect={(date) => {
-                    setValue("startTime", date?.toISOString());
                     if (date) {
+                      setValue("startTime", date.toISOString());
                       const endDate = new Date(date.getTime() + 30 * 60000);
                       setValue("endTime", endDate.toISOString());
+                    } else {
+                      setValue("startTime", undefined);
+                      setValue("endTime", undefined);
                     }
                   }}
                   showTimePicker={true}
@@ -259,12 +286,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               </div>
               <div className="w-[150px]">
                 <Select
-                  value="30"
-                  onValueChange={(value) => {
-                    const startTime = new Date(watch('startTime'));
-                    const endTime = new Date(startTime.getTime() + parseInt(value) * 60000);
-                    setValue('endTime', endTime.toISOString());
-                  }}
+                  value={watch('endTime') ? 
+                    String(Math.round((new Date(watch('endTime')).getTime() - new Date(watch('startTime')).getTime()) / 60000)) : 
+                    "30"
+                  }
+                  onValueChange={handleDurationChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Duration" />
