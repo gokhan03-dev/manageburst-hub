@@ -19,20 +19,23 @@ interface WeeklyDaySelectorProps {
 }
 
 export function WeeklyDaySelector({ selectedDays, onDayToggle }: WeeklyDaySelectorProps) {
-  const handleDayClick = (day: WeekDay) => {
-    onDayToggle(day);
-  };
+  console.log('WeeklyDaySelector - selectedDays:', selectedDays);
 
   return (
     <div className="flex flex-wrap gap-2">
       {DAYS_OF_WEEK.map(({ label, value, shortLabel }) => {
         const isSelected = selectedDays.includes(value);
+        console.log(`Day ${value} - isSelected:`, isSelected);
+        
         return (
           <Button
             key={value}
             type="button"
             variant={isSelected ? "default" : "outline"}
-            onClick={() => handleDayClick(value)}
+            onClick={() => {
+              console.log('Button clicked:', value);
+              onDayToggle(value);
+            }}
             className={`w-16 min-w-[4rem] transition-colors ${
               isSelected 
                 ? "bg-primary hover:bg-primary/90 text-primary-foreground ring-2 ring-primary ring-offset-2" 
