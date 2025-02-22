@@ -45,7 +45,7 @@ export function DependencySelect({
           value=""
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select dependencies" />
+            <SelectValue placeholder="Related Tasks (optional)" />
           </SelectTrigger>
           <SelectContent>
             {availableTasks.map((task) => (
@@ -84,4 +84,4 @@ export function DependencySelect({
       )}
     </div>
   );
-};
+}

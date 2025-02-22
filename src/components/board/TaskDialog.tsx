@@ -10,6 +10,7 @@ import { Task, EventType } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { TaskForm } from "@/components/TaskForm";
 import { SyncStatus } from "@/components/integrations/microsoft/SyncStatus";
+import { ClipboardList, Video } from "lucide-react";
 
 interface TaskDialogProps {
   isOpen: boolean;
@@ -38,17 +39,21 @@ export function TaskDialog({
   const TaskTypeSelector = () => (
     <div className="mb-6">
       <div className="flex gap-2 bg-secondary p-1 rounded-lg w-fit">
-        {['task', 'meeting', 'reminder'].map(type => (
+        {[
+          { type: 'task', icon: <ClipboardList className="h-4 w-4" /> },
+          { type: 'meeting', icon: <Video className="h-4 w-4" /> }
+        ].map(({ type, icon }) => (
           <button
             key={type}
             onClick={() => setSelectedType(type as EventType)}
             className={cn(
-              "px-4 py-2 rounded-md capitalize transition-all",
+              "px-4 py-2 rounded-md capitalize transition-all flex items-center gap-2",
               selectedType === type
                 ? "bg-background shadow-sm text-primary"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
+            {icon}
             {type}
           </button>
         ))}
