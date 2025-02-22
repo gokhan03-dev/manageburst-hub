@@ -30,9 +30,19 @@ export const CategorySelect = ({
 }: CategorySelectProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleOpenDialog = () => {
+  const handleOpenDialog = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setDialogOpen(true);
     onOpenDialog();
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      // Only call onOpenDialog when the dialog is being opened
+      onOpenDialog();
+    }
   };
 
   return (
@@ -70,6 +80,7 @@ export const CategorySelect = ({
           size="icon"
           className="h-9 w-9"
           onClick={handleOpenDialog}
+          type="button"
         >
           <Settings className="h-4 w-4" />
         </Button>
@@ -97,7 +108,11 @@ export const CategorySelect = ({
                 {category.name}
                 <button
                   type="button"
-                  onClick={() => onRemoveCategory(categoryId)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onRemoveCategory(categoryId);
+                  }}
                   className="ml-1 rounded-full p-1 hover:bg-secondary"
                 >
                   <X className="h-3 w-3" />
@@ -108,7 +123,10 @@ export const CategorySelect = ({
         </div>
       )}
 
-      <CategoryDialog isOpen={dialogOpen} onOpenChange={setDialogOpen} />
+      <CategoryDialog 
+        isOpen={dialogOpen} 
+        onOpenChange={handleDialogChange}
+      />
     </div>
   );
 };

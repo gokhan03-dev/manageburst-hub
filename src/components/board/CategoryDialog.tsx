@@ -15,9 +15,14 @@ interface CategoryDialogProps {
 }
 
 export const CategoryDialog = ({ isOpen, onOpenChange }: CategoryDialogProps) => {
+  // Prevent dialog from closing when clicking inside CategoryManager
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" onClick={handleClick}>
         <DialogHeader>
           <DialogTitle>Manage Categories</DialogTitle>
           <DialogDescription>
