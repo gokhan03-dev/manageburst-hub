@@ -212,6 +212,8 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     });
   };
 
+  const isEditMode = !!initialData;
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <TaskBasicInfo
@@ -222,7 +224,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         taskType={taskType}
       />
 
-      {taskType === 'task' && (
+      {(!isEditMode || (isEditMode && taskType === 'task')) && taskType === 'task' && (
         <div className="space-y-6">
           <div className="flex items-center gap-4">
             <PrioritySelect
@@ -313,7 +315,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         </div>
       )}
 
-      {taskType === 'meeting' && (
+      {(!isEditMode || (isEditMode && taskType === 'meeting')) && taskType === 'meeting' && (
         <>
           <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0">
@@ -404,45 +406,47 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               </div>
             )}
           </div>
+
+          <MeetingSettings
+            attendees={attendees}
+            isOnlineMeeting={isOnlineMeeting}
+            onOnlineMeetingChange={setIsOnlineMeeting}
+            onLocationChange={(location) => setValue('location', location)}
+            onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
+            onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
+            onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
+            onUpdateAttendeeResponse={(email, response) => {
+              setAttendees(attendees.map(a => 
+                a.email === email ? { ...a, response } : a
+              ));
+            }}
+            meetingTitle={watch('title')}
+            startTime={watch('startTime')}
+            endTime={watch('endTime')}
+            description={watch('description')}
+            location={watch('location')}
+          />
         </>
       )}
 
-      {taskType === 'meeting' && (
-        <MeetingSettings
-          attendees={attendees}
-          isOnlineMeeting={isOnlineMeeting}
-          onOnlineMeetingChange={setIsOnlineMeeting}
-          onLocationChange={(location) => setValue('location', location)}
-          onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
-          onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
-          onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
-          onUpdateAttendeeResponse={(email, response) => {
-            setAttendees(attendees.map(a => 
-              a.email === email ? { ...a, response } : a
-            ));
-          }}
-          meetingTitle={watch('title')}
-          startTime={watch('startTime')}
-          endTime={watch('endTime')}
-          description={watch('description')}
-          location={watch('location')}
-        />
+      {(!isEditMode || (isEditMode && taskType === taskType)) && (
+        <>
+          <CategorySelect
+            categories={categories}
+            selectedCategories={selectedCategories}
+            onAddCategory={handleAddCategory}
+            onRemoveCategory={handleRemoveCategory}
+            onOpenDialog={() => setCategoryDialogOpen(true)}
+          />
+
+          <DependencySelect
+            tasks={allTasks}
+            selectedDependencies={watch("dependencies") || []}
+            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
+            currentTaskId={initialData?.id}
+          />
+        </>
       )}
-
-      <CategorySelect
-        categories={categories}
-        selectedCategories={selectedCategories}
-        onAddCategory={handleAddCategory}
-        onRemoveCategory={handleRemoveCategory}
-        onOpenDialog={() => setCategoryDialogOpen(true)}
-      />
-
-      <DependencySelect
-        tasks={allTasks}
-        selectedDependencies={watch("dependencies") || []}
-        onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-        currentTaskId={initialData?.id}
-      />
 
       <div className="flex justify-end gap-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>
