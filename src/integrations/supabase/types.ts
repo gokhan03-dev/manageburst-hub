@@ -569,6 +569,7 @@ export type Database = {
           sensitivity: string | null
           start_time: string | null
           status: string
+          subtasks: Json | null
           tags: string[] | null
           task_type: string
           title: string
@@ -607,6 +608,7 @@ export type Database = {
           sensitivity?: string | null
           start_time?: string | null
           status?: string
+          subtasks?: Json | null
           tags?: string[] | null
           task_type?: string
           title: string
@@ -645,6 +647,7 @@ export type Database = {
           sensitivity?: string | null
           start_time?: string | null
           status?: string
+          subtasks?: Json | null
           tags?: string[] | null
           task_type?: string
           title?: string

@@ -10,4 +10,5 @@ export const transformTaskData = (taskData: any): Task => ({
   dueDate: taskData.due_date,
   createdAt: taskData.created_at,
   dependencies: taskData.dependencies?.map((dep: any) => dep.dependency_task_id) || [],
+  subtasks: taskData.subtasks || [],
 });

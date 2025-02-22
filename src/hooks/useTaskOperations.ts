@@ -29,7 +29,8 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: task.priority,
           status: task.status,
           due_date: task.dueDate,
-          user_id: userId 
+          user_id: userId,
+          subtasks: task.subtasks || []
         }])
         .select()
         .single();
@@ -85,6 +86,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: updatedTask.priority,
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
+          subtasks: updatedTask.subtasks || []
         })
         .eq("id", updatedTask.id);
 
