@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -6,12 +5,14 @@ import {
   TaskPriority,
   TaskStatus,
   EventType,
+  Attendee,
 } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,7 @@ import { CategorySelect } from "./task-form/CategorySelect";
 import { PrioritySelect } from "./task-form/PrioritySelect";
 import { DatePicker } from "./task-form/DatePicker";
 import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { Repeat, Bell, Plus, X, Settings } from "lucide-react";
+import { Repeat, Bell, Plus, X, Settings, Tag, Link2, Users, CheckCircle2, Circle } from "lucide-react";
 import { TaskAttendees } from "./calendar/TaskAttendees";
 import {
   Select,
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -38,22 +40,38 @@ interface TaskFormProps {
   onCancel: () => void;
 }
 
+interface Subtask {
+  text: string;
+  completed: boolean;
+}
+
+interface TaskTag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
-  const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [subtasks, setSubtasks] = useState<string[]>([]); // For simple subtask list
+  const [reminderEnabled, setReminderEnabled] = useState(true);
+  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtask, setNewSubtask] = useState("");
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
+  const [tags, setTags] = useState<TaskTag[]>([]);
+  const [newTag, setNewTag] = useState("");
 
   const { register, handleSubmit, setValue, watch } = useForm({
-    defaultValues: initialData || {
-      title: "",
-      description: "",
-      priority: "low" as TaskPriority,
-      status: "todo" as TaskStatus,
-      dueDate: new Date().toISOString(),
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + 30 * 60000).toISOString(), // 30 minutes from now
+    defaultValues: {
+      ...initialData || {
+        title: "",
+        description: "",
+        priority: "low" as TaskPriority,
+        status: "todo" as TaskStatus,
+        dueDate: new Date().toISOString(),
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 30 * 60000).toISOString(),
+      },
+      reminderMinutes: taskType === 'meeting' ? 15 : undefined,
     },
   });
 
@@ -80,13 +98,31 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
   const handleAddSubtask = () => {
     if (newSubtask.trim()) {
-      setSubtasks([...subtasks, newSubtask.trim()]);
+      setSubtasks([...subtasks, { text: newSubtask.trim(), completed: false }]);
       setNewSubtask("");
     }
   };
 
+  const toggleSubtask = (index: number) => {
+    setSubtasks(subtasks.map((subtask, i) => 
+      i === index ? { ...subtask, completed: !subtask.completed } : subtask
+    ));
+  };
+
   const removeSubtask = (index: number) => {
     setSubtasks(subtasks.filter((_, i) => i !== index));
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim()) {
+      const newTagObj = {
+        id: Date.now().toString(),
+        name: newTag.trim(),
+        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+      };
+      setTags([...tags, newTagObj]);
+      setNewTag("");
+    }
   };
 
   const handleMeetingDurationChange = (duration: string) => {
@@ -113,10 +149,20 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Priority</Label>
-            <PrioritySelect
-              defaultValue={initialData?.priority || "low"}
-              onValueChange={(value: TaskPriority) => setValue("priority", value)}
-            />
+            <div className="flex items-center space-x-2">
+              <Circle 
+                className={cn(
+                  "h-3 w-3",
+                  watch("priority") === "low" && "text-blue-500",
+                  watch("priority") === "medium" && "text-yellow-500",
+                  watch("priority") === "high" && "text-red-500"
+                )} 
+              />
+              <PrioritySelect
+                defaultValue={initialData?.priority || "low"}
+                onValueChange={(value: TaskPriority) => setValue("priority", value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -126,7 +172,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               onSelect={(date) => {
                 if (taskType === 'meeting') {
                   setValue("startTime", date?.toISOString());
-                  // Set end time to 30 minutes after start time
                   if (date) {
                     const endDate = new Date(date.getTime() + 30 * 60000);
                     setValue("endTime", endDate.toISOString());
@@ -141,10 +186,13 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         </div>
 
         {taskType === 'meeting' && (
-          <div className="space-y-4">
+          <div className="space-y-4 bg-muted/50 p-4 rounded-lg">
             <div>
               <Label>Duration</Label>
-              <Select onValueChange={handleMeetingDurationChange}>
+              <Select 
+                defaultValue="30"
+                onValueChange={handleMeetingDurationChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
@@ -156,14 +204,20 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               </Select>
             </div>
 
-            <TaskAttendees
-              attendees={initialData?.attendees || []}
-              onAddAttendee={() => {}}
-              onRemoveAttendee={() => {}}
-              onUpdateAttendeeResponse={() => {}}
-            />
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Attendees
+              </Label>
+              <TaskAttendees
+                attendees={initialData?.attendees || []}
+                onAddAttendee={() => {}}
+                onRemoveAttendee={() => {}}
+                onUpdateAttendeeResponse={() => {}}
+              />
+            </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-4">
               <Button
                 type="button"
                 variant={isOnlineMeeting ? "default" : "outline"}
@@ -171,7 +225,9 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                   setIsOnlineMeeting(true);
                   setValue("location", "online");
                 }}
+                className="flex-1"
               >
+                <Link2 className="h-4 w-4 mr-2" />
                 Online
               </Button>
               <Button
@@ -182,7 +238,9 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                   setValue("location", "");
                   setValue("onlineMeetingUrl", undefined);
                 }}
+                className="flex-1"
               >
+                <Users className="h-4 w-4 mr-2" />
                 In Person
               </Button>
             </div>
@@ -204,7 +262,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
           >
             <Repeat className="h-4 w-4" />
-            Recurrence
           </Button>
 
           <Button
@@ -215,7 +272,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             onClick={() => setReminderEnabled(!reminderEnabled)}
           >
             <Bell className="h-4 w-4" />
-            Reminder
           </Button>
         </div>
 
@@ -238,12 +294,16 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
         {reminderEnabled && (
           <div className="bg-muted p-4 rounded-lg">
-            <Select onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}>
+            <Select 
+              defaultValue={taskType === 'meeting' ? "15" : undefined}
+              onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select reminder time" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10 minutes before</SelectItem>
+                <SelectItem value="15">15 minutes before</SelectItem>
                 <SelectItem value="30">30 minutes before</SelectItem>
                 <SelectItem value="60">1 hour before</SelectItem>
               </SelectContent>
@@ -252,23 +312,59 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         )}
 
         <div className="space-y-2">
-          <Label>Category</Label>
+          <div className="flex items-center justify-between">
+            <Label>Categories</Label>
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+          <CategorySelect
+            categories={categories}
+            selectedCategories={initialData?.categoryIds || []}
+            onAddCategory={(categoryId) => {
+              const currentCategories = watch("categoryIds") || [];
+              setValue("categoryIds", [...currentCategories, categoryId]);
+            }}
+            onRemoveCategory={(categoryId) => {
+              const currentCategories = watch("categoryIds") || [];
+              setValue(
+                "categoryIds",
+                currentCategories.filter((id) => id !== categoryId)
+              );
+            }}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Tags
+          </Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {tags.map((tag) => (
+              <Badge
+                key={tag.id}
+                style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color }}
+                className="flex items-center gap-1"
+              >
+                {tag.name}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => setTags(tags.filter(t => t.id !== tag.id))}
+                />
+              </Badge>
+            ))}
+          </div>
           <div className="flex gap-2">
-            <CategorySelect
-              categories={categories}
-              selectedCategories={initialData?.categoryIds || []}
-              onAddCategory={(categoryId) => {
-                const currentCategories = watch("categoryIds") || [];
-                setValue("categoryIds", [...currentCategories, categoryId]);
-              }}
-              onRemoveCategory={(categoryId) => {
-                const currentCategories = watch("categoryIds") || [];
-                setValue(
-                  "categoryIds",
-                  currentCategories.filter((id) => id !== categoryId)
-                );
-              }}
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Add new tag"
+              onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
             />
+            <Button type="button" size="icon" onClick={handleAddTag}>
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -289,7 +385,17 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               </div>
               {subtasks.map((subtask, index) => (
                 <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded">
-                  <span className="flex-1">{subtask}</span>
+                  <Checkbox
+                    checked={subtask.completed}
+                    onCheckedChange={() => toggleSubtask(index)}
+                    className="h-4 w-4"
+                  />
+                  <span className={cn(
+                    "flex-1",
+                    subtask.completed && "line-through text-muted-foreground"
+                  )}>
+                    {subtask.text}
+                  </span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -305,7 +411,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         )}
       </div>
 
-      <div className="flex justify-end gap-3 pt-4">
+      <div className="flex justify-end gap-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
