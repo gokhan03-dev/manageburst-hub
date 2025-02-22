@@ -29,7 +29,25 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: task.priority,
           status: task.status,
           due_date: task.dueDate,
-          user_id: userId 
+          user_id: userId,
+          subtasks: task.subtasks,
+          attendees: task.attendees,
+          event_type: task.eventType,
+          start_time: task.startTime,
+          end_time: task.endTime,
+          is_all_day: task.isAllDay,
+          location: task.location,
+          online_meeting_url: task.onlineMeetingUrl,
+          reminder_minutes: task.reminderMinutes,
+          tags: task.tags,
+          category_ids: task.categoryIds,
+          recurrence_pattern: task.recurrencePattern,
+          recurrence_interval: task.recurrenceInterval,
+          recurrence_start_date: task.recurrenceStartDate,
+          recurrence_end_date: task.recurrenceEndDate,
+          weekly_recurrence_days: task.weeklyRecurrenceDays,
+          monthly_recurrence_type: task.monthlyRecurrenceType,
+          monthly_recurrence_day: task.monthlyRecurrenceDay
         }])
         .select()
         .single();
@@ -85,6 +103,24 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: updatedTask.priority,
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
+          subtasks: updatedTask.subtasks,
+          attendees: updatedTask.attendees,
+          event_type: updatedTask.eventType,
+          start_time: updatedTask.startTime,
+          end_time: updatedTask.endTime,
+          is_all_day: updatedTask.isAllDay,
+          location: updatedTask.location,
+          online_meeting_url: updatedTask.onlineMeetingUrl,
+          reminder_minutes: updatedTask.reminderMinutes,
+          tags: updatedTask.tags,
+          category_ids: updatedTask.categoryIds,
+          recurrence_pattern: updatedTask.recurrencePattern,
+          recurrence_interval: updatedTask.recurrenceInterval,
+          recurrence_start_date: updatedTask.recurrenceStartDate,
+          recurrence_end_date: updatedTask.recurrenceEndDate,
+          weekly_recurrence_days: updatedTask.weeklyRecurrenceDays,
+          monthly_recurrence_type: updatedTask.monthlyRecurrenceType,
+          monthly_recurrence_day: updatedTask.monthlyRecurrenceDay
         })
         .eq("id", updatedTask.id);
 
