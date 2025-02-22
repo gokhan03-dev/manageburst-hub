@@ -36,7 +36,7 @@ import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
 import { DependencySelect } from "./task-form/DependencySelect";
-import { Repeat, Bell, Settings } from "lucide-react";
+import { Repeat, ClipboardList, Video, UserPlus, Link2 } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -95,12 +95,14 @@ interface Dependency {
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
-  const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categoryIds || []);
+  const [attendees, setAttendees] = useState<Attendee[]>(initialData?.attendees || []);
+  const [locationInput, setLocationInput] = useState(initialData?.location || '');
+  const [meetingUrl, setMeetingUrl] = useState(initialData?.onlineMeetingUrl || '');
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -112,7 +114,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         dueDate: new Date().toISOString(),
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
-        reminderMinutes: 15,
         subtasks: [],
         dependencies: [],
         categoryIds: [],
@@ -123,6 +124,9 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         weeklyRecurrenceDays: [] as WeekDay[],
         monthlyRecurrenceType: undefined as MonthlyRecurrenceType | undefined,
         monthlyRecurrenceDay: undefined,
+        location: "",
+        onlineMeetingUrl: "",
+        attendees: [],
       },
     },
   });
@@ -215,24 +219,107 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     setValue("categoryIds", newCategories);
   };
 
-  const handleFormSubmit = (data: any) => {
-    onSubmit({
+  const handleAddAttendee = (email: string) => {
+    if (!email.includes('@')) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    const newAttendee: Attendee = {
+      email,
+      required: true,
+      response: 'tentative'
+    };
+    setAttendees([...attendees, newAttendee]);
+  };
+
+  const handleRemoveAttendee = (email: string) => {
+    setAttendees(attendees.filter(a => a.email !== email));
+  };
+
+  const handleUpdateAttendeeResponse = (email: string, response: 'accepted' | 'tentative' | 'declined') => {
+    setAttendees(attendees.map(a => 
+      a.email === email ? { ...a, response } : a
+    ));
+  };
+
+  const generateZoomLink = async () => {
+    const mockZoomLink = `https://zoom.us/j/${Math.random().toString(36).substr(2, 9)}`;
+    setMeetingUrl(mockZoomLink);
+    setValue('onlineMeetingUrl', mockZoomLink);
+  };
+
+  const handleLocationTypeChange = (type: 'online' | 'inPerson') => {
+    setIsOnlineMeeting(type === 'online');
+    if (type === 'online') {
+      setLocationInput('');
+      setValue('location', '');
+    } else {
+      setMeetingUrl('');
+      setValue('onlineMeetingUrl', '');
+    }
+  };
+
+  const handleFormSubmit = async (data: any) => {
+    const formData = {
       ...data,
       subtasks,
-      tags,
+      tags: taskType === 'meeting' ? [] : tags,
       dependencies: watch('dependencies') || [],
-      categoryIds: selectedCategories,
-    });
+      categoryIds: taskType === 'meeting' ? [] : selectedCategories,
+      location: isOnlineMeeting ? meetingUrl : locationInput,
+      attendees: taskType === 'meeting' ? attendees : [],
+      isOnlineMeeting,
+      onlineMeetingUrl: meetingUrl,
+    };
+
+    if (taskType === 'meeting' && attendees.length > 0) {
+      try {
+        await Promise.all(attendees.map(attendee => 
+          fetch('/api/send-meeting-invitation', {
+            method: 'POST',
+            body: JSON.stringify({
+              attendee,
+              meeting: formData
+            })
+          })
+        ));
+
+        toast({
+          title: "Meeting invitations sent",
+          description: "All attendees have been notified",
+        });
+      } catch (error) {
+        console.error('Error sending invitations:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send meeting invitations",
+          variant: "destructive",
+        });
+      }
+    }
+
+    onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <Input
-          {...register("title", { required: true })}
-          placeholder={`${taskType} title`}
-          className="text-lg"
-        />
+        <div className="flex items-center gap-2">
+          {taskType === 'task' ? (
+            <ClipboardList className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <Video className="h-5 w-5 text-muted-foreground" />
+          )}
+          <Input
+            {...register("title", { required: true })}
+            placeholder={`${taskType} title`}
+            className="text-lg"
+          />
+        </div>
 
         <Textarea
           {...register("description")}
@@ -279,18 +366,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               >
                 <Repeat className="h-4 w-4" />
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className={cn(
-                  "h-9 w-9 rounded-md p-2",
-                  reminderEnabled && "bg-primary/20 text-primary"
-                )}
-                onClick={() => setReminderEnabled(!reminderEnabled)}
-              >
-                <Bell className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
@@ -318,47 +393,105 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           </div>
         )}
 
-        {reminderEnabled && (
-          <div className="bg-muted p-4 rounded-lg">
-            <Select 
-              defaultValue={watch("reminderMinutes")?.toString() || "15"}
-              onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reminder time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 minutes before</SelectItem>
-                <SelectItem value="15">15 minutes before</SelectItem>
-                <SelectItem value="30">30 minutes before</SelectItem>
-                <SelectItem value="60">1 hour before</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {taskType !== 'meeting' && (
+          <>
+            <CategorySelect
+              categories={categories}
+              selectedCategories={selectedCategories}
+              onAddCategory={handleAddCategory}
+              onRemoveCategory={handleRemoveCategory}
+              onOpenDialog={() => setCategoryDialogOpen(true)}
+            />
+
+            <div className="space-y-2">
+              <TagList
+                tags={tags}
+                onAddTag={(tag) => setTags([...tags, tag])}
+                onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+              />
+            </div>
+          </>
         )}
-
-        <CategorySelect
-          categories={categories}
-          selectedCategories={selectedCategories}
-          onAddCategory={handleAddCategory}
-          onRemoveCategory={handleRemoveCategory}
-          onOpenDialog={() => setCategoryDialogOpen(true)}
-        />
-
-        <div className="space-y-2">
-          <TagList
-            tags={tags}
-            onAddTag={(tag) => setTags([...tags, tag])}
-            onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-          />
-        </div>
 
         <DependencySelect
           tasks={allTasks}
           selectedDependencies={watch("dependencies") || []}
           onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
           currentTaskId={initialData?.id}
+          placeholder="Related Tasks (optional)"
         />
+
+        {taskType === 'meeting' && (
+          <>
+            <div className="space-y-2">
+              <div className="flex justify-center gap-2">
+                <Button
+                  type="button"
+                  variant={isOnlineMeeting ? "default" : "outline"}
+                  onClick={() => handleLocationTypeChange('online')}
+                >
+                  Online
+                </Button>
+                <Button
+                  type="button"
+                  variant={!isOnlineMeeting ? "default" : "outline"}
+                  onClick={() => handleLocationTypeChange('inPerson')}
+                >
+                  In Person
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={isOnlineMeeting ? meetingUrl : locationInput}
+                  onChange={(e) => {
+                    if (isOnlineMeeting) {
+                      setMeetingUrl(e.target.value);
+                      setValue('onlineMeetingUrl', e.target.value);
+                    } else {
+                      setLocationInput(e.target.value);
+                      setValue('location', e.target.value);
+                    }
+                  }}
+                  placeholder={isOnlineMeeting ? "Meeting Link" : "Address"}
+                  className="flex-1"
+                />
+                {isOnlineMeeting && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateZoomLink}
+                  >
+                    Zoom
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <MeetingSettings
+              attendees={attendees}
+              isOnlineMeeting={isOnlineMeeting}
+              onOnlineMeetingChange={(isOnline) => handleLocationTypeChange(isOnline ? 'online' : 'inPerson')}
+              onLocationChange={(location) => {
+                setLocationInput(location);
+                setValue('location', location);
+              }}
+              onMeetingUrlChange={(url) => {
+                setMeetingUrl(url || '');
+                setValue('onlineMeetingUrl', url);
+              }}
+              onAddAttendee={handleAddAttendee}
+              onRemoveAttendee={handleRemoveAttendee}
+              onUpdateAttendeeResponse={handleUpdateAttendeeResponse}
+              onDurationChange={(duration) => {
+                const startTime = new Date(watch('startTime'));
+                const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                setValue('endTime', endTime.toISOString());
+              }}
+            />
+          </>
+        )}
 
         {taskType === 'task' && (
           <div className="space-y-2">
