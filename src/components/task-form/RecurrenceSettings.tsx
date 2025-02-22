@@ -64,6 +64,12 @@ export function RecurrenceSettings({
   monthlyDay = 1,
   onMonthlyDayChange = () => {},
 }: RecurrenceSettingsProps) {
+  const [selectedPattern, setSelectedPattern] = React.useState<RecurrencePattern>(pattern);
+
+  React.useEffect(() => {
+    setSelectedPattern(pattern);
+  }, [pattern]);
+
   const handleWeeklyDayToggle = (day: WeekDay) => {
     const newDays = weeklyDays.includes(day)
       ? weeklyDays.filter(d => d !== day)
@@ -71,27 +77,12 @@ export function RecurrenceSettings({
     onWeeklyDaysChange(newDays);
   };
 
-  React.useEffect(() => {
-    // Initialize weekly pattern with current day
-    if (pattern === "weekly" && weeklyDays.length === 0) {
-      const today = new Date().getDay();
-      onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
-    }
-  }, [pattern, weeklyDays.length, onWeeklyDaysChange]);
-
-  React.useEffect(() => {
-    // Initialize monthly pattern with current day
-    if (pattern === "monthly" && monthlyType === "date" && (!monthlyDay || monthlyDay < 1)) {
-      onMonthlyDayChange(new Date().getDate());
-    }
-  }, [pattern, monthlyType, monthlyDay, onMonthlyDayChange]);
-
-  const handlePatternChange = (value: string) => {
-    const newPattern = value as RecurrencePattern;
-    onPatternChange(newPattern);
+  const handlePatternChange = (value: RecurrencePattern) => {
+    setSelectedPattern(value);
+    onPatternChange(value);
 
     // Initialize settings for each pattern type
-    switch (newPattern) {
+    switch (value) {
       case "weekly":
         if (weeklyDays.length === 0) {
           const today = new Date().getDay();
@@ -105,7 +96,6 @@ export function RecurrenceSettings({
         }
         break;
       case "yearly":
-        // For yearly, we might want to set a default start date if none exists
         if (!startDate) {
           onStartDateChange(new Date());
         }
@@ -140,7 +130,7 @@ export function RecurrenceSettings({
                 className="w-20"
               />
               <Select
-                value={pattern}
+                value={selectedPattern}
                 onValueChange={handlePatternChange}
               >
                 <SelectTrigger className="w-[120px]">
@@ -156,7 +146,7 @@ export function RecurrenceSettings({
             </div>
           </div>
 
-          {pattern === "weekly" && (
+          {selectedPattern === "weekly" && (
             <div className="space-y-2">
               <Label>Repeat on</Label>
               <div className="grid grid-cols-4 gap-2">
@@ -174,7 +164,7 @@ export function RecurrenceSettings({
             </div>
           )}
 
-          {pattern === "monthly" && (
+          {selectedPattern === "monthly" && (
             <div className="space-y-4">
               <Label>Repeat on</Label>
               <RadioGroup 
