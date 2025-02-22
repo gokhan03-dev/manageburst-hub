@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Flag, Trash2, CheckSquare, Square, ListChecks, Tags, ChevronsRight } from "lucide-react";
+import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -51,9 +50,9 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   };
 
   const priorityIcons = {
-    low: <ChevronsRight className="h-4 w-4" />,
-    medium: <Flag className="h-4 w-4" />,
-    high: <Flag className="h-4 w-4 fill-current" />,
+    low: <Circle className="h-4 w-4" />,
+    medium: <AlertCircle className="h-4 w-4" />,
+    high: <AlertTriangle className="h-4 w-4 fill-current" />,
   };
 
   const statusColors = {

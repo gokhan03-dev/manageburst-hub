@@ -5,7 +5,11 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { CustomPopover } from "@/components/ui/custom-popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 
 interface DatePickerProps {
@@ -45,8 +49,8 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
 
   return (
     <div className="flex gap-2">
-      <CustomPopover
-        trigger={
+      <Popover>
+        <PopoverTrigger asChild>
           <Button
             variant={"outline"}
             className={cn(
@@ -57,15 +61,16 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date ? format(date, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
           </Button>
-        }
-      >
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={handleDateSelect}
-          initialFocus
-        />
-      </CustomPopover>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={handleDateSelect}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
       {showTimePicker && (
         <Input
           type="time"
