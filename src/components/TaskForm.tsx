@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -13,6 +12,7 @@ import {
   Sensitivity,
   TaskTag,
 } from "@/types/task";
+import { Json } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,12 +60,12 @@ interface DatabaseTask {
   end_time: string | null;
   created_at: string;
   user_id: string;
-  category_ids: string[];
-  tags: string[];
+  category_ids: string[] | null;
+  tags: string[] | null;
   event_type: string | null;
-  is_all_day: boolean;
+  is_all_day: boolean | null;
   location: string | null;
-  attendees: any[];
+  attendees: Json | null;
   recurrence_pattern: string | null;
   recurrence_interval: number | null;
   recurrence_start_date: string | null;
@@ -79,6 +79,12 @@ interface DatabaseTask {
   reminder_minutes: number | null;
   online_meeting_url: string | null;
   sensitivity: string | null;
+  goal_deadline: string | null;
+  goal_target: string | null;
+  habit_frequency: string | null;
+  habit_streak: number | null;
+  progress: number | null;
+  is_completed: boolean | null;
 }
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
@@ -151,7 +157,8 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     endTime: task.end_time || undefined,
     isAllDay: task.is_all_day || false,
     location: task.location || undefined,
-    attendees: task.attendees as Attendee[],
+    attendees: ((task.attendees as any[] || []) as Array<{ email: string; required: boolean }>)
+      .map(a => ({ email: a.email, required: a.required })),
     recurrencePattern: task.recurrence_pattern as RecurrencePattern || undefined,
     recurrenceInterval: task.recurrence_interval || 1,
     recurrenceStartDate: task.recurrence_start_date || undefined,
@@ -159,12 +166,12 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     nextOccurrence: task.next_occurrence || undefined,
     lastOccurrence: task.last_occurrence || undefined,
     scheduleStartDate: task.schedule_start_date || undefined,
-    weeklyRecurrenceDays: task.weekly_recurrence_days as WeekDay[] || [],
-    monthlyRecurrenceType: task.monthly_recurrence_type as MonthlyRecurrenceType || undefined,
+    weeklyRecurrenceDays: (task.weekly_recurrence_days as WeekDay[]) || [],
+    monthlyRecurrenceType: (task.monthly_recurrence_type as MonthlyRecurrenceType) || undefined,
     monthlyRecurrenceDay: task.monthly_recurrence_day || undefined,
     reminderMinutes: task.reminder_minutes || 15,
     onlineMeetingUrl: task.online_meeting_url || undefined,
-    sensitivity: task.sensitivity as Sensitivity || "normal",
+    sensitivity: (task.sensitivity || "normal") as Sensitivity,
   });
 
   const { data: allTasks = [] } = useQuery<Task[]>({
@@ -184,7 +191,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         return [];
       }
       
-      return (tasksData as DatabaseTask[]).map(transformDatabaseTask);
+      return (tasksData as unknown as DatabaseTask[]).map(transformDatabaseTask);
     },
   });
 
