@@ -8,6 +8,8 @@ import { WeeklyDaySelector } from "./WeeklyDaySelector";
 import { MonthlySettings } from "./MonthlySettings";
 import { RecurrencePatternSelector } from "./RecurrencePatternSelector";
 
+const WEEKDAYS: WeekDay[] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
 interface RecurrenceSettingsProps {
   enabled: boolean;
   onEnableChange: (enabled: boolean) => void;
@@ -66,7 +68,7 @@ export function RecurrenceSettings({
       case "weekly":
         if (weeklyDays.length === 0) {
           const today = new Date().getDay();
-          onWeeklyDaysChange([["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][today]]);
+          onWeeklyDaysChange([WEEKDAYS[today]]);
         }
         break;
       case "monthly":
