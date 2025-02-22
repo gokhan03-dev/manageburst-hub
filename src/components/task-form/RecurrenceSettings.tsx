@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { RecurrencePattern, WeekDay, MonthlyRecurrenceType } from "@/types/task";
@@ -141,22 +142,23 @@ export function RecurrenceSettings({
           </div>
 
           {selectedPattern === "weekly" && (
-            <div className="space-y-2">
-              <Label>Repeat on</Label>
-              <div className="flex flex-wrap gap-2">
-                {DAYS_OF_WEEK.map(({ label, value, shortLabel }) => (
-                  <Button
-                    key={value}
-                    type="button"
-                    variant={weeklyDays.includes(value) ? "default" : "outline"}
-                    onClick={() => handleWeeklyDayToggle(value)}
-                    className="w-16"
-                    size="sm"
-                  >
-                    {shortLabel}
-                  </Button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {DAYS_OF_WEEK.map(({ label, value, shortLabel }) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant={weeklyDays.includes(value) ? "default" : "outline"}
+                  onClick={() => handleWeeklyDayToggle(value)}
+                  className={`w-16 transition-all ${
+                    weeklyDays.includes(value) 
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                  size="sm"
+                >
+                  {shortLabel}
+                </Button>
+              ))}
             </div>
           )}
 
