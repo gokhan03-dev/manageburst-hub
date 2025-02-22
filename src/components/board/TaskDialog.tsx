@@ -74,7 +74,7 @@ export function TaskDialog({
         </DialogHeader>
 
         <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
-          {!selectedTask && <TaskTypeSelector />}
+          <TaskTypeSelector />
           <TaskForm
             onSubmit={handleSubmit}
             initialData={selectedTask}
