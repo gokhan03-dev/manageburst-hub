@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,10 +26,23 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
       onAddTag({
         id: Date.now().toString(),
         name: newTag.trim(),
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+        color: generateTagColor(),
       });
       setNewTag("");
     }
+  };
+
+  const generateTagColor = () => {
+    // List of high-contrast, readable colors
+    const colors = [
+      "#8B5CF6", // Vivid Purple
+      "#0EA5E9", // Ocean Blue
+      "#F97316", // Bright Orange
+      "#D946EF", // Magenta Pink
+      "#1EAEDB", // Bright Blue
+      "#9b87f5", // Primary Purple
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
   };
 
   return (
@@ -42,12 +55,17 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
         {tags.map((tag) => (
           <Badge
             key={tag.id}
-            style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color }}
-            className="flex items-center gap-1"
+            variant="outline"
+            className="flex items-center gap-1 px-2 py-1 text-foreground"
+            style={{
+              backgroundColor: `${tag.color}15`,
+              borderColor: tag.color,
+              color: tag.color,
+            }}
           >
             {tag.name}
             <X
-              className="h-3 w-3 cursor-pointer"
+              className="h-3 w-3 cursor-pointer hover:text-destructive"
               onClick={() => onRemoveTag(tag.id)}
             />
           </Badge>
@@ -58,7 +76,12 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           placeholder="Add new tag"
-          onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
+          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAddTag();
+            }
+          }}
         />
         <Button type="button" size="icon" onClick={handleAddTag}>
           <Plus className="h-4 w-4" />
