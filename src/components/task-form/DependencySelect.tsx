@@ -8,9 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface DependencySelectProps {
   tasks: Task[];
@@ -38,26 +37,24 @@ export function DependencySelect({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Select
-          onValueChange={handleAddDependency}
-          value=""
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select dependencies" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTasks.map((task) => (
-              <SelectItem key={task.id} value={task.id}>
-                {task.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="flex-1 space-y-2">
+      <Select
+        onValueChange={handleAddDependency}
+        value=""
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select dependencies" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableTasks.map((task) => (
+            <SelectItem key={task.id} value={task.id}>
+              {task.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <div className="flex flex-wrap gap-2 mt-2">
+      <div className="flex flex-wrap gap-2">
         {selectedDependencies.map((depId) => {
           const task = tasks.find((t) => t.id === depId);
           if (!task) return null;
@@ -66,17 +63,16 @@ export function DependencySelect({
             <Badge
               key={depId}
               variant="secondary"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 px-3 py-0.5"
             >
               {task.title}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4 p-0 hover:bg-transparent"
+              <button
+                type="button"
                 onClick={() => handleRemoveDependency(depId)}
+                className="ml-1 hover:bg-background/40 rounded-full p-0.5"
               >
                 <X className="h-3 w-3" />
-              </Button>
+              </button>
             </Badge>
           );
         })}

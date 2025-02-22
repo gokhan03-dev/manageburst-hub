@@ -1,7 +1,7 @@
 
 import React from "react";
 import { TaskPriority } from "@/types/task";
-import { AlertTriangle, AlertCircle, Circle } from "lucide-react";
+import { Triangle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -19,36 +19,44 @@ export const PrioritySelect = ({
   defaultValue,
   onValueChange,
 }: PrioritySelectProps) => {
-  const renderPriorityOption = (icon: React.ReactNode, text: string) => (
-    <div className="flex items-center gap-2">
-      {icon}
-      <span>{text}</span>
-    </div>
-  );
+  const renderPriorityOption = (priority: TaskPriority) => {
+    const getIconStyles = (priority: TaskPriority) => {
+      switch (priority) {
+        case "high":
+          return "text-orange-500 rotate-0";
+        case "medium":
+          return "text-green-500 rounded-full border-2 border-current";
+        case "low":
+          return "text-blue-500 rotate-180";
+      }
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <Triangle 
+          className={`h-4 w-4 transition-transform ${getIconStyles(priority)}`} 
+          strokeWidth={priority === "medium" ? 0 : 2}
+          fill={priority === "medium" ? "currentColor" : "none"}
+        />
+        <span className="capitalize">{priority}</span>
+      </div>
+    );
+  };
 
   return (
     <Select onValueChange={onValueChange} defaultValue={defaultValue}>
-      <SelectTrigger>
+      <SelectTrigger className="w-full">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="low">
-          {renderPriorityOption(
-            <Circle className="h-4 w-4 text-blue-500" />,
-            "Low"
-          )}
+        <SelectItem value="high">
+          {renderPriorityOption("high")}
         </SelectItem>
         <SelectItem value="medium">
-          {renderPriorityOption(
-            <AlertCircle className="h-4 w-4 text-amber-500" />,
-            "Medium"
-          )}
+          {renderPriorityOption("medium")}
         </SelectItem>
-        <SelectItem value="high">
-          {renderPriorityOption(
-            <AlertTriangle className="h-4 w-4 text-red-500 fill-current" />,
-            "High"
-          )}
+        <SelectItem value="low">
+          {renderPriorityOption("low")}
         </SelectItem>
       </SelectContent>
     </Select>
