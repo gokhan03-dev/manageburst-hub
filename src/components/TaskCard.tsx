@@ -2,7 +2,7 @@
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Flag, Trash2, CheckSquare, Square } from "lucide-react";
+import { Calendar, Flag, Trash2, CheckSquare, Square, ListChecks, Tags, ChevronsRight } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -11,6 +11,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface TaskCardProps {
   task: Task;
@@ -44,9 +45,15 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   });
   
   const priorityColors = {
-    low: "bg-task-low text-gray-700 dark:bg-blue-900/30 dark:text-blue-200",
-    medium: "bg-task-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-200",
-    high: "bg-task-high text-red-700 dark:bg-red-900/30 dark:text-red-200",
+    low: "text-blue-500 dark:text-blue-400",
+    medium: "text-amber-500 dark:text-amber-400",
+    high: "text-red-500 dark:text-red-400",
+  };
+
+  const priorityIcons = {
+    low: <ChevronsRight className="h-4 w-4" />,
+    medium: <Flag className="h-4 w-4" />,
+    high: <Flag className="h-4 w-4 fill-current" />,
   };
 
   const statusColors = {
@@ -65,7 +72,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   );
 
   const handleStatusToggle = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
+    e.stopPropagation();
     updateTask({
       ...task,
       status: task.status === 'completed' ? 'todo' : 'completed'
@@ -73,9 +80,12 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   };
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
+    e.stopPropagation();
     deleteTask(task.id);
   };
+
+  const displayTags = task.tags?.slice(0, 3) || [];
+  const hasMoreTags = task.tags && task.tags.length > 3;
 
   return (
     <div
@@ -85,7 +95,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       {...listeners}
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing dark:bg-card dark:border-border/50",
+        "group relative overflow-hidden rounded-lg border bg-card p-3 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing dark:bg-card dark:border-border/50",
         "border-l-4",
         statusColors[task.status],
         isDragging && "opacity-50",
@@ -100,72 +110,109 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
             aria-label={task.status === 'completed' ? "Mark as incomplete" : "Mark as complete"}
           >
             {task.status === 'completed' ? (
-              <CheckSquare className="h-5 w-5" />
+              <CheckSquare className="h-4 w-4" />
             ) : (
-              <Square className="h-5 w-5" />
+              <Square className="h-4 w-4" />
             )}
           </button>
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-              priorityColors[task.priority]
-            )}
-          >
-            <Flag className="mr-1 h-3 w-3" />
-            {task.priority}
+          <span className={cn("", priorityColors[task.priority])}>
+            {priorityIcons[task.priority]}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="mr-1 h-4 w-4" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center">
+            <Calendar className="mr-1 h-3 w-3" />
             {format(new Date(task.dueDate), "MMM dd")}
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleDelete}
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
             aria-label="Delete task"
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <Trash2 className="h-3 w-3 text-destructive" />
           </Button>
         </div>
       </div>
       
-      {taskCategories.length > 0 && (
+      {(displayTags.length > 0 || taskCategories.length > 0) && (
         <div className="mb-2 flex flex-wrap gap-1">
           {taskCategories.map((category) => (
             <Badge
               key={category.id}
               variant="secondary"
-              className="text-xs"
+              className="text-xs px-1"
               style={{
                 backgroundColor: `${category.color}20`,
                 borderColor: category.color,
               }}
             >
               <div
-                className="mr-1 h-2 w-2 rounded-full"
+                className="mr-1 h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: category.color }}
               />
               {category.name}
             </Badge>
           ))}
+          {displayTags.map((tag) => (
+            <Badge
+              key={tag.id}
+              variant="outline"
+              className="text-xs px-1"
+              style={{
+                backgroundColor: `${tag.color}15`,
+                borderColor: tag.color,
+                color: tag.color,
+              }}
+            >
+              {tag.name}
+            </Badge>
+          ))}
+          {hasMoreTags && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Tags className="h-3 w-3 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                {task.tags!.length - 3} more tags
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       )}
 
       <h3 className={cn(
-        "text-lg font-semibold text-foreground",
+        "text-sm font-medium text-foreground mb-1",
         task.status === 'completed' && "line-through text-muted-foreground"
       )}>
         {task.title}
       </h3>
-      <p className={cn(
-        "mt-1 text-sm text-muted-foreground line-clamp-2",
-        task.status === 'completed' && "line-through"
-      )}>
-        {task.description}
-      </p>
+      
+      {task.description && (
+        <p className={cn(
+          "text-xs text-muted-foreground line-clamp-2 mb-2",
+          task.status === 'completed' && "line-through"
+        )}>
+          {task.description}
+        </p>
+      )}
+      
+      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+        {task.subtasks && task.subtasks.length > 0 && (
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="flex items-center gap-1">
+                <ListChecks className="h-3 w-3" />
+                {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Subtasks completed</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       
       {showDependencies && <TaskDependencyGraph task={task} allTasks={tasks} />}
       

@@ -1,4 +1,3 @@
-
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in-progress" | "completed";
 export type RecurrencePattern = "daily" | "weekly" | "monthly" | "yearly";
@@ -39,6 +38,7 @@ export interface Task {
   dependencies?: string[];
   categoryIds?: string[];
   subtasks?: Subtask[];
+  tags?: TaskTag[];
   
   // Calendar integration fields
   eventType?: EventType;
@@ -70,6 +70,12 @@ export interface TaskDependency {
 }
 
 export interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TaskTag {
   id: string;
   name: string;
   color: string;

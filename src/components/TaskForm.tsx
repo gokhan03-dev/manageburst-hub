@@ -54,7 +54,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
-  const [tags, setTags] = useState<TaskTag[]>([]);
+  const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch } = useForm({
@@ -105,6 +105,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       ...data,
       subtasks,
       tags,
+      dependencies: initialData?.dependencies || [],
     });
   };
 
