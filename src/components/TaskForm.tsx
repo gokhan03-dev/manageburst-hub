@@ -6,7 +6,6 @@ import {
   TaskPriority,
   TaskStatus,
   EventType,
-  Attendee,
   TaskTag,
 } from "@/types/task";
 import { Button } from "@/components/ui/button";
@@ -14,11 +13,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { MeetingSettings } from "./task-form/MeetingSettings";
 import { TaskBasicInfo } from "./task-form/sections/TaskBasicInfo";
 import { TaskCategories } from "./task-form/sections/TaskCategories";
 import { TaskTags } from "./task-form/sections/TaskTags";
 import { TaskSubtasks } from "./task-form/sections/TaskSubtasks";
+import { TaskDependencies } from "./task-form/sections/TaskDependencies";
 import {
   Select,
   SelectContent,
@@ -43,7 +42,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
-  const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
@@ -59,6 +57,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
         reminderMinutes: 15,
         subtasks: [],
+        dependencies: [],
       },
     },
   });
@@ -84,12 +83,33 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at');
+      
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
+      
+      return data;
+    },
+  });
+
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
       subtasks,
       tags,
-      dependencies: initialData?.dependencies || [],
+      dependencies: watch('dependencies') || [],
     });
   };
 
@@ -152,6 +172,12 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       />
 
       <TaskTags tags={tags} setTags={setTags} />
+
+      <TaskDependencies
+        tasks={allTasks}
+        selectedDependencies={watch('dependencies') || []}
+        onDependencyChange={(dependencies) => setValue('dependencies', dependencies)}
+      />
 
       {taskType === 'task' && (
         <TaskSubtasks subtasks={subtasks} setSubtasks={setSubtasks} />

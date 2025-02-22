@@ -3,6 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { PrioritySelect } from "../PrioritySelect";
 import { TaskPriority, EventType } from "@/types/task";
 import { DatePicker } from "../DatePicker";
@@ -75,6 +76,26 @@ export const TaskBasicInfo = ({
             }}
             showTimePicker={taskType === 'meeting'}
           />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-6 pt-2">
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={recurrenceEnabled}
+            onCheckedChange={setRecurrenceEnabled}
+            id="recurrence-switch"
+          />
+          <Label htmlFor="recurrence-switch">Recurring {taskType}</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={reminderEnabled}
+            onCheckedChange={setReminderEnabled}
+            id="reminder-switch"
+          />
+          <Label htmlFor="reminder-switch">Set reminder</Label>
         </div>
       </div>
     </div>
