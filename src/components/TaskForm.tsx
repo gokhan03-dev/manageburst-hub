@@ -223,46 +223,97 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       />
 
       {taskType === 'meeting' && (
-        <div className="flex items-center gap-4">
-          <div className="flex-1 min-w-0">
-            <MeetingTimeSettings
-              startTime={watch('startTime')}
-              endTime={watch('endTime')}
-              onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
-              onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
-              onDurationChange={(duration) => {
-                const startTimeValue = watch('startTime');
-                if (!startTimeValue) {
-                  toast({
-                    title: "Please select a start time first",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                try {
-                  const startTime = new Date(startTimeValue);
-                  const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
-                  setValue('endTime', endTime.toISOString());
-                } catch (error) {
-                  console.error('Error calculating end time:', error);
-                  toast({
-                    title: "Error setting meeting duration",
-                    description: "Please try selecting the start time again",
-                    variant: "destructive",
-                  });
-                }
-              }}
-            />
+        <>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <MeetingTimeSettings
+                startTime={watch('startTime')}
+                endTime={watch('endTime')}
+                onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
+                onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
+                onDurationChange={(duration) => {
+                  const startTimeValue = watch('startTime');
+                  if (!startTimeValue) {
+                    toast({
+                      title: "Please select a start time first",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  try {
+                    const startTime = new Date(startTimeValue);
+                    const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                    setValue('endTime', endTime.toISOString());
+                  } catch (error) {
+                    console.error('Error calculating end time:', error);
+                    toast({
+                      title: "Error setting meeting duration",
+                      description: "Please try selecting the start time again",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <RecurrenceControls
+                recurrenceEnabled={recurrenceEnabled}
+                reminderEnabled={reminderEnabled}
+                onRecurrenceToggle={setRecurrenceEnabled}
+                onReminderToggle={setReminderEnabled}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <RecurrenceControls
-              recurrenceEnabled={recurrenceEnabled}
-              reminderEnabled={reminderEnabled}
-              onRecurrenceToggle={setRecurrenceEnabled}
-              onReminderToggle={setReminderEnabled}
-            />
+
+          <div className="space-y-4">
+            {recurrenceEnabled && (
+              <div className="pl-4 border-l-2 border-primary/20">
+                <RecurrenceSettings
+                  enabled={recurrenceEnabled}
+                  onEnableChange={setRecurrenceEnabled}
+                  pattern={watch("recurrencePattern")}
+                  onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
+                  interval={watch("recurrenceInterval")}
+                  onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
+                  startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
+                  onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
+                  endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
+                  onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+                  weeklyDays={watch("weeklyRecurrenceDays") || []}
+                  onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
+                  monthlyType={watch("monthlyRecurrenceType")}
+                  onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
+                  monthlyDay={watch("monthlyRecurrenceDay") || 1}
+                  onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
+                />
+              </div>
+            )}
+
+            {reminderEnabled && (
+              <div className="pl-4 border-l-2 border-primary/20">
+                <div className="space-y-2">
+                  <Label>Reminder Time</Label>
+                  <Select
+                    value={watch("reminderMinutes")?.toString()}
+                    onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select reminder time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 minutes before</SelectItem>
+                      <SelectItem value="10">10 minutes before</SelectItem>
+                      <SelectItem value="15">15 minutes before</SelectItem>
+                      <SelectItem value="30">30 minutes before</SelectItem>
+                      <SelectItem value="60">1 hour before</SelectItem>
+                      <SelectItem value="1440">1 day before</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
 
       {taskType === 'meeting' ? (
