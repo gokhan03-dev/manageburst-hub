@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { RecurrencePattern, WeekDay, MonthlyRecurrenceType } from "@/types/task";
@@ -116,34 +115,30 @@ export function RecurrenceSettings({
 
       {enabled && (
         <div className="space-y-4 pl-6 border-l-2 border-border">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Repeat className="h-4 w-4 text-muted-foreground" />
-              <Label>Repeat every</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Input
-                type="number"
-                min={1}
-                value={interval}
-                onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
-                className="w-20"
-              />
-              <Select
-                value={selectedPattern}
-                onValueChange={handlePatternChange}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Days</SelectItem>
-                  <SelectItem value="weekly">Weeks</SelectItem>
-                  <SelectItem value="monthly">Months</SelectItem>
-                  <SelectItem value="yearly">Years</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Repeat className="h-4 w-4 text-muted-foreground" />
+            <Label className="whitespace-nowrap">Repeat every</Label>
+            <Input
+              type="number"
+              min={1}
+              value={interval}
+              onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
+              className="w-20"
+            />
+            <Select
+              value={selectedPattern}
+              onValueChange={handlePatternChange}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Days</SelectItem>
+                <SelectItem value="weekly">Weeks</SelectItem>
+                <SelectItem value="monthly">Months</SelectItem>
+                <SelectItem value="yearly">Years</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {selectedPattern === "weekly" && (
