@@ -1,9 +1,8 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Category } from "@/types/task";
 import { X, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -18,6 +17,7 @@ interface CategorySelectProps {
   selectedCategories: string[];
   onAddCategory: (categoryId: string) => void;
   onRemoveCategory: (categoryId: string) => void;
+  onOpenDialog: () => void;
 }
 
 export const CategorySelect = ({
@@ -26,23 +26,8 @@ export const CategorySelect = ({
   onAddCategory,
   onRemoveCategory,
 }: CategorySelectProps) => {
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">Categories</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCategoryDialogOpen(true)}
-          className="gap-2"
-        >
-          <Tags className="h-4 w-4" />
-          Manage Categories
-        </Button>
-      </div>
-      
       <Select
         onValueChange={(value: string) => {
           if (!selectedCategories.includes(value)) {
@@ -98,11 +83,6 @@ export const CategorySelect = ({
           );
         })}
       </div>
-
-      <CategoryDialog
-        isOpen={categoryDialogOpen}
-        onOpenChange={setCategoryDialogOpen}
-      />
     </div>
   );
 };

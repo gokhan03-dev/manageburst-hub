@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -23,14 +22,7 @@ import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
 import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
-import { Repeat, Bell, Settings, Circle } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Repeat, Bell, Settings, Circle, ListTodo, Tag, TagsIcon } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -56,6 +48,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>([]);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -114,8 +107,8 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           className="min-h-[100px]"
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="flex items-center gap-4">
+          <div className="w-1/3 space-y-2">
             <Label>Priority</Label>
             <div className="flex items-center space-x-2">
               <Circle 
@@ -133,7 +126,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="w-1/3 space-y-2">
             <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
             <DatePicker
               date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
@@ -151,42 +144,28 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               showTimePicker={taskType === 'meeting'}
             />
           </div>
-        </div>
 
-        {taskType === 'meeting' && (
-          <MeetingSettings
-            attendees={initialData?.attendees || []}
-            isOnlineMeeting={isOnlineMeeting}
-            onOnlineMeetingChange={setIsOnlineMeeting}
-            onDurationChange={handleMeetingDurationChange}
-            onLocationChange={(location) => setValue("location", location)}
-            onMeetingUrlChange={(url) => setValue("onlineMeetingUrl", url)}
-            onAddAttendee={() => {}}
-            onRemoveAttendee={() => {}}
-            onUpdateAttendeeResponse={() => {}}
-          />
-        )}
+          <div className="flex items-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={cn(recurrenceEnabled && "text-primary")}
+              onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+            >
+              <Repeat className="h-4 w-4" />
+            </Button>
 
-        <div className="flex gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn("gap-2", recurrenceEnabled && "text-primary")}
-            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-          >
-            <Repeat className="h-4 w-4" />
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn("gap-2", reminderEnabled && "text-primary")}
-            onClick={() => setReminderEnabled(!reminderEnabled)}
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={cn(reminderEnabled && "text-primary")}
+              onClick={() => setReminderEnabled(!reminderEnabled)}
+            >
+              <Bell className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {recurrenceEnabled && (
@@ -227,8 +206,15 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>Categories</Label>
-            <Button variant="ghost" size="sm">
+            <Label className="flex items-center gap-2">
+              <TagsIcon className="h-4 w-4" />
+              Categories
+            </Label>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCategoryDialogOpen(true)}
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -246,24 +232,37 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                 currentCategories.filter((id) => id !== categoryId)
               );
             }}
+            onOpenDialog={() => setCategoryDialogOpen(true)}
           />
         </div>
 
-        <TagList
-          tags={tags}
-          onAddTag={(tag) => setTags([...tags, tag])}
-          onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-        />
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Tags
+          </Label>
+          <TagList
+            tags={tags}
+            onAddTag={(tag) => setTags([...tags, tag])}
+            onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+          />
+        </div>
 
         {taskType === 'task' && (
-          <SubtaskList
-            subtasks={subtasks}
-            onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
-            onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
-              i === index ? { ...subtask, completed: !subtask.completed } : subtask
-            ))}
-            onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
-          />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <ListTodo className="h-4 w-4" />
+              Subtasks
+            </Label>
+            <SubtaskList
+              subtasks={subtasks}
+              onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+              onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+                i === index ? { ...subtask, completed: !subtask.completed } : subtask
+              ))}
+              onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+            />
+          </div>
         )}
       </div>
 
