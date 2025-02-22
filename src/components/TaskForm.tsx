@@ -100,6 +100,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categoryIds || []);
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -114,6 +115,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         reminderMinutes: 15,
         subtasks: [],
         dependencies: [],
+        categoryIds: [],
         recurrencePattern: undefined as RecurrencePattern | undefined,
         recurrenceInterval: 1,
         recurrenceStartDate: undefined,
@@ -201,12 +203,25 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
+  const handleAddCategory = (categoryId: string) => {
+    const newCategories = [...selectedCategories, categoryId];
+    setSelectedCategories(newCategories);
+    setValue("categoryIds", newCategories);
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    const newCategories = selectedCategories.filter(id => id !== categoryId);
+    setSelectedCategories(newCategories);
+    setValue("categoryIds", newCategories);
+  };
+
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
       subtasks,
       tags,
       dependencies: watch('dependencies') || [],
+      categoryIds: selectedCategories,
     });
   };
 
@@ -324,18 +339,9 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
         <CategorySelect
           categories={categories}
-          selectedCategories={initialData?.categoryIds || []}
-          onAddCategory={(categoryId) => {
-            const currentCategories = watch("categoryIds") || [];
-            setValue("categoryIds", [...currentCategories, categoryId]);
-          }}
-          onRemoveCategory={(categoryId) => {
-            const currentCategories = watch("categoryIds") || [];
-            setValue(
-              "categoryIds",
-              currentCategories.filter((id) => id !== categoryId)
-            );
-          }}
+          selectedCategories={selectedCategories}
+          onAddCategory={handleAddCategory}
+          onRemoveCategory={handleRemoveCategory}
           onOpenDialog={() => setCategoryDialogOpen(true)}
         />
 
