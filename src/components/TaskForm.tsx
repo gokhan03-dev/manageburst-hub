@@ -115,6 +115,16 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
+  const handleAddCategory = (categoryId: string) => {
+    if (!selectedCategories.includes(categoryId)) {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
+  };
+
   const handleFormSubmit = async (data: any) => {
     if (taskType === 'meeting' && attendees.length > 0) {
       try {
