@@ -49,9 +49,9 @@ const DAYS_OF_WEEK: { label: string; value: WeekDay }[] = [
 export function RecurrenceSettings({
   enabled,
   onEnableChange,
-  pattern,
+  pattern = "daily",
   onPatternChange,
-  interval,
+  interval = 1,
   onIntervalChange,
   startDate,
   onStartDateChange,
@@ -70,6 +70,22 @@ export function RecurrenceSettings({
       : [...weeklyDays, day];
     onWeeklyDaysChange(newDays);
   };
+
+  // Set default weekday if none selected
+  React.useEffect(() => {
+    if (pattern === "weekly" && weeklyDays.length === 0) {
+      const today = new Date().getDay();
+      const defaultDay = DAYS_OF_WEEK[today].value;
+      onWeeklyDaysChange([defaultDay]);
+    }
+  }, [pattern, weeklyDays, onWeeklyDaysChange]);
+
+  // Set default monthly day if none selected
+  React.useEffect(() => {
+    if (pattern === "monthly" && !monthlyDay) {
+      onMonthlyDayChange(new Date().getDate());
+    }
+  }, [pattern, monthlyDay, onMonthlyDayChange]);
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -93,13 +109,22 @@ export function RecurrenceSettings({
               <Input
                 type="number"
                 min={1}
-                value={interval || 1}
+                value={interval}
                 onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
                 className="w-20"
               />
               <Select
-                value={pattern || "daily"}
-                onValueChange={(value) => onPatternChange(value as RecurrencePattern)}
+                value={pattern}
+                onValueChange={(value) => {
+                  onPatternChange(value as RecurrencePattern);
+                  if (value === "weekly") {
+                    const today = new Date().getDay();
+                    onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
+                  } else if (value === "monthly") {
+                    onMonthlyDayChange(new Date().getDate());
+                    onMonthlyTypeChange("date");
+                  }
+                }}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue />
@@ -135,7 +160,10 @@ export function RecurrenceSettings({
           {pattern === "monthly" && (
             <div className="space-y-4">
               <Label>Repeat on</Label>
-              <RadioGroup value={monthlyType} onValueChange={(value) => onMonthlyTypeChange(value as MonthlyRecurrenceType)}>
+              <RadioGroup 
+                value={monthlyType} 
+                onValueChange={(value) => onMonthlyTypeChange(value as MonthlyRecurrenceType)}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="date" id="monthly-date" />
                   <Label htmlFor="monthly-date">Day of month</Label>
