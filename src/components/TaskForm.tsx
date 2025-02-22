@@ -308,18 +308,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          {taskType === 'task' ? (
-            <ClipboardList className="h-5 w-5 text-muted-foreground" />
-          ) : (
-            <Video className="h-5 w-5 text-muted-foreground" />
-          )}
-          <Input
-            {...register("title", { required: true })}
-            placeholder={`${taskType} title`}
-            className="text-lg"
-          />
-        </div>
+        <Input
+          {...register("title", { required: true })}
+          placeholder={`${taskType} title`}
+          className="text-lg"
+        />
 
         <Textarea
           {...register("description")}
@@ -327,73 +320,157 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           className="min-h-[100px]"
         />
 
-        <div className="flex items-center gap-4">
-          <div className="w-1/4 space-y-2">
-            <Label>Priority</Label>
-            <PrioritySelect
-              defaultValue={initialData?.priority || "low"}
-              onValueChange={(value: TaskPriority) => setValue("priority", value)}
-            />
-          </div>
+        {taskType === 'task' && (
+          <div className="flex items-center gap-4">
+            <div className="w-1/4 space-y-2">
+              <Label>Priority</Label>
+              <PrioritySelect
+                defaultValue={initialData?.priority || "low"}
+                onValueChange={(value: TaskPriority) => setValue("priority", value)}
+              />
+            </div>
 
-          <div className="w-1/3 space-y-2">
-            <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
-            <div className="flex items-center gap-2">
-              <DatePicker
-                date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
-                onSelect={(date) => {
-                  if (taskType === 'meeting') {
+            <div className="w-1/3 space-y-2">
+              <Label>Deadline</Label>
+              <div className="flex items-center gap-2">
+                <DatePicker
+                  date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
+                  onSelect={(date) => setValue("dueDate", date?.toISOString())}
+                  showTimePicker={false}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className={cn(
+                    "h-9 w-9 rounded-md p-2",
+                    recurrenceEnabled && "bg-primary/20 text-primary"
+                  )}
+                  onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+                >
+                  <Repeat className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskType === 'meeting' && (
+          <>
+            <div className="flex items-center gap-4">
+              <div className="w-1/2 space-y-2">
+                <Label>Meeting Time</Label>
+                <DatePicker
+                  date={initialData?.startTime ? new Date(initialData.startTime) : undefined}
+                  onSelect={(date) => {
                     setValue("startTime", date?.toISOString());
                     if (date) {
                       const endDate = new Date(date.getTime() + 30 * 60000);
                       setValue("endTime", endDate.toISOString());
                     }
-                  } else {
-                    setValue("dueDate", date?.toISOString());
-                  }
-                }}
-                showTimePicker={taskType === 'meeting'}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className={cn(
-                  "h-9 w-9 rounded-md p-2",
-                  recurrenceEnabled && "bg-primary/20 text-primary"
-                )}
-                onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-              >
-                <Repeat className="h-4 w-4" />
-              </Button>
+                  }}
+                  showTimePicker={true}
+                />
+              </div>
+              <div className="w-1/2 space-y-2">
+                <Label>Duration</Label>
+                <MeetingSettings
+                  attendees={attendees}
+                  isOnlineMeeting={isOnlineMeeting}
+                  onOnlineMeetingChange={(isOnline) => handleLocationTypeChange(isOnline ? 'online' : 'inPerson')}
+                  onLocationChange={(location) => {
+                    setLocationInput(location);
+                    setValue('location', location);
+                  }}
+                  onMeetingUrlChange={(url) => {
+                    setMeetingUrl(url || '');
+                    setValue('onlineMeetingUrl', url);
+                  }}
+                  onAddAttendee={handleAddAttendee}
+                  onRemoveAttendee={handleRemoveAttendee}
+                  onUpdateAttendeeResponse={handleUpdateAttendeeResponse}
+                  onDurationChange={(duration) => {
+                    const startTime = new Date(watch('startTime'));
+                    const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                    setValue('endTime', endTime.toISOString());
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </div>
 
-        {recurrenceEnabled && (
-          <div className="bg-muted p-4 rounded-lg">
-            <RecurrenceSettings
-              enabled={recurrenceEnabled}
-              onEnableChange={setRecurrenceEnabled}
-              pattern={watch("recurrencePattern")}
-              onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
-              interval={watch("recurrenceInterval")}
-              onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
-              startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
-              onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
-              endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
-              onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
-              weeklyDays={watch("weeklyRecurrenceDays") || []}
-              onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
-              monthlyType={watch("monthlyRecurrenceType")}
-              onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
-              monthlyDay={watch("monthlyRecurrenceDay") || 1}
-              onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
-            />
-          </div>
+            {recurrenceEnabled && (
+              <div className="bg-muted p-4 rounded-lg">
+                <RecurrenceSettings
+                  enabled={recurrenceEnabled}
+                  onEnableChange={setRecurrenceEnabled}
+                  pattern={watch("recurrencePattern")}
+                  onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
+                  interval={watch("recurrenceInterval")}
+                  onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
+                  startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
+                  onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
+                  endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
+                  onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+                  weeklyDays={watch("weeklyRecurrenceDays") || []}
+                  onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
+                  monthlyType={watch("monthlyRecurrenceType")}
+                  onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
+                  monthlyDay={watch("monthlyRecurrenceDay") || 1}
+                  onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
+                />
+              </div>
+            )}
+
+            <div className="flex items-start gap-4">
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={isOnlineMeeting ? "default" : "outline"}
+                    onClick={() => handleLocationTypeChange('online')}
+                  >
+                    Online
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={!isOnlineMeeting ? "default" : "outline"}
+                    onClick={() => handleLocationTypeChange('inPerson')}
+                  >
+                    In Person
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={isOnlineMeeting ? meetingUrl : locationInput}
+                    onChange={(e) => {
+                      if (isOnlineMeeting) {
+                        setMeetingUrl(e.target.value);
+                        setValue('onlineMeetingUrl', e.target.value);
+                      } else {
+                        setLocationInput(e.target.value);
+                        setValue('location', e.target.value);
+                      }
+                    }}
+                    placeholder={isOnlineMeeting ? "Meeting Link" : "Address"}
+                    className="flex-1"
+                  />
+                  {isOnlineMeeting && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={generateZoomLink}
+                    >
+                      Zoom
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
-        {taskType !== 'meeting' && (
+        {taskType === 'task' && (
           <>
             <CategorySelect
               categories={categories}
@@ -410,6 +487,17 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                 onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
               />
             </div>
+
+            <div className="space-y-2">
+              <SubtaskList
+                subtasks={subtasks}
+                onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+                onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+                  i === index ? { ...subtask, completed: !subtask.completed } : subtask
+                ))}
+                onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+              />
+            </div>
           </>
         )}
 
@@ -420,91 +508,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           currentTaskId={initialData?.id}
           placeholder="Related Tasks (optional)"
         />
-
-        {taskType === 'meeting' && (
-          <>
-            <div className="space-y-2">
-              <div className="flex justify-center gap-2">
-                <Button
-                  type="button"
-                  variant={isOnlineMeeting ? "default" : "outline"}
-                  onClick={() => handleLocationTypeChange('online')}
-                >
-                  Online
-                </Button>
-                <Button
-                  type="button"
-                  variant={!isOnlineMeeting ? "default" : "outline"}
-                  onClick={() => handleLocationTypeChange('inPerson')}
-                >
-                  In Person
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={isOnlineMeeting ? meetingUrl : locationInput}
-                  onChange={(e) => {
-                    if (isOnlineMeeting) {
-                      setMeetingUrl(e.target.value);
-                      setValue('onlineMeetingUrl', e.target.value);
-                    } else {
-                      setLocationInput(e.target.value);
-                      setValue('location', e.target.value);
-                    }
-                  }}
-                  placeholder={isOnlineMeeting ? "Meeting Link" : "Address"}
-                  className="flex-1"
-                />
-                {isOnlineMeeting && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={generateZoomLink}
-                  >
-                    Zoom
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <MeetingSettings
-              attendees={attendees}
-              isOnlineMeeting={isOnlineMeeting}
-              onOnlineMeetingChange={(isOnline) => handleLocationTypeChange(isOnline ? 'online' : 'inPerson')}
-              onLocationChange={(location) => {
-                setLocationInput(location);
-                setValue('location', location);
-              }}
-              onMeetingUrlChange={(url) => {
-                setMeetingUrl(url || '');
-                setValue('onlineMeetingUrl', url);
-              }}
-              onAddAttendee={handleAddAttendee}
-              onRemoveAttendee={handleRemoveAttendee}
-              onUpdateAttendeeResponse={handleUpdateAttendeeResponse}
-              onDurationChange={(duration) => {
-                const startTime = new Date(watch('startTime'));
-                const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
-                setValue('endTime', endTime.toISOString());
-              }}
-            />
-          </>
-        )}
-
-        {taskType === 'task' && (
-          <div className="space-y-2">
-            <SubtaskList
-              subtasks={subtasks}
-              onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
-              onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
-                i === index ? { ...subtask, completed: !subtask.completed } : subtask
-              ))}
-              onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
-            />
-          </div>
-        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t">
