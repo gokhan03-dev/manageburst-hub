@@ -207,6 +207,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       ...data,
       attendees,
       tags,
+      subtasks,
       dependencies: watch('dependencies') || [],
       categoryIds: selectedCategories,
     });
