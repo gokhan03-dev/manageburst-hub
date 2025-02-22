@@ -1,28 +1,17 @@
-
-import React, { useState } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import {
   Task,
   TaskPriority,
   TaskStatus,
   EventType,
-  TaskTag,
   Attendee,
-  RecurrencePattern,
-  WeekDay,
-  MonthlyRecurrenceType,
-  Sensitivity,
 } from "@/types/task";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { TaskBasicInfo } from "./task-form/sections/TaskBasicInfo";
-import { TaskCategories } from "./task-form/sections/TaskCategories";
-import { TaskTags } from "./task-form/sections/TaskTags";
-import { TaskSubtasks } from "./task-form/sections/TaskSubtasks";
-import { TaskDependencies } from "./task-form/sections/TaskDependencies";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -30,6 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { CategorySelect } from "./task-form/CategorySelect";
+import { PrioritySelect } from "./task-form/PrioritySelect";
+import { DatePicker } from "./task-form/DatePicker";
+import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
+import { SubtaskList } from "./task-form/SubtaskList";
+import { TagList } from "./task-form/TagList";
+import { MeetingSettings } from "./task-form/MeetingSettings";
+import { Repeat, Bell, Settings, Circle, ListTodo, Tag, TagsIcon } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -43,40 +43,17 @@ interface Subtask {
   completed: boolean;
 }
 
-type DatabaseTask = {
+interface TaskTag {
   id: string;
-  title: string;
-  description: string | null;
-  priority: string;
-  status: string;
-  due_date: string | null;
-  created_at: string;
-  category_ids: string[] | null;
-  event_type: string | null;
-  start_time: string | null;
-  end_time: string | null;
-  is_all_day: boolean;
-  location: string | null;
-  attendees: any[] | null;
-  recurrence_pattern: string | null;
-  recurrence_interval: number | null;
-  recurrence_start_date: string | null;
-  recurrence_end_date: string | null;
-  next_occurrence: string | null;
-  last_occurrence: string | null;
-  schedule_start_date: string | null;
-  reminder_minutes: number | null;
-  online_meeting_url: string | null;
-  sensitivity: string | null;
-  weekly_recurrence_days: string[] | null;
-  monthly_recurrence_type: string | null;
-  monthly_recurrence_day: number | null;
-};
+  name: string;
+  color: string;
+}
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
+  const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
@@ -92,7 +69,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
         reminderMinutes: 15,
         subtasks: [],
-        dependencies: [],
       },
     },
   });
@@ -118,138 +94,171 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
-  const { data: allTasks = [] } = useQuery<Task[]>({
-    queryKey: ['tasks'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at');
-      
-      if (error) {
-        toast({
-          title: "Error fetching tasks",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-      
-      // Transform the data to match our Task type
-      return (data as DatabaseTask[]).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || "",
-        priority: (task.priority || "medium") as TaskPriority,
-        status: (task.status || "todo") as TaskStatus,
-        dueDate: task.due_date || new Date().toISOString(),
-        createdAt: task.created_at,
-        dependencies: [],
-        categoryIds: task.category_ids || [],
-        subtasks: [],
-        tags: [],
-        eventType: (task.event_type || taskType) as EventType,
-        startTime: task.start_time || undefined,
-        endTime: task.end_time || undefined,
-        isAllDay: task.is_all_day || false,
-        location: task.location || undefined,
-        attendees: ((task.attendees || []) as Array<{ email: string; required: boolean }>)
-          .map(a => ({ email: a.email, required: a.required })),
-        recurrencePattern: (task.recurrence_pattern as RecurrencePattern) || undefined,
-        recurrenceInterval: task.recurrence_interval || undefined,
-        recurrenceStartDate: task.recurrence_start_date || undefined,
-        recurrenceEndDate: task.recurrence_end_date || undefined,
-        nextOccurrence: task.next_occurrence || undefined,
-        lastOccurrence: task.last_occurrence || undefined,
-        scheduleStartDate: task.schedule_start_date || undefined,
-        weeklyRecurrenceDays: (task.weekly_recurrence_days as WeekDay[]) || undefined,
-        monthlyRecurrenceType: (task.monthly_recurrence_type as MonthlyRecurrenceType) || undefined,
-        monthlyRecurrenceDay: task.monthly_recurrence_day || undefined,
-        reminderMinutes: task.reminder_minutes || undefined,
-        onlineMeetingUrl: task.online_meeting_url || undefined,
-        sensitivity: (task.sensitivity || "normal") as Sensitivity,
-      }));
-    },
-  });
+  const handleMeetingDurationChange = (duration: string) => {
+    const startDate = new Date(watch("startTime"));
+    const endDate = new Date(startDate.getTime() + parseInt(duration) * 60000);
+    setValue("endTime", endDate.toISOString());
+  };
 
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
       subtasks,
       tags,
-      dependencies: watch('dependencies') || [],
+      dependencies: initialData?.dependencies || [],
     });
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <TaskBasicInfo
-        taskType={taskType}
-        register={register}
-        setValue={setValue}
-        initialData={initialData}
-        watch={watch}
-        recurrenceEnabled={recurrenceEnabled}
-        setRecurrenceEnabled={setRecurrenceEnabled}
-        reminderEnabled={reminderEnabled}
-        setReminderEnabled={setReminderEnabled}
-      />
+      <div className="space-y-4">
+        <Input
+          {...register("title", { required: true })}
+          placeholder={`${taskType} title`}
+          className="text-lg"
+          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit(handleFormSubmit)();
+            }
+          }}
+        />
 
-      {recurrenceEnabled && (
-        <div className="bg-muted p-4 rounded-lg">
-          <RecurrenceSettings
-            enabled={recurrenceEnabled}
-            onEnableChange={setRecurrenceEnabled}
-            pattern={initialData?.recurrencePattern}
-            onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
-            interval={initialData?.recurrenceInterval}
-            onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
-            startDate={initialData?.recurrenceStartDate ? new Date(initialData.recurrenceStartDate) : undefined}
-            onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
-            endDate={initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate) : undefined}
-            onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+        <Textarea
+          {...register("description")}
+          placeholder="Description"
+          className="min-h-[100px]"
+        />
+
+        <div className="flex items-center gap-4">
+          <div className="w-1/4 space-y-2">
+            <Label>Priority</Label>
+            <PrioritySelect
+              defaultValue={initialData?.priority || "low"}
+              onValueChange={(value: TaskPriority) => setValue("priority", value)}
+            />
+          </div>
+
+          <div className="w-1/3 space-y-2">
+            <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
+            <div className="flex items-center gap-2">
+              <DatePicker
+                date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
+                onSelect={(date) => {
+                  if (taskType === 'meeting') {
+                    setValue("startTime", date?.toISOString());
+                    if (date) {
+                      const endDate = new Date(date.getTime() + 30 * 60000);
+                      setValue("endTime", endDate.toISOString());
+                    }
+                  } else {
+                    setValue("dueDate", date?.toISOString());
+                  }
+                }}
+                showTimePicker={taskType === 'meeting'}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  recurrenceEnabled && "bg-primary/20 text-primary"
+                )}
+                onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  reminderEnabled && "bg-primary/20 text-primary"
+                )}
+                onClick={() => setReminderEnabled(!reminderEnabled)}
+              >
+                <Bell className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {recurrenceEnabled && (
+          <div className="bg-muted p-4 rounded-lg">
+            <RecurrenceSettings
+              enabled={recurrenceEnabled}
+              onEnableChange={setRecurrenceEnabled}
+              pattern={initialData?.recurrencePattern}
+              onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
+              interval={initialData?.recurrenceInterval}
+              onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
+              startDate={initialData?.recurrenceStartDate ? new Date(initialData.recurrenceStartDate) : undefined}
+              onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
+              endDate={initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate) : undefined}
+              onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+            />
+          </div>
+        )}
+
+        {reminderEnabled && (
+          <div className="bg-muted p-4 rounded-lg">
+            <Select 
+              defaultValue="15"
+              onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select reminder time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 minutes before</SelectItem>
+                <SelectItem value="15">15 minutes before</SelectItem>
+                <SelectItem value="30">30 minutes before</SelectItem>
+                <SelectItem value="60">1 hour before</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <CategorySelect
+          categories={categories}
+          selectedCategories={initialData?.categoryIds || []}
+          onAddCategory={(categoryId) => {
+            const currentCategories = watch("categoryIds") || [];
+            setValue("categoryIds", [...currentCategories, categoryId]);
+          }}
+          onRemoveCategory={(categoryId) => {
+            const currentCategories = watch("categoryIds") || [];
+            setValue(
+              "categoryIds",
+              currentCategories.filter((id) => id !== categoryId)
+            );
+          }}
+          onOpenDialog={() => setCategoryDialogOpen(true)}
+        />
+
+        <div className="space-y-2">
+          <TagList
+            tags={tags}
+            onAddTag={(tag) => setTags([...tags, tag])}
+            onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
           />
         </div>
-      )}
 
-      {reminderEnabled && (
-        <div className="bg-muted p-4 rounded-lg">
-          <Select 
-            defaultValue="15"
-            onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select reminder time" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10 minutes before</SelectItem>
-              <SelectItem value="15">15 minutes before</SelectItem>
-              <SelectItem value="30">30 minutes before</SelectItem>
-              <SelectItem value="60">1 hour before</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      <TaskCategories
-        categories={categories}
-        watch={watch}
-        setValue={setValue}
-        categoryDialogOpen={categoryDialogOpen}
-        setCategoryDialogOpen={setCategoryDialogOpen}
-      />
-
-      <TaskTags tags={tags} setTags={setTags} />
-
-      <TaskDependencies
-        tasks={allTasks}
-        selectedDependencies={watch('dependencies') || []}
-        onDependencyChange={(dependencies) => setValue('dependencies', dependencies)}
-      />
-
-      {taskType === 'task' && (
-        <TaskSubtasks subtasks={subtasks} setSubtasks={setSubtasks} />
-      )}
+        {taskType === 'task' && (
+          <div className="space-y-2">
+            <SubtaskList
+              subtasks={subtasks}
+              onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+              onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+                i === index ? { ...subtask, completed: !subtask.completed } : subtask
+              ))}
+              onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>

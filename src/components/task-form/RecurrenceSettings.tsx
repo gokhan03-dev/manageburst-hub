@@ -48,27 +48,21 @@ export function RecurrenceSettings({
   onMonthlyDayChange = () => {},
 }: RecurrenceSettingsProps) {
   const [selectedPattern, setSelectedPattern] = React.useState<RecurrencePattern>(pattern);
-  const [localDays, setLocalDays] = React.useState<WeekDay[]>(weeklyDays);
+  const [localWeeklyDays, setLocalWeeklyDays] = React.useState<WeekDay[]>(weeklyDays);
 
-  // Update local state when props change
   React.useEffect(() => {
     setSelectedPattern(pattern);
   }, [pattern]);
 
   React.useEffect(() => {
-    setLocalDays(weeklyDays);
+    setLocalWeeklyDays(weeklyDays);
   }, [weeklyDays]);
 
   const handleWeeklyDayToggle = (day: WeekDay) => {
-    console.log('Toggling day:', day);
-    console.log('Current days:', localDays);
-    
-    const newDays = localDays.includes(day)
-      ? localDays.filter(d => d !== day)
-      : [...localDays, day];
-    
-    console.log('New days:', newDays);
-    setLocalDays(newDays);
+    const newDays = localWeeklyDays.includes(day)
+      ? localWeeklyDays.filter(d => d !== day)
+      : [...localWeeklyDays, day];
+    setLocalWeeklyDays(newDays);
     onWeeklyDaysChange(newDays);
   };
 
@@ -76,11 +70,26 @@ export function RecurrenceSettings({
     setSelectedPattern(value);
     onPatternChange(value);
 
-    if (value === "weekly" && localDays.length === 0) {
-      const today = new Date().getDay();
-      const initialDays = [WEEKDAYS[today]];
-      setLocalDays(initialDays);
-      onWeeklyDaysChange(initialDays);
+    switch (value) {
+      case "weekly":
+        if (weeklyDays.length === 0) {
+          const today = new Date().getDay();
+          const newDays = [WEEKDAYS[today]];
+          setLocalWeeklyDays(newDays);
+          onWeeklyDaysChange(newDays);
+        }
+        break;
+      case "monthly":
+        onMonthlyTypeChange("date");
+        if (!monthlyDay || monthlyDay < 1) {
+          onMonthlyDayChange(new Date().getDate());
+        }
+        break;
+      case "yearly":
+        if (!startDate) {
+          onStartDateChange(new Date());
+        }
+        break;
     }
   };
 
@@ -107,13 +116,10 @@ export function RecurrenceSettings({
           />
 
           {selectedPattern === "weekly" && (
-            <div>
-              <Label className="mb-2 block">Select days of the week</Label>
-              <WeeklyDaySelector
-                selectedDays={localDays}
-                onDayToggle={handleWeeklyDayToggle}
-              />
-            </div>
+            <WeeklyDaySelector
+              selectedDays={localWeeklyDays}
+              onDayToggle={handleWeeklyDayToggle}
+            />
           )}
 
           {selectedPattern === "monthly" && (
