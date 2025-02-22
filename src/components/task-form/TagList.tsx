@@ -68,7 +68,7 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
           <Badge
             key={tag.id}
             variant="secondary"
-            className="flex items-center gap-1 px-3 py-1 text-xs font-medium"
+            className="flex items-center gap-1 px-3 py-0.5 text-xs font-medium"
             style={{
               backgroundColor: `${tag.color}20`,
               borderColor: tag.color,
