@@ -35,6 +35,7 @@ import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
 import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
+import { DependencySelect } from "./task-form/DependencySelect";
 import { Repeat, Bell, Settings } from "lucide-react";
 
 interface TaskFormProps {
