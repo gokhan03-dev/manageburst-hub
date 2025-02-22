@@ -36,7 +36,7 @@ import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
 import { DependencySelect } from "./task-form/DependencySelect";
-import { Repeat, Bell, Settings, Link2 } from "lucide-react";
+import { Repeat, Bell, Settings } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -347,15 +347,12 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link2 className="h-4 w-4 text-muted-foreground" />
-          <DependencySelect
-            tasks={allTasks}
-            selectedDependencies={watch("dependencies") || []}
-            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-            currentTaskId={initialData?.id}
-          />
-        </div>
+        <DependencySelect
+          tasks={allTasks}
+          selectedDependencies={watch("dependencies") || []}
+          onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
+          currentTaskId={initialData?.id}
+        />
 
         {taskType === 'task' && (
           <div className="space-y-2">

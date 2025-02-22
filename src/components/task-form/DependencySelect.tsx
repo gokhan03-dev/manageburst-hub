@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Link2 } from "lucide-react";
 
 interface DependencySelectProps {
   tasks: Task[];
@@ -37,22 +37,25 @@ export function DependencySelect({
   };
 
   return (
-    <div className="flex-1 space-y-2">
-      <Select
-        onValueChange={handleAddDependency}
-        value=""
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select dependencies" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableTasks.map((task) => (
-            <SelectItem key={task.id} value={task.id}>
-              {task.title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Select
+          onValueChange={handleAddDependency}
+          value=""
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select dependencies" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTasks.map((task) => (
+              <SelectItem key={task.id} value={task.id}>
+                {task.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         {selectedDependencies.map((depId) => {
