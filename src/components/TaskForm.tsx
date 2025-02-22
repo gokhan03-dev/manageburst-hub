@@ -347,17 +347,14 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Dependencies</Label>
-          <div className="flex items-center gap-2">
-            <Link2 className="h-4 w-4 text-muted-foreground" />
-            <DependencySelect
-              tasks={allTasks}
-              selectedDependencies={watch("dependencies") || []}
-              onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-              currentTaskId={initialData?.id}
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-muted-foreground" />
+          <DependencySelect
+            tasks={allTasks}
+            selectedDependencies={watch("dependencies") || []}
+            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
+            currentTaskId={initialData?.id}
+          />
         </div>
 
         {taskType === 'task' && (
