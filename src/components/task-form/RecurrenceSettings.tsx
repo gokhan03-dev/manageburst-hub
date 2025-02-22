@@ -104,17 +104,19 @@ export function RecurrenceSettings({
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center space-x-2">
-        <Switch 
-          checked={enabled}
-          onCheckedChange={onEnableChange}
-          id="recurrence-switch"
-        />
-        <Label htmlFor="recurrence-switch">Make this a recurring task</Label>
-      </div>
+      {!enabled && (
+        <div className="flex items-center space-x-2">
+          <Switch 
+            checked={enabled}
+            onCheckedChange={onEnableChange}
+            id="recurrence-switch"
+          />
+          <Label htmlFor="recurrence-switch">Make this a recurring task</Label>
+        </div>
+      )}
 
       {enabled && (
-        <div className="space-y-4 pl-6 border-l-2 border-border">
+        <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <Repeat className="h-4 w-4 text-muted-foreground" />
             <Label className="whitespace-nowrap">Repeat every</Label>
