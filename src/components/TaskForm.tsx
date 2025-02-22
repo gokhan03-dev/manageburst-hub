@@ -296,7 +296,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                     <SelectValue placeholder="Duration" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="20">20 minutes</SelectItem>
+                    <SelectItem value="25">25 minutes</SelectItem>
                     <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
                     <SelectItem value="60">1 hour</SelectItem>
                     <SelectItem value="90">1.5 hours</SelectItem>
                     <SelectItem value="120">2 hours</SelectItem>
