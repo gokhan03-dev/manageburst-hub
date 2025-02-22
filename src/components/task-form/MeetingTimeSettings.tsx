@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
 
 interface MeetingTimeSettingsProps {
   startTime?: string;
@@ -32,15 +31,15 @@ export const MeetingTimeSettings = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      <div className="flex-1 min-w-[200px]">
+    <div className="flex items-center gap-4">
+      <div className="flex-1">
         <DatePicker
           date={startTime ? new Date(startTime) : undefined}
           onSelect={onStartTimeChange}
           showTimePicker={true}
         />
       </div>
-      <div className="w-[150px]">
+      <div className="w-[140px] flex-shrink-0">
         <Select
           value={getDuration()}
           onValueChange={onDurationChange}

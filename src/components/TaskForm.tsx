@@ -219,46 +219,54 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         setValue={setValue}
         defaultPriority={watch('priority')}
         dueDate={watch('dueDate')}
+        taskType={taskType}
       />
+
+      {taskType === 'meeting' && (
+        <div className="flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <MeetingTimeSettings
+              startTime={watch('startTime')}
+              endTime={watch('endTime')}
+              onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
+              onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
+              onDurationChange={(duration) => {
+                const startTimeValue = watch('startTime');
+                if (!startTimeValue) {
+                  toast({
+                    title: "Please select a start time first",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                try {
+                  const startTime = new Date(startTimeValue);
+                  const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                  setValue('endTime', endTime.toISOString());
+                } catch (error) {
+                  console.error('Error calculating end time:', error);
+                  toast({
+                    title: "Error setting meeting duration",
+                    description: "Please try selecting the start time again",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <RecurrenceControls
+              recurrenceEnabled={recurrenceEnabled}
+              reminderEnabled={reminderEnabled}
+              onRecurrenceToggle={setRecurrenceEnabled}
+              onReminderToggle={setReminderEnabled}
+            />
+          </div>
+        </div>
+      )}
 
       {taskType === 'meeting' ? (
         <>
-          <MeetingTimeSettings
-            startTime={watch('startTime')}
-            endTime={watch('endTime')}
-            onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
-            onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
-            onDurationChange={(duration) => {
-              const startTimeValue = watch('startTime');
-              if (!startTimeValue) {
-                toast({
-                  title: "Please select a start time first",
-                  variant: "destructive",
-                });
-                return;
-              }
-              try {
-                const startTime = new Date(startTimeValue);
-                const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
-                setValue('endTime', endTime.toISOString());
-              } catch (error) {
-                console.error('Error calculating end time:', error);
-                toast({
-                  title: "Error setting meeting duration",
-                  description: "Please try selecting the start time again",
-                  variant: "destructive",
-                });
-              }
-            }}
-          />
-
-          <RecurrenceControls
-            recurrenceEnabled={recurrenceEnabled}
-            reminderEnabled={reminderEnabled}
-            onRecurrenceToggle={setRecurrenceEnabled}
-            onReminderToggle={setReminderEnabled}
-          />
-
           <MeetingSettings
             attendees={attendees}
             isOnlineMeeting={isOnlineMeeting}
