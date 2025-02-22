@@ -296,25 +296,10 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             </div>
           )}
 
-          <CategorySelect
-            categories={categories}
-            selectedCategories={selectedCategories}
-            onAddCategory={handleAddCategory}
-            onRemoveCategory={handleRemoveCategory}
-            onOpenDialog={() => setCategoryDialogOpen(true)}
-          />
-
           <TagList
             tags={tags}
             onAddTag={(tag) => setTags([...tags, tag])}
             onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-          />
-
-          <DependencySelect
-            tasks={allTasks}
-            selectedDependencies={watch("dependencies") || []}
-            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-            currentTaskId={initialData?.id}
           />
 
           <SubtaskList
