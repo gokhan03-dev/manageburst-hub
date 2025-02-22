@@ -33,10 +33,10 @@ export function WeeklyDaySelector({ selectedDays, onDayToggle }: WeeklyDaySelect
             type="button"
             variant={isSelected ? "default" : "outline"}
             onClick={() => handleDayClick(value)}
-            className={`w-16 transition-all ${
+            className={`w-16 min-w-[4rem] transition-colors ${
               isSelected 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-background hover:bg-accent hover:text-accent-foreground"
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground ring-2 ring-primary ring-offset-2" 
+                : "border-2 hover:border-primary hover:text-primary"
             }`}
             size="sm"
           >
