@@ -44,12 +44,12 @@ export const CategorySelect = ({
     }
   };
 
+  const availableCategories = categories.filter(
+    (category) => !selectedCategories.includes(category.id)
+  );
+
   const handleCategoryChange = (value: string) => {
-    if (selectedCategories.includes(value)) {
-      onRemoveCategory(value);
-    } else {
-      onAddCategory(value);
-    }
+    onAddCategory(value);
   };
 
   return (
@@ -64,7 +64,7 @@ export const CategorySelect = ({
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
+            {availableCategories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center gap-2">
                   <div
