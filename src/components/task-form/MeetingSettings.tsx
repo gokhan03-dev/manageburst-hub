@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { UserPlus, X, Check, Clock, MinusCircle, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Attendee } from "@/types/task";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -24,6 +26,11 @@ interface MeetingSettingsProps {
   onAddAttendee: (email: string) => void;
   onRemoveAttendee: (email: string) => void;
   onUpdateAttendeeResponse: (email: string, response: 'accepted' | 'tentative' | 'declined') => void;
+  meetingTitle?: string;
+  startTime?: string;
+  endTime?: string;
+  description?: string;
+  location?: string;
 }
 
 export const MeetingSettings = ({
@@ -35,17 +42,69 @@ export const MeetingSettings = ({
   onAddAttendee,
   onRemoveAttendee,
   onUpdateAttendeeResponse,
+  meetingTitle,
+  startTime,
+  endTime,
+  description,
+  location,
 }: MeetingSettingsProps) => {
   const [newAttendee, setNewAttendee] = useState("");
   const [locationInput, setLocationInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = async (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (newAttendee.trim()) {
-        onAddAttendee(newAttendee.trim());
-        setNewAttendee("");
+        await handleAddAttendee(newAttendee.trim());
       }
+    }
+  };
+
+  const handleAddAttendee = async (email: string) => {
+    if (!meetingTitle || !startTime || !endTime) {
+      toast({
+        title: "Please fill in meeting details first",
+        description: "Meeting title, start time, and end time are required before adding attendees.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const organizerName = userData.user?.email || "Meeting Organizer";
+
+      const { error } = await supabase.functions.invoke('send-meeting-invite', {
+        body: {
+          to: email,
+          meetingTitle,
+          startTime,
+          endTime,
+          description,
+          location,
+          organizerName,
+        },
+      });
+
+      if (error) throw error;
+
+      onAddAttendee(email);
+      setNewAttendee("");
+      toast({
+        title: "Invitation sent",
+        description: `Meeting invitation sent to ${email}`,
+      });
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      toast({
+        title: "Failed to send invitation",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -58,12 +117,6 @@ export const MeetingSettings = ({
       default:
         return <Clock className="h-3 w-3 text-yellow-500" />;
     }
-  };
-
-  const handleGenerateZoomLink = () => {
-    // This is a placeholder - implement actual Zoom integration here
-    const mockZoomLink = `https://zoom.us/j/${Math.random().toString(36).substr(2, 9)}`;
-    onMeetingUrlChange(mockZoomLink);
   };
 
   return (
@@ -102,9 +155,14 @@ export const MeetingSettings = ({
           <Button
             type="button"
             variant="outline"
-            onClick={handleGenerateZoomLink}
+            onClick={() => {
+              const zoomLink = `https://zoom.us/j/${Math.random().toString(36).substr(2, 9)}`;
+              setLocationInput(zoomLink);
+              onLocationChange(zoomLink);
+              onMeetingUrlChange(zoomLink);
+            }}
           >
-            Zoom
+            Generate Zoom Link
           </Button>
         )}
       </div>
@@ -122,10 +180,10 @@ export const MeetingSettings = ({
           <Button
             type="button"
             size="icon"
+            disabled={isSending}
             onClick={() => {
               if (newAttendee.trim()) {
-                onAddAttendee(newAttendee.trim());
-                setNewAttendee("");
+                handleAddAttendee(newAttendee.trim());
               }
             }}
           >

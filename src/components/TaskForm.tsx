@@ -395,6 +395,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                   a.email === email ? { ...a, response } : a
                 ));
               }}
+              meetingTitle={watch('title')}
+              startTime={watch('startTime')}
+              endTime={watch('endTime')}
+              description={watch('description')}
+              location={watch('location')}
             />
           </>
         ) : (
