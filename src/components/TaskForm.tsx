@@ -223,25 +223,27 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       />
 
       {taskType === 'task' && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-1/4 space-y-2">
-              <Label>Priority</Label>
-              <PrioritySelect
-                defaultValue={watch('priority')}
-                onValueChange={(value: TaskPriority) => setValue("priority", value)}
-              />
-            </div>
+        <div className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 flex items-center space-x-4">
+              <div className="w-48 space-y-2">
+                <Label>Priority</Label>
+                <PrioritySelect
+                  defaultValue={watch('priority')}
+                  onValueChange={(value: TaskPriority) => setValue("priority", value)}
+                />
+              </div>
 
-            <div className="w-1/3 space-y-2">
-              <Label>Deadline</Label>
-              <DatePicker
-                date={watch('dueDate') ? new Date(watch('dueDate')) : undefined}
-                onSelect={(date) => setValue("dueDate", date?.toISOString())}
-              />
+              <div className="flex-1 space-y-2">
+                <Label>Deadline</Label>
+                <DatePicker
+                  date={watch('dueDate') ? new Date(watch('dueDate')) : undefined}
+                  onSelect={(date) => setValue("dueDate", date?.toISOString())}
+                />
+              </div>
             </div>
             
-            <div className="flex items-center justify-end gap-2 flex-1">
+            <div className="flex items-end">
               <RecurrenceControls
                 recurrenceEnabled={recurrenceEnabled}
                 reminderEnabled={reminderEnabled}
@@ -302,10 +304,25 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             </div>
           )}
 
+          <CategorySelect
+            categories={categories}
+            selectedCategories={selectedCategories}
+            onAddCategory={handleAddCategory}
+            onRemoveCategory={handleRemoveCategory}
+            onOpenDialog={() => setCategoryDialogOpen(true)}
+          />
+
           <TagList
             tags={tags}
             onAddTag={(tag) => setTags([...tags, tag])}
             onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+          />
+
+          <DependencySelect
+            tasks={allTasks}
+            selectedDependencies={watch("dependencies") || []}
+            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
+            currentTaskId={initialData?.id}
           />
 
           <SubtaskList
@@ -434,21 +451,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           location={watch('location')}
         />
       )}
-
-      <CategorySelect
-        categories={categories}
-        selectedCategories={selectedCategories}
-        onAddCategory={handleAddCategory}
-        onRemoveCategory={handleRemoveCategory}
-        onOpenDialog={() => setCategoryDialogOpen(true)}
-      />
-
-      <DependencySelect
-        tasks={allTasks}
-        selectedDependencies={watch("dependencies") || []}
-        onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-        currentTaskId={initialData?.id}
-      />
 
       <div className="flex justify-end gap-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>
