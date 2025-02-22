@@ -1,3 +1,6 @@
 
 [functions.send-meeting-invite]
 verify_jwt = false
+
+[functions.send-bulk-meeting-invites]
+verify_jwt = false

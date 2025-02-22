@@ -240,10 +240,41 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     }
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = async (data: any) => {
+    if (selectedType === 'meeting' && attendees.length > 0) {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const organizerName = userData.user?.email || "Meeting Organizer";
+
+        await supabase.functions.invoke('send-bulk-meeting-invites', {
+          body: {
+            attendees,
+            meetingTitle: data.title,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            description: data.description,
+            location: data.location,
+            organizerName,
+          },
+        });
+
+        toast({
+          title: "Meeting invitations sent",
+          description: `Successfully sent invitations to ${attendees.length} attendee(s)`,
+        });
+      } catch (error) {
+        console.error('Error sending invitations:', error);
+        toast({
+          title: "Failed to send invitations",
+          description: "There was an error sending the meeting invitations",
+          variant: "destructive",
+        });
+      }
+    }
+
     onSubmit({
       ...data,
-      subtasks,
+      attendees,
       tags,
       dependencies: watch('dependencies') || [],
       categoryIds: selectedCategories,
