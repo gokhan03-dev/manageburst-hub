@@ -19,11 +19,14 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) {
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date);
   const [selectedTime, setSelectedTime] = React.useState(
     date ? format(date, "HH:mm") : "00:00"
   );
 
   const handleDateSelect = (newDate: Date | undefined) => {
+    setSelectedDate(newDate);
+    
     if (!newDate) {
       onSelect(undefined);
       return;
@@ -39,13 +42,20 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedTime(e.target.value);
-    if (date) {
+    if (selectedDate) {
       const [hours, minutes] = e.target.value.split(":").map(Number);
-      const newDate = new Date(date);
+      const newDate = new Date(selectedDate);
       newDate.setHours(hours, minutes);
       onSelect(newDate);
     }
   };
+
+  React.useEffect(() => {
+    if (date) {
+      setSelectedDate(date);
+      setSelectedTime(format(date, "HH:mm"));
+    }
+  }, [date]);
 
   return (
     <div className="flex gap-2">
@@ -55,18 +65,18 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
             variant={"outline"}
             className={cn(
               "w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !selectedDate && "text-muted-foreground"
             )}
             type="button"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
+            {selectedDate ? format(selectedDate, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={date}
+            selected={selectedDate}
             onSelect={handleDateSelect}
             initialFocus
           />
@@ -82,4 +92,4 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
       )}
     </div>
   );
-};
+}
