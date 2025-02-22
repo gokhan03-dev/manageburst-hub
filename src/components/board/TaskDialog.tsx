@@ -29,10 +29,18 @@ export function TaskDialog({
     selectedTask?.eventType || "task"
   );
 
+  // Reset selected type when dialog opens/closes or selected task changes
+  React.useEffect(() => {
+    if (selectedTask) {
+      setSelectedType(selectedTask.eventType || "task");
+    }
+  }, [selectedTask, isOpen]);
+
   const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     onSubmit({
       ...data,
-      eventType: selectedType,
+      // Preserve the original task type when editing
+      eventType: selectedTask ? selectedTask.eventType : selectedType,
     });
   };
 
@@ -61,24 +69,27 @@ export function TaskDialog({
     </div>
   );
 
+  // Determine which type to display in form and title
+  const displayType = selectedTask ? selectedTask.eventType : selectedType;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
-              {selectedTask ? "Edit" : "Create New"} {selectedType}
+              {selectedTask ? "Edit" : "Create New"} {displayType}
             </DialogTitle>
             {selectedTask && <SyncStatus taskId={selectedTask.id} />}
           </div>
         </DialogHeader>
 
         <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
-          <TaskTypeSelector />
+          {!selectedTask && <TaskTypeSelector />}
           <TaskForm
             onSubmit={handleSubmit}
             initialData={selectedTask}
-            taskType={selectedType}
+            taskType={displayType}
             onCancel={() => onOpenChange(false)}
           />
         </div>
