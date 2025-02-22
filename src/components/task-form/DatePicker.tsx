@@ -12,9 +12,10 @@ interface DatePickerProps {
   date?: Date;
   onSelect: (date: Date | undefined) => void;
   showTimePicker?: boolean;
+  placeholder?: string;
 }
 
-export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) {
+export function DatePicker({ date, onSelect, showTimePicker, placeholder }: DatePickerProps) {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date);
   const [selectedTime, setSelectedTime] = React.useState(
     date ? format(date, "HH:mm") : "00:00"
@@ -71,7 +72,7 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
             type="button"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate ? format(selectedDate, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
+            {selectedDate ? format(selectedDate, showTimePicker ? "dd MMM yyyy" : "dd MMM yyyy") : <span>{placeholder || "Pick a date"}</span>}
           </Button>
         }
         className="p-0 w-auto bg-popover"
@@ -93,4 +94,4 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
       )}
     </div>
   );
-}
+};

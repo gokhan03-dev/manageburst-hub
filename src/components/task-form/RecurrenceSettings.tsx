@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "./DatePicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Repeat } from "lucide-react";
 
 interface RecurrenceSettingsProps {
   enabled: boolean;
@@ -83,32 +84,33 @@ export function RecurrenceSettings({
 
       {enabled && (
         <div className="space-y-4 pl-6 border-l-2 border-border">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Repeat className="h-4 w-4 text-muted-foreground" />
               <Label>Repeat every</Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="number"
-                  min={1}
-                  value={interval || 1}
-                  onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
-                  className="w-20"
-                />
-                <Select
-                  value={pattern || "daily"}
-                  onValueChange={(value) => onPatternChange(value as RecurrencePattern)}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Days</SelectItem>
-                    <SelectItem value="weekly">Weeks</SelectItem>
-                    <SelectItem value="monthly">Months</SelectItem>
-                    <SelectItem value="yearly">Years</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="number"
+                min={1}
+                value={interval || 1}
+                onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
+                className="w-20"
+              />
+              <Select
+                value={pattern || "daily"}
+                onValueChange={(value) => onPatternChange(value as RecurrencePattern)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Days</SelectItem>
+                  <SelectItem value="weekly">Weeks</SelectItem>
+                  <SelectItem value="monthly">Months</SelectItem>
+                  <SelectItem value="yearly">Years</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -157,20 +159,16 @@ export function RecurrenceSettings({
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start date</Label>
-              <DatePicker
-                date={startDate}
-                onSelect={onStartDateChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>End date (optional)</Label>
-              <DatePicker
-                date={endDate}
-                onSelect={onEndDateChange}
-              />
-            </div>
+            <DatePicker
+              date={startDate}
+              onSelect={onStartDateChange}
+              placeholder="Start date"
+            />
+            <DatePicker
+              date={endDate}
+              onSelect={onEndDateChange}
+              placeholder="End date (optional)"
+            />
           </div>
         </div>
       )}
