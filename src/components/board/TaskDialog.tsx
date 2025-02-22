@@ -32,7 +32,7 @@ export function TaskDialog({
   const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     onSubmit({
       ...data,
-      eventType: selectedType,
+      eventType: selectedTask ? selectedTask.eventType : selectedType,
     });
   };
 
@@ -67,7 +67,7 @@ export function TaskDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
-              {selectedTask ? "Edit" : "Create New"} {selectedType}
+              {selectedTask ? "Edit" : "Create New"} {selectedTask ? selectedTask.eventType : selectedType}
             </DialogTitle>
             {selectedTask && <SyncStatus taskId={selectedTask.id} />}
           </div>
@@ -78,7 +78,7 @@ export function TaskDialog({
           <TaskForm
             onSubmit={handleSubmit}
             initialData={selectedTask}
-            taskType={selectedType}
+            taskType={selectedTask ? selectedTask.eventType : selectedType}
             onCancel={() => onOpenChange(false)}
           />
         </div>
