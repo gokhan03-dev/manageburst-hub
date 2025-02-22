@@ -100,7 +100,39 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         return [];
       }
       
-      return data;
+      // Transform the data to match our Task type
+      return data.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        priority: task.priority as TaskPriority,
+        status: task.status as TaskStatus,
+        dueDate: task.due_date,
+        createdAt: task.created_at,
+        dependencies: [],
+        categoryIds: task.category_ids,
+        subtasks: [],
+        tags: [],
+        eventType: task.event_type as EventType,
+        startTime: task.start_time,
+        endTime: task.end_time,
+        isAllDay: task.is_all_day,
+        location: task.location,
+        attendees: task.attendees as Attendee[],
+        recurrencePattern: task.recurrence_pattern,
+        recurrenceInterval: task.recurrence_interval,
+        recurrenceStartDate: task.recurrence_start_date,
+        recurrenceEndDate: task.recurrence_end_date,
+        nextOccurrence: task.next_occurrence,
+        lastOccurrence: task.last_occurrence,
+        scheduleStartDate: task.schedule_start_date,
+        weeklyRecurrenceDays: task.weekly_recurrence_days,
+        monthlyRecurrenceType: task.monthly_recurrence_type,
+        monthlyRecurrenceDay: task.monthly_recurrence_day,
+        reminderMinutes: task.reminder_minutes,
+        onlineMeetingUrl: task.online_meeting_url,
+        sensitivity: task.sensitivity,
+      }));
     },
   });
 

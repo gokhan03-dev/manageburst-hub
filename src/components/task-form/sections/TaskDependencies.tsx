@@ -19,7 +19,12 @@ export const TaskDependencies = ({
       <DependencySelect
         tasks={tasks}
         selectedDependencies={selectedDependencies}
-        onDependencyChange={onDependencyChange}
+        onAddDependency={(taskId) => {
+          onDependencyChange([...selectedDependencies, taskId]);
+        }}
+        onRemoveDependency={(taskId) => {
+          onDependencyChange(selectedDependencies.filter(id => id !== taskId));
+        }}
       />
     </div>
   );
