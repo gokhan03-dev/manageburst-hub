@@ -16,6 +16,7 @@ interface DependencySelectProps {
   selectedDependencies: string[];
   onDependencyChange: (dependencies: string[]) => void;
   currentTaskId?: string;
+  placeholder?: string;  // Added this prop to the interface
 }
 
 export function DependencySelect({
@@ -23,6 +24,7 @@ export function DependencySelect({
   selectedDependencies,
   onDependencyChange,
   currentTaskId,
+  placeholder = "Select dependencies",  // Added default value
 }: DependencySelectProps) {
   const availableTasks = tasks.filter(
     (task) => task.id !== currentTaskId && !selectedDependencies.includes(task.id)
@@ -45,7 +47,7 @@ export function DependencySelect({
           value=""
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select dependencies" />
+            <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
             {availableTasks.map((task) => (
@@ -84,4 +86,4 @@ export function DependencySelect({
       )}
     </div>
   );
-};
+}
