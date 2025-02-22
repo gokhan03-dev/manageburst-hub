@@ -7,45 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Task, EventType } from "@/types/task";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { CalendarClock, ListTodo, Bell, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskForm } from "@/components/TaskForm";
 import { SyncStatus } from "@/components/integrations/microsoft/SyncStatus";
-
-interface TaskTypeOption {
-  type: EventType;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-}
-
-const taskTypes: TaskTypeOption[] = [
-  {
-    type: "task",
-    title: "Task",
-    description: "Create a new task with subtasks and dependencies",
-    icon: ListTodo,
-  },
-  {
-    type: "meeting",
-    title: "Meeting",
-    description: "Schedule a meeting with attendees and location",
-    icon: CalendarClock,
-  },
-  {
-    type: "reminder",
-    title: "Reminder",
-    description: "Set a simple reminder with notification",
-    icon: Bell,
-  },
-];
 
 interface TaskDialogProps {
   isOpen: boolean;
@@ -60,60 +24,57 @@ export function TaskDialog({
   selectedTask,
   onSubmit,
 }: TaskDialogProps) {
-  const [selectedType, setSelectedType] = useState<EventType | null>(
-    selectedTask?.eventType || null
+  const [selectedType, setSelectedType] = useState<EventType>(
+    selectedTask?.eventType || "task"
   );
 
   const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     onSubmit({
       ...data,
-      eventType: selectedType || "task",
+      eventType: selectedType,
     });
   };
 
+  const TaskTypeSelector = () => (
+    <div className="mb-6">
+      <div className="flex gap-2 bg-secondary p-1 rounded-lg w-fit">
+        {['task', 'meeting', 'reminder'].map(type => (
+          <button
+            key={type}
+            onClick={() => setSelectedType(type as EventType)}
+            className={cn(
+              "px-4 py-2 rounded-md capitalize transition-all",
+              selectedType === type
+                ? "bg-background shadow-sm text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle>
-                {selectedTask
-                  ? "Edit " + (selectedTask.eventType || "Task")
-                  : "Create New Item"}
-              </DialogTitle>
-            </div>
+            <DialogTitle className="text-2xl font-semibold">
+              {selectedTask ? "Edit" : "Create New"} {selectedType}
+            </DialogTitle>
             {selectedTask && <SyncStatus taskId={selectedTask.id} />}
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          {!selectedType && !selectedTask ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-              {taskTypes.map((type) => (
-                <Card
-                  key={type.type}
-                  className={cn(
-                    "cursor-pointer transition-all hover:scale-105 hover:shadow-lg",
-                    "border-2 hover:border-primary"
-                  )}
-                  onClick={() => setSelectedType(type.type)}
-                >
-                  <CardHeader>
-                    <type.icon className="w-8 h-8 mb-2 text-primary" />
-                    <CardTitle>{type.title}</CardTitle>
-                    <CardDescription>{type.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <TaskForm
-              onSubmit={handleSubmit}
-              initialData={selectedTask}
-              taskType={selectedType || selectedTask?.eventType || "task"}
-            />
-          )}
+        <div className="mt-6">
+          <TaskTypeSelector />
+          <TaskForm
+            onSubmit={handleSubmit}
+            initialData={selectedTask}
+            taskType={selectedType}
+          />
         </div>
       </DialogContent>
     </Dialog>
