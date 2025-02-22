@@ -58,7 +58,7 @@ export function TaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
@@ -68,7 +68,7 @@ export function TaskDialog({
           </div>
         </DialogHeader>
 
-        <div className="mt-6">
+        <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
           <TaskTypeSelector />
           <TaskForm
             onSubmit={handleSubmit}
