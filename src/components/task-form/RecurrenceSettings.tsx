@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "./DatePicker";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Repeat } from "lucide-react";
 
@@ -35,14 +35,14 @@ interface RecurrenceSettingsProps {
   onMonthlyDayChange?: (day: number) => void;
 }
 
-const DAYS_OF_WEEK: { label: string; value: WeekDay }[] = [
-  { label: "Sunday", value: "sunday" },
-  { label: "Monday", value: "monday" },
-  { label: "Tuesday", value: "tuesday" },
-  { label: "Wednesday", value: "wednesday" },
-  { label: "Thursday", value: "thursday" },
-  { label: "Friday", value: "friday" },
-  { label: "Saturday", value: "saturday" },
+const DAYS_OF_WEEK: { label: string; value: WeekDay; shortLabel: string }[] = [
+  { label: "Sunday", value: "sunday", shortLabel: "Sun" },
+  { label: "Monday", value: "monday", shortLabel: "Mon" },
+  { label: "Tuesday", value: "tuesday", shortLabel: "Tue" },
+  { label: "Wednesday", value: "wednesday", shortLabel: "Wed" },
+  { label: "Thursday", value: "thursday", shortLabel: "Thu" },
+  { label: "Friday", value: "friday", shortLabel: "Fri" },
+  { label: "Saturday", value: "saturday", shortLabel: "Sat" },
 ];
 
 export function RecurrenceSettings({
@@ -80,7 +80,6 @@ export function RecurrenceSettings({
     setSelectedPattern(value);
     onPatternChange(value);
 
-    // Initialize settings for each pattern type
     switch (value) {
       case "weekly":
         if (weeklyDays.length === 0) {
@@ -144,16 +143,18 @@ export function RecurrenceSettings({
           {selectedPattern === "weekly" && (
             <div className="space-y-2">
               <Label>Repeat on</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {DAYS_OF_WEEK.map(({ label, value }) => (
-                  <div key={value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`day-${value}`}
-                      checked={weeklyDays.includes(value)}
-                      onCheckedChange={() => handleWeeklyDayToggle(value)}
-                    />
-                    <Label htmlFor={`day-${value}`}>{label}</Label>
-                  </div>
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK.map(({ label, value, shortLabel }) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant={weeklyDays.includes(value) ? "default" : "outline"}
+                    onClick={() => handleWeeklyDayToggle(value)}
+                    className="w-16"
+                    size="sm"
+                  >
+                    {shortLabel}
+                  </Button>
                 ))}
               </div>
             </div>
