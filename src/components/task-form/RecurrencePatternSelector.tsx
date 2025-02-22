@@ -25,6 +25,13 @@ export function RecurrencePatternSelector({
   interval,
   onIntervalChange,
 }: RecurrencePatternSelectorProps) {
+  const handleIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value > 0) {
+      onIntervalChange(value);
+    }
+  };
+
   return (
     <div className="flex items-center space-x-2">
       <Repeat className="h-4 w-4 text-muted-foreground" />
@@ -33,7 +40,7 @@ export function RecurrencePatternSelector({
         type="number"
         min={1}
         value={interval}
-        onChange={(e) => onIntervalChange(parseInt(e.target.value) || 1)}
+        onChange={handleIntervalChange}
         className="w-20"
       />
       <Select

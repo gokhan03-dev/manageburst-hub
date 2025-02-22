@@ -1,4 +1,5 @@
-import React, { useState, KeyboardEvent } from "react";
+
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Task,
@@ -6,6 +7,11 @@ import {
   TaskStatus,
   EventType,
   Attendee,
+  RecurrencePattern,
+  WeekDay,
+  MonthlyRecurrenceType,
+  Sensitivity,
+  TaskTag,
 } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,7 +35,7 @@ import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
 import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
-import { Repeat, Bell, Settings, Circle, ListTodo, Tag, TagsIcon } from "lucide-react";
+import { Repeat, Bell, Settings } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -43,10 +49,36 @@ interface Subtask {
   completed: boolean;
 }
 
-interface TaskTag {
+interface DatabaseTask {
   id: string;
-  name: string;
-  color: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  status: string;
+  due_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  created_at: string;
+  user_id: string;
+  category_ids: string[];
+  tags: string[];
+  event_type: string | null;
+  is_all_day: boolean;
+  location: string | null;
+  attendees: any[];
+  recurrence_pattern: string | null;
+  recurrence_interval: number | null;
+  recurrence_start_date: string | null;
+  recurrence_end_date: string | null;
+  next_occurrence: string | null;
+  last_occurrence: string | null;
+  schedule_start_date: string | null;
+  weekly_recurrence_days: string[] | null;
+  monthly_recurrence_type: string | null;
+  monthly_recurrence_day: number | null;
+  reminder_minutes: number | null;
+  online_meeting_url: string | null;
+  sensitivity: string | null;
 }
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
@@ -69,6 +101,14 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
         reminderMinutes: 15,
         subtasks: [],
+        dependencies: [],
+        recurrencePattern: undefined as RecurrencePattern | undefined,
+        recurrenceInterval: 1,
+        recurrenceStartDate: undefined,
+        recurrenceEndDate: undefined,
+        weeklyRecurrenceDays: [] as WeekDay[],
+        monthlyRecurrenceType: undefined as MonthlyRecurrenceType | undefined,
+        monthlyRecurrenceDay: undefined,
       },
     },
   });
@@ -94,18 +134,66 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
-  const handleMeetingDurationChange = (duration: string) => {
-    const startDate = new Date(watch("startTime"));
-    const endDate = new Date(startDate.getTime() + parseInt(duration) * 60000);
-    setValue("endTime", endDate.toISOString());
-  };
+  const transformDatabaseTask = (task: DatabaseTask): Task => ({
+    id: task.id,
+    title: task.title,
+    description: task.description || "",
+    priority: task.priority as TaskPriority,
+    status: task.status as TaskStatus,
+    dueDate: task.due_date || new Date().toISOString(),
+    createdAt: task.created_at,
+    dependencies: [],
+    categoryIds: task.category_ids || [],
+    subtasks: [],
+    tags: [],
+    eventType: (task.event_type || taskType) as EventType,
+    startTime: task.start_time || undefined,
+    endTime: task.end_time || undefined,
+    isAllDay: task.is_all_day || false,
+    location: task.location || undefined,
+    attendees: task.attendees as Attendee[],
+    recurrencePattern: task.recurrence_pattern as RecurrencePattern || undefined,
+    recurrenceInterval: task.recurrence_interval || 1,
+    recurrenceStartDate: task.recurrence_start_date || undefined,
+    recurrenceEndDate: task.recurrence_end_date || undefined,
+    nextOccurrence: task.next_occurrence || undefined,
+    lastOccurrence: task.last_occurrence || undefined,
+    scheduleStartDate: task.schedule_start_date || undefined,
+    weeklyRecurrenceDays: task.weekly_recurrence_days as WeekDay[] || [],
+    monthlyRecurrenceType: task.monthly_recurrence_type as MonthlyRecurrenceType || undefined,
+    monthlyRecurrenceDay: task.monthly_recurrence_day || undefined,
+    reminderMinutes: task.reminder_minutes || 15,
+    onlineMeetingUrl: task.online_meeting_url || undefined,
+    sensitivity: task.sensitivity as Sensitivity || "normal",
+  });
+
+  const { data: allTasks = [] } = useQuery<Task[]>({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const { data: tasksData, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at');
+      
+      if (error) {
+        toast({
+          title: "Error fetching tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
+      
+      return (tasksData as DatabaseTask[]).map(transformDatabaseTask);
+    },
+  });
 
   const handleFormSubmit = (data: any) => {
     onSubmit({
       ...data,
       subtasks,
       tags,
-      dependencies: initialData?.dependencies || [],
+      dependencies: watch('dependencies') || [],
     });
   };
 
@@ -116,12 +204,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           {...register("title", { required: true })}
           placeholder={`${taskType} title`}
           className="text-lg"
-          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleSubmit(handleFormSubmit)();
-            }
-          }}
         />
 
         <Textarea
@@ -190,14 +272,20 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             <RecurrenceSettings
               enabled={recurrenceEnabled}
               onEnableChange={setRecurrenceEnabled}
-              pattern={initialData?.recurrencePattern}
+              pattern={watch("recurrencePattern")}
               onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
-              interval={initialData?.recurrenceInterval}
+              interval={watch("recurrenceInterval")}
               onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
-              startDate={initialData?.recurrenceStartDate ? new Date(initialData.recurrenceStartDate) : undefined}
+              startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
               onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
-              endDate={initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate) : undefined}
+              endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
               onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+              weeklyDays={watch("weeklyRecurrenceDays") || []}
+              onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
+              monthlyType={watch("monthlyRecurrenceType")}
+              onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
+              monthlyDay={watch("monthlyRecurrenceDay") || 1}
+              onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
             />
           </div>
         )}
@@ -205,7 +293,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         {reminderEnabled && (
           <div className="bg-muted p-4 rounded-lg">
             <Select 
-              defaultValue="15"
+              defaultValue={watch("reminderMinutes")?.toString() || "15"}
               onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
             >
               <SelectTrigger>
