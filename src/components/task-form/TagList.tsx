@@ -32,7 +32,6 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
   };
 
   const generateTagColor = () => {
-    // List of high-contrast, readable colors
     const colors = [
       "#8B5CF6", // Vivid Purple
       "#0EA5E9", // Ocean Blue
@@ -68,19 +67,25 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
         {tags.map((tag) => (
           <Badge
             key={tag.id}
-            variant="outline"
-            className="flex items-center gap-2 px-2 py-1 text-sm"
+            variant="secondary"
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium"
             style={{
-              backgroundColor: `${tag.color}15`,
+              backgroundColor: `${tag.color}20`,
               borderColor: tag.color,
-              color: tag.color,
             }}
           >
-            {tag.name}
-            <X
-              className="h-4 w-4 cursor-pointer hover:text-destructive"
-              onClick={() => onRemoveTag(tag.id)}
+            <div
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: tag.color }}
             />
+            {tag.name}
+            <button
+              type="button"
+              onClick={() => onRemoveTag(tag.id)}
+              className="ml-1 rounded-full p-1 hover:bg-secondary"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </Badge>
         ))}
       </div>
