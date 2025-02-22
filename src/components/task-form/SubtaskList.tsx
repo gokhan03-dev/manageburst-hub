@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ListTodo } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Subtask {
@@ -36,14 +36,22 @@ export const SubtaskList = ({
 
   return (
     <div className="space-y-2">
-      <Label>Subtasks</Label>
+      <Label className="flex items-center gap-2">
+        <ListTodo className="h-4 w-4" />
+        Subtasks
+      </Label>
       <div className="space-y-2">
         <div className="flex gap-2">
           <Input
             value={newSubtask}
             onChange={(e) => setNewSubtask(e.target.value)}
             placeholder="Add subtask"
-            onKeyPress={(e) => e.key === "Enter" && handleAddSubtask()}
+            onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddSubtask();
+              }
+            }}
           />
           <Button type="button" size="icon" onClick={handleAddSubtask}>
             <Plus className="h-4 w-4" />

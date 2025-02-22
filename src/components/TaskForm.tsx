@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import {
   Task,
@@ -53,7 +53,7 @@ interface TaskTag {
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
-  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>([]);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -68,8 +68,9 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         dueDate: new Date().toISOString(),
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
+        reminderMinutes: 15,
+        subtasks: [],
       },
-      reminderMinutes: taskType === 'meeting' ? 15 : undefined,
     },
   });
 
@@ -100,13 +101,27 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     setValue("endTime", endDate.toISOString());
   };
 
+  const handleFormSubmit = (data: any) => {
+    onSubmit({
+      ...data,
+      subtasks,
+      tags,
+    });
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="space-y-4">
         <Input
           {...register("title", { required: true })}
           placeholder={`${taskType} title`}
           className="text-lg"
+          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit(handleFormSubmit)();
+            }
+          }}
         />
 
         <Textarea
@@ -116,63 +131,51 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         />
 
         <div className="flex items-center gap-4">
-          <div className="w-1/3 space-y-2">
+          <div className="w-1/4 space-y-2">
             <Label>Priority</Label>
-            <div className="flex items-center space-x-2">
-              <Circle 
-                className={cn(
-                  "h-3 w-3",
-                  watch("priority") === "low" && "text-blue-500",
-                  watch("priority") === "medium" && "text-yellow-500",
-                  watch("priority") === "high" && "text-red-500"
-                )} 
-              />
-              <PrioritySelect
-                defaultValue={initialData?.priority || "low"}
-                onValueChange={(value: TaskPriority) => setValue("priority", value)}
-              />
-            </div>
+            <PrioritySelect
+              defaultValue={initialData?.priority || "low"}
+              onValueChange={(value: TaskPriority) => setValue("priority", value)}
+            />
           </div>
 
           <div className="w-1/3 space-y-2">
             <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
-            <DatePicker
-              date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
-              onSelect={(date) => {
-                if (taskType === 'meeting') {
-                  setValue("startTime", date?.toISOString());
-                  if (date) {
-                    const endDate = new Date(date.getTime() + 30 * 60000);
-                    setValue("endTime", endDate.toISOString());
+            <div className="flex items-center gap-2">
+              <DatePicker
+                date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
+                onSelect={(date) => {
+                  if (taskType === 'meeting') {
+                    setValue("startTime", date?.toISOString());
+                    if (date) {
+                      const endDate = new Date(date.getTime() + 30 * 60000);
+                      setValue("endTime", endDate.toISOString());
+                    }
+                  } else {
+                    setValue("dueDate", date?.toISOString());
                   }
-                } else {
-                  setValue("dueDate", date?.toISOString());
-                }
-              }}
-              showTimePicker={taskType === 'meeting'}
-            />
-          </div>
-
-          <div className="flex items-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className={cn(recurrenceEnabled && "text-primary")}
-              onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-            >
-              <Repeat className="h-4 w-4" />
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className={cn(reminderEnabled && "text-primary")}
-              onClick={() => setReminderEnabled(!reminderEnabled)}
-            >
-              <Bell className="h-4 w-4" />
-            </Button>
+                }}
+                showTimePicker={taskType === 'meeting'}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(recurrenceEnabled && "bg-primary/20 text-primary")}
+                onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(reminderEnabled && "bg-primary/20 text-primary")}
+                onClick={() => setReminderEnabled(!reminderEnabled)}
+              >
+                <Bell className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -196,7 +199,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         {reminderEnabled && (
           <div className="bg-muted p-4 rounded-lg">
             <Select 
-              defaultValue={taskType === 'meeting' ? "15" : undefined}
+              defaultValue="15"
               onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
             >
               <SelectTrigger>
@@ -245,10 +248,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         </div>
 
         <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
-            Tags
-          </Label>
           <TagList
             tags={tags}
             onAddTag={(tag) => setTags([...tags, tag])}
@@ -258,10 +257,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
         {taskType === 'task' && (
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <ListTodo className="h-4 w-4" />
-              Subtasks
-            </Label>
             <SubtaskList
               subtasks={subtasks}
               onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
