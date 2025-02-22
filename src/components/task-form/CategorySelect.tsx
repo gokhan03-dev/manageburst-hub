@@ -41,18 +41,20 @@ export const CategorySelect = ({
           <SelectTrigger className="flex-1">
             <SelectValue placeholder="Add category" />
           </SelectTrigger>
-          <SelectContent className="bg-background">
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  {category.name}
-                </div>
-              </SelectItem>
-            ))}
+          <SelectContent>
+            {categories
+              .filter(category => !selectedCategories.includes(category.id))
+              .map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    {category.name}
+                  </div>
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Button
@@ -74,7 +76,7 @@ export const CategorySelect = ({
               <Badge
                 key={categoryId}
                 variant="secondary"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 px-3 py-0.5 text-xs font-medium"
                 style={{
                   backgroundColor: `${category.color}20`,
                   borderColor: category.color,
