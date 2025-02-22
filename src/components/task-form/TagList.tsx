@@ -46,49 +46,46 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
   };
 
   return (
-    <div className="space-y-1.5">
-      <Label className="flex items-center gap-1.5 text-xs">
-        <Tag className="h-3 w-3" />
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2">
+        <Tag className="h-4 w-4" />
         Tags
       </Label>
-      <div className="space-y-1.5">
-        <div className="flex gap-1.5 mb-1.5">
-          <Input
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            placeholder="Add new tag"
-            className="h-7 text-xs"
-            onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddTag();
-              }
+      <div className="flex flex-wrap gap-2 mb-2">
+        {tags.map((tag) => (
+          <Badge
+            key={tag.id}
+            variant="outline"
+            className="flex items-center gap-1 px-2 py-1 text-foreground"
+            style={{
+              backgroundColor: `${tag.color}15`,
+              borderColor: tag.color,
+              color: tag.color,
             }}
-          />
-          <Button type="button" size="icon" className="h-7 w-7" onClick={handleAddTag}>
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.map((tag) => (
-            <Badge
-              key={tag.id}
-              variant="outline"
-              className="flex items-center gap-1 px-1.5 py-0.5 text-xs"
-              style={{
-                backgroundColor: `${tag.color}15`,
-                borderColor: tag.color,
-                color: tag.color,
-              }}
-            >
-              {tag.name}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => onRemoveTag(tag.id)}
-              />
-            </Badge>
-          ))}
-        </div>
+          >
+            {tag.name}
+            <X
+              className="h-3 w-3 cursor-pointer hover:text-destructive"
+              onClick={() => onRemoveTag(tag.id)}
+            />
+          </Badge>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={newTag}
+          onChange={(e) => setNewTag(e.target.value)}
+          placeholder="Add new tag"
+          onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAddTag();
+            }
+          }}
+        />
+        <Button type="button" size="icon" onClick={handleAddTag}>
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
