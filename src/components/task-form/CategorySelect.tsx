@@ -9,8 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryDialog } from "@/components/board/CategoryDialog";
+import { X } from "lucide-react";
 
 interface CategorySelectProps {
   categories: Category[];
@@ -47,26 +49,19 @@ export const CategorySelect = ({
     if (selectedCategories.includes(value)) {
       onRemoveCategory(value);
     } else {
-      // Remove current category if exists
-      if (selectedCategories.length > 0) {
-        onRemoveCategory(selectedCategories[0]);
-      }
-      // Add new category
       onAddCategory(value);
     }
   };
 
-  const currentCategory = categories.find(cat => cat.id === selectedCategories[0]);
-
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Tags className="h-4 w-4 text-muted-foreground" />
+        <Tags className="h-4 w-4 text-muted-foreground shrink-0" />
         <Select
-          value={selectedCategories[0] || ""}
+          value=""
           onValueChange={handleCategoryChange}
         >
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
@@ -92,6 +87,34 @@ export const CategorySelect = ({
         >
           <Settings className="h-4 w-4" />
         </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {selectedCategories.map((categoryId) => {
+          const category = categories.find((c) => c.id === categoryId);
+          if (!category) return null;
+
+          return (
+            <Badge
+              key={categoryId}
+              variant="outline"
+              className="flex items-center gap-1 px-2 py-0.5 text-xs border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-400"
+            >
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: category.color }}
+              />
+              {category.name}
+              <button
+                type="button"
+                onClick={() => onRemoveCategory(categoryId)}
+                className="ml-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          );
+        })}
       </div>
 
       <CategoryDialog 
