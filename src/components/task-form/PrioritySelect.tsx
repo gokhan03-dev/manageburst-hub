@@ -19,23 +19,36 @@ export const PrioritySelect = ({
   defaultValue,
   onValueChange,
 }: PrioritySelectProps) => {
+  const renderPriorityOption = (icon: React.ReactNode, text: string) => (
+    <div className="flex items-center gap-2">
+      {icon}
+      <span>{text}</span>
+    </div>
+  );
+
   return (
     <Select onValueChange={onValueChange} defaultValue={defaultValue}>
       <SelectTrigger>
-        <SelectValue placeholder="Select priority" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="low" className="flex items-center gap-2">
-          <Circle className="h-4 w-4 text-blue-500" />
-          <span>Low</span>
+        <SelectItem value="low">
+          {renderPriorityOption(
+            <Circle className="h-4 w-4 text-blue-500" />,
+            "Low"
+          )}
         </SelectItem>
-        <SelectItem value="medium" className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-amber-500" />
-          <span>Medium</span>
+        <SelectItem value="medium">
+          {renderPriorityOption(
+            <AlertCircle className="h-4 w-4 text-amber-500" />,
+            "Medium"
+          )}
         </SelectItem>
-        <SelectItem value="high" className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-500 fill-current" />
-          <span>High</span>
+        <SelectItem value="high">
+          {renderPriorityOption(
+            <AlertTriangle className="h-4 w-4 text-red-500 fill-current" />,
+            "High"
+          )}
         </SelectItem>
       </SelectContent>
     </Select>

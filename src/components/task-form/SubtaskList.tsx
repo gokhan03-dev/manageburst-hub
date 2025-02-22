@@ -35,22 +35,22 @@ export const SubtaskList = ({
   };
 
   return (
-    <div className="space-y-1.5">
-      <Label className="flex items-center gap-1.5 text-xs">
-        <ListTodo className="h-3 w-3" />
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2 text-sm">
+        <ListTodo className="h-4 w-4" />
         Subtasks
       </Label>
-      <div className="space-y-1.5">
-        <div className="flex flex-wrap gap-1.5">
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
           {subtasks.map((subtask, index) => (
-            <div key={index} className="flex items-center gap-1.5 bg-muted p-1.5 rounded">
+            <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded">
               <Checkbox
                 checked={subtask.completed}
                 onCheckedChange={() => onToggleSubtask(index)}
-                className="h-3 w-3"
+                className="h-4 w-4"
               />
               <span className={cn(
-                "flex-1 text-xs",
+                "flex-1 text-sm",
                 subtask.completed && "line-through text-muted-foreground"
               )}>
                 {subtask.text}
@@ -59,20 +59,20 @@ export const SubtaskList = ({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-5 w-5 hover:bg-background/50"
+                className="h-6 w-6 hover:bg-background/50"
                 onClick={() => onRemoveSubtask(index)}
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-2">
           <Input
             value={newSubtask}
             onChange={(e) => setNewSubtask(e.target.value)}
             placeholder="Add subtask"
-            className="h-7 text-xs"
+            className="h-9 text-sm"
             onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -80,8 +80,8 @@ export const SubtaskList = ({
               }
             }}
           />
-          <Button type="button" size="icon" className="h-7 w-7" onClick={handleAddSubtask}>
-            <Plus className="h-3 w-3" />
+          <Button type="button" size="icon" className="h-9 w-9" onClick={handleAddSubtask}>
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>

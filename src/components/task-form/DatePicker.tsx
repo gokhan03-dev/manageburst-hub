@@ -57,6 +57,7 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
               "w-full justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
+            type="button"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date ? format(date, showTimePicker ? "PPP" : "PP") : <span>Pick a date</span>}
@@ -81,4 +82,4 @@ export function DatePicker({ date, onSelect, showTimePicker }: DatePickerProps) 
       )}
     </div>
   );
-}
+};

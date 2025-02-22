@@ -46,18 +46,18 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
   };
 
   return (
-    <div className="space-y-1.5">
-      <Label className="flex items-center gap-1.5 text-xs">
-        <Tag className="h-3 w-3" />
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2 text-sm">
+        <Tag className="h-4 w-4" />
         Tags
       </Label>
-      <div className="space-y-1.5">
-        <div className="flex gap-1.5 mb-1.5">
+      <div className="space-y-2">
+        <div className="flex gap-2 mb-2">
           <Input
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             placeholder="Add new tag"
-            className="h-7 text-xs"
+            className="h-9 text-sm"
             onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -65,16 +65,16 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
               }
             }}
           />
-          <Button type="button" size="icon" className="h-7 w-7" onClick={handleAddTag}>
-            <Plus className="h-3 w-3" />
+          <Button type="button" size="icon" className="h-9 w-9" onClick={handleAddTag}>
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <Badge
               key={tag.id}
               variant="outline"
-              className="flex items-center gap-1 px-1.5 py-0.5 text-xs"
+              className="flex items-center gap-2 px-2 py-1 text-sm"
               style={{
                 backgroundColor: `${tag.color}15`,
                 borderColor: tag.color,
@@ -83,7 +83,7 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
             >
               {tag.name}
               <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                className="h-4 w-4 cursor-pointer hover:text-destructive"
                 onClick={() => onRemoveTag(tag.id)}
               />
             </Badge>
