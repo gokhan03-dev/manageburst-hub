@@ -41,6 +41,32 @@ export const SubtaskList = ({
         Subtasks
       </Label>
       <div className="space-y-1.5">
+        <div className="flex flex-wrap gap-1.5">
+          {subtasks.map((subtask, index) => (
+            <div key={index} className="flex items-center gap-1.5 bg-muted p-1.5 rounded">
+              <Checkbox
+                checked={subtask.completed}
+                onCheckedChange={() => onToggleSubtask(index)}
+                className="h-3 w-3"
+              />
+              <span className={cn(
+                "flex-1 text-xs",
+                subtask.completed && "line-through text-muted-foreground"
+              )}>
+                {subtask.text}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 hover:bg-background/50"
+                onClick={() => onRemoveSubtask(index)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
         <div className="flex gap-1.5">
           <Input
             value={newSubtask}
@@ -58,30 +84,6 @@ export const SubtaskList = ({
             <Plus className="h-3 w-3" />
           </Button>
         </div>
-        {subtasks.map((subtask, index) => (
-          <div key={index} className="flex items-center gap-1.5 bg-muted p-1.5 rounded">
-            <Checkbox
-              checked={subtask.completed}
-              onCheckedChange={() => onToggleSubtask(index)}
-              className="h-3 w-3"
-            />
-            <span className={cn(
-              "flex-1 text-xs",
-              subtask.completed && "line-through text-muted-foreground"
-            )}>
-              {subtask.text}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 hover:bg-background/50"
-              onClick={() => onRemoveSubtask(index)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        ))}
       </div>
     </div>
   );
