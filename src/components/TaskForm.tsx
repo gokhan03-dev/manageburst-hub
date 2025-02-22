@@ -60,19 +60,16 @@ const transformDatabaseTask = (dbTask: any): Task => ({
   status: dbTask.status as TaskStatus,
   dueDate: dbTask.due_date || new Date().toISOString(),
   createdAt: dbTask.created_at,
-  dependencies: [],
+  dependencies: dbTask.dependencies || [],
   categoryIds: dbTask.category_ids || [],
-  subtasks: [],
-  tags: [],
+  subtasks: dbTask.subtasks || [],
+  tags: dbTask.tags || [],
   eventType: dbTask.event_type as EventType,
   startTime: dbTask.start_time,
   endTime: dbTask.end_time,
   isAllDay: dbTask.is_all_day,
   location: dbTask.location,
-  attendees: (dbTask.attendees as any[] || []).map(a => ({ 
-    email: a.email, 
-    required: a.required 
-  })),
+  attendees: dbTask.attendees ? JSON.parse(JSON.stringify(dbTask.attendees)) : [],
   recurrencePattern: dbTask.recurrence_pattern as RecurrencePattern,
   recurrenceInterval: dbTask.recurrence_interval,
   recurrenceStartDate: dbTask.recurrence_start_date,
@@ -92,7 +89,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categoryIds || []);
-  const [attendees, setAttendees] = useState<Attendee[]>(initialData?.attendees || []);
+  const [attendees, setAttendees] = useState<Attendee[]>(
+    initialData?.attendees ? 
+    JSON.parse(JSON.stringify(initialData.attendees)) : 
+    []
+  );
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -172,6 +173,19 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   };
 
   const handleFormSubmit = async (data: any) => {
+    const formData = {
+      ...data,
+      attendees: attendees.map(a => ({
+        email: a.email,
+        required: a.required,
+        response: a.response
+      })),
+      tags,
+      subtasks,
+      dependencies: watch('dependencies') || [],
+      categoryIds: selectedCategories,
+    };
+
     if (taskType === 'meeting' && attendees.length > 0) {
       try {
         const { data: userData } = await supabase.auth.getUser();
@@ -203,14 +217,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       }
     }
 
-    onSubmit({
-      ...data,
-      attendees,
-      tags,
-      subtasks,
-      dependencies: watch('dependencies') || [],
-      categoryIds: selectedCategories,
-    });
+    onSubmit(formData);
   };
 
   return (
