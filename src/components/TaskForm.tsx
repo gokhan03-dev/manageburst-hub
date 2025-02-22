@@ -219,66 +219,48 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         setValue={setValue}
         defaultPriority={watch('priority')}
         dueDate={watch('dueDate')}
+        taskType={taskType}
       />
 
       {taskType === 'meeting' ? (
-        <>
-          <MeetingTimeSettings
-            startTime={watch('startTime')}
-            endTime={watch('endTime')}
-            onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
-            onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
-            onDurationChange={(duration) => {
-              const startTimeValue = watch('startTime');
-              if (!startTimeValue) {
-                toast({
-                  title: "Please select a start time first",
-                  variant: "destructive",
-                });
-                return;
-              }
-              try {
-                const startTime = new Date(startTimeValue);
-                const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
-                setValue('endTime', endTime.toISOString());
-              } catch (error) {
-                console.error('Error calculating end time:', error);
-                toast({
-                  title: "Error setting meeting duration",
-                  description: "Please try selecting the start time again",
-                  variant: "destructive",
-                });
-              }
-            }}
-          />
-
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <MeetingTimeSettings
+              startTime={watch('startTime')}
+              endTime={watch('endTime')}
+              onStartTimeChange={(date) => setValue('startTime', date?.toISOString())}
+              onEndTimeChange={(date) => setValue('endTime', date?.toISOString())}
+              onDurationChange={(duration) => {
+                const startTimeValue = watch('startTime');
+                if (!startTimeValue) {
+                  toast({
+                    title: "Please select a start time first",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                try {
+                  const startTime = new Date(startTimeValue);
+                  const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                  setValue('endTime', endTime.toISOString());
+                } catch (error) {
+                  console.error('Error calculating end time:', error);
+                  toast({
+                    title: "Error setting meeting duration",
+                    description: "Please try selecting the start time again",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            />
+          </div>
           <RecurrenceControls
             recurrenceEnabled={recurrenceEnabled}
             reminderEnabled={reminderEnabled}
             onRecurrenceToggle={setRecurrenceEnabled}
             onReminderToggle={setReminderEnabled}
           />
-
-          <MeetingSettings
-            attendees={attendees}
-            isOnlineMeeting={isOnlineMeeting}
-            onOnlineMeetingChange={setIsOnlineMeeting}
-            onLocationChange={(location) => setValue('location', location)}
-            onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
-            onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
-            onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
-            onUpdateAttendeeResponse={(email, response) => {
-              setAttendees(attendees.map(a => 
-                a.email === email ? { ...a, response } : a
-              ));
-            }}
-            meetingTitle={watch('title')}
-            startTime={watch('startTime')}
-            endTime={watch('endTime')}
-            description={watch('description')}
-            location={watch('location')}
-          />
-        </>
+        </div>
       ) : (
         <>
           <CategorySelect
