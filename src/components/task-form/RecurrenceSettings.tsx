@@ -71,21 +71,47 @@ export function RecurrenceSettings({
     onWeeklyDaysChange(newDays);
   };
 
-  // Set default weekday if none selected
   React.useEffect(() => {
+    // Initialize weekly pattern with current day
     if (pattern === "weekly" && weeklyDays.length === 0) {
       const today = new Date().getDay();
-      const defaultDay = DAYS_OF_WEEK[today].value;
-      onWeeklyDaysChange([defaultDay]);
+      onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
     }
-  }, [pattern, weeklyDays, onWeeklyDaysChange]);
+  }, [pattern, weeklyDays.length, onWeeklyDaysChange]);
 
-  // Set default monthly day if none selected
   React.useEffect(() => {
-    if (pattern === "monthly" && !monthlyDay) {
+    // Initialize monthly pattern with current day
+    if (pattern === "monthly" && monthlyType === "date" && (!monthlyDay || monthlyDay < 1)) {
       onMonthlyDayChange(new Date().getDate());
     }
-  }, [pattern, monthlyDay, onMonthlyDayChange]);
+  }, [pattern, monthlyType, monthlyDay, onMonthlyDayChange]);
+
+  const handlePatternChange = (value: string) => {
+    const newPattern = value as RecurrencePattern;
+    onPatternChange(newPattern);
+
+    // Initialize settings for each pattern type
+    switch (newPattern) {
+      case "weekly":
+        if (weeklyDays.length === 0) {
+          const today = new Date().getDay();
+          onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
+        }
+        break;
+      case "monthly":
+        onMonthlyTypeChange("date");
+        if (!monthlyDay || monthlyDay < 1) {
+          onMonthlyDayChange(new Date().getDate());
+        }
+        break;
+      case "yearly":
+        // For yearly, we might want to set a default start date if none exists
+        if (!startDate) {
+          onStartDateChange(new Date());
+        }
+        break;
+    }
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -115,16 +141,7 @@ export function RecurrenceSettings({
               />
               <Select
                 value={pattern}
-                onValueChange={(value) => {
-                  onPatternChange(value as RecurrencePattern);
-                  if (value === "weekly") {
-                    const today = new Date().getDay();
-                    onWeeklyDaysChange([DAYS_OF_WEEK[today].value]);
-                  } else if (value === "monthly") {
-                    onMonthlyDayChange(new Date().getDate());
-                    onMonthlyTypeChange("date");
-                  }
-                }}
+                onValueChange={handlePatternChange}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue />
