@@ -36,7 +36,7 @@ import { SubtaskList } from "./task-form/SubtaskList";
 import { TagList } from "./task-form/TagList";
 import { MeetingSettings } from "./task-form/MeetingSettings";
 import { DependencySelect } from "./task-form/DependencySelect";
-import { Repeat, ClipboardList, Video, UserPlus, Link2 } from "lucide-react";
+import { Repeat, Bell, Settings } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -95,14 +95,12 @@ interface Dependency {
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
   const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categoryIds || []);
-  const [attendees, setAttendees] = useState<Attendee[]>(initialData?.attendees || []);
-  const [locationInput, setLocationInput] = useState(initialData?.location || '');
-  const [meetingUrl, setMeetingUrl] = useState(initialData?.onlineMeetingUrl || '');
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -114,6 +112,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         dueDate: new Date().toISOString(),
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
+        reminderMinutes: 15,
         subtasks: [],
         dependencies: [],
         categoryIds: [],
@@ -124,9 +123,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         weeklyRecurrenceDays: [] as WeekDay[],
         monthlyRecurrenceType: undefined as MonthlyRecurrenceType | undefined,
         monthlyRecurrenceDay: undefined,
-        location: "",
-        onlineMeetingUrl: "",
-        attendees: [],
       },
     },
   });
@@ -219,90 +215,14 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     setValue("categoryIds", newCategories);
   };
 
-  const handleAddAttendee = (email: string) => {
-    if (!email.includes('@')) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-    const newAttendee: Attendee = {
-      email,
-      required: true,
-      response: 'tentative'
-    };
-    setAttendees([...attendees, newAttendee]);
-  };
-
-  const handleRemoveAttendee = (email: string) => {
-    setAttendees(attendees.filter(a => a.email !== email));
-  };
-
-  const handleUpdateAttendeeResponse = (email: string, response: 'accepted' | 'tentative' | 'declined') => {
-    setAttendees(attendees.map(a => 
-      a.email === email ? { ...a, response } : a
-    ));
-  };
-
-  const generateZoomLink = async () => {
-    const mockZoomLink = `https://zoom.us/j/${Math.random().toString(36).substr(2, 9)}`;
-    setMeetingUrl(mockZoomLink);
-    setValue('onlineMeetingUrl', mockZoomLink);
-  };
-
-  const handleLocationTypeChange = (type: 'online' | 'inPerson') => {
-    setIsOnlineMeeting(type === 'online');
-    if (type === 'online') {
-      setLocationInput('');
-      setValue('location', '');
-    } else {
-      setMeetingUrl('');
-      setValue('onlineMeetingUrl', '');
-    }
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    const formData = {
+  const handleFormSubmit = (data: any) => {
+    onSubmit({
       ...data,
       subtasks,
-      tags: taskType === 'meeting' ? [] : tags,
+      tags,
       dependencies: watch('dependencies') || [],
-      categoryIds: taskType === 'meeting' ? [] : selectedCategories,
-      location: isOnlineMeeting ? meetingUrl : locationInput,
-      attendees: taskType === 'meeting' ? attendees : [],
-      isOnlineMeeting,
-      onlineMeetingUrl: meetingUrl,
-    };
-
-    if (taskType === 'meeting' && attendees.length > 0) {
-      try {
-        await Promise.all(attendees.map(attendee => 
-          fetch('/api/send-meeting-invitation', {
-            method: 'POST',
-            body: JSON.stringify({
-              attendee,
-              meeting: formData
-            })
-          })
-        ));
-
-        toast({
-          title: "Meeting invitations sent",
-          description: "All attendees have been notified",
-        });
-      } catch (error) {
-        console.error('Error sending invitations:', error);
-        toast({
-          title: "Error",
-          description: "Failed to send meeting invitations",
-          variant: "destructive",
-        });
-      }
-    }
-
-    onSubmit(formData);
+      categoryIds: selectedCategories,
+    });
   };
 
   return (
@@ -320,194 +240,138 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           className="min-h-[100px]"
         />
 
-        {taskType === 'task' && (
-          <div className="flex items-center gap-4">
-            <div className="w-1/4 space-y-2">
-              <Label>Priority</Label>
-              <PrioritySelect
-                defaultValue={initialData?.priority || "low"}
-                onValueChange={(value: TaskPriority) => setValue("priority", value)}
-              />
-            </div>
-
-            <div className="w-1/3 space-y-2">
-              <Label>Deadline</Label>
-              <div className="flex items-center gap-2">
-                <DatePicker
-                  date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
-                  onSelect={(date) => setValue("dueDate", date?.toISOString())}
-                  showTimePicker={false}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className={cn(
-                    "h-9 w-9 rounded-md p-2",
-                    recurrenceEnabled && "bg-primary/20 text-primary"
-                  )}
-                  onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-                >
-                  <Repeat className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="w-1/4 space-y-2">
+            <Label>Priority</Label>
+            <PrioritySelect
+              defaultValue={initialData?.priority || "low"}
+              onValueChange={(value: TaskPriority) => setValue("priority", value)}
+            />
           </div>
-        )}
 
-        {taskType === 'meeting' && (
-          <>
-            <div className="flex items-center gap-4">
-              <div className="w-1/2 space-y-2">
-                <Label>Meeting Time</Label>
-                <DatePicker
-                  date={initialData?.startTime ? new Date(initialData.startTime) : undefined}
-                  onSelect={(date) => {
+          <div className="w-1/3 space-y-2">
+            <Label>{taskType === 'meeting' ? 'Meeting Time' : 'Deadline'}</Label>
+            <div className="flex items-center gap-2">
+              <DatePicker
+                date={initialData?.dueDate ? new Date(initialData.dueDate) : undefined}
+                onSelect={(date) => {
+                  if (taskType === 'meeting') {
                     setValue("startTime", date?.toISOString());
                     if (date) {
                       const endDate = new Date(date.getTime() + 30 * 60000);
                       setValue("endTime", endDate.toISOString());
                     }
-                  }}
-                  showTimePicker={true}
-                />
-              </div>
-              <div className="w-1/2 space-y-2">
-                <Label>Duration</Label>
-                <MeetingSettings
-                  attendees={attendees}
-                  isOnlineMeeting={isOnlineMeeting}
-                  onOnlineMeetingChange={(isOnline) => handleLocationTypeChange(isOnline ? 'online' : 'inPerson')}
-                  onLocationChange={(location) => {
-                    setLocationInput(location);
-                    setValue('location', location);
-                  }}
-                  onMeetingUrlChange={(url) => {
-                    setMeetingUrl(url || '');
-                    setValue('onlineMeetingUrl', url);
-                  }}
-                  onAddAttendee={handleAddAttendee}
-                  onRemoveAttendee={handleRemoveAttendee}
-                  onUpdateAttendeeResponse={handleUpdateAttendeeResponse}
-                  onDurationChange={(duration) => {
-                    const startTime = new Date(watch('startTime'));
-                    const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
-                    setValue('endTime', endTime.toISOString());
-                  }}
-                />
-              </div>
+                  } else {
+                    setValue("dueDate", date?.toISOString());
+                  }
+                }}
+                showTimePicker={taskType === 'meeting'}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  recurrenceEnabled && "bg-primary/20 text-primary"
+                )}
+                onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  reminderEnabled && "bg-primary/20 text-primary"
+                )}
+                onClick={() => setReminderEnabled(!reminderEnabled)}
+              >
+                <Bell className="h-4 w-4" />
+              </Button>
             </div>
+          </div>
+        </div>
 
-            {recurrenceEnabled && (
-              <div className="bg-muted p-4 rounded-lg">
-                <RecurrenceSettings
-                  enabled={recurrenceEnabled}
-                  onEnableChange={setRecurrenceEnabled}
-                  pattern={watch("recurrencePattern")}
-                  onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
-                  interval={watch("recurrenceInterval")}
-                  onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
-                  startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
-                  onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
-                  endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
-                  onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
-                  weeklyDays={watch("weeklyRecurrenceDays") || []}
-                  onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
-                  monthlyType={watch("monthlyRecurrenceType")}
-                  onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
-                  monthlyDay={watch("monthlyRecurrenceDay") || 1}
-                  onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
-                />
-              </div>
-            )}
-
-            <div className="flex items-start gap-4">
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={isOnlineMeeting ? "default" : "outline"}
-                    onClick={() => handleLocationTypeChange('online')}
-                  >
-                    Online
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={!isOnlineMeeting ? "default" : "outline"}
-                    onClick={() => handleLocationTypeChange('inPerson')}
-                  >
-                    In Person
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={isOnlineMeeting ? meetingUrl : locationInput}
-                    onChange={(e) => {
-                      if (isOnlineMeeting) {
-                        setMeetingUrl(e.target.value);
-                        setValue('onlineMeetingUrl', e.target.value);
-                      } else {
-                        setLocationInput(e.target.value);
-                        setValue('location', e.target.value);
-                      }
-                    }}
-                    placeholder={isOnlineMeeting ? "Meeting Link" : "Address"}
-                    className="flex-1"
-                  />
-                  {isOnlineMeeting && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={generateZoomLink}
-                    >
-                      Zoom
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {taskType === 'task' && (
-          <>
-            <CategorySelect
-              categories={categories}
-              selectedCategories={selectedCategories}
-              onAddCategory={handleAddCategory}
-              onRemoveCategory={handleRemoveCategory}
-              onOpenDialog={() => setCategoryDialogOpen(true)}
+        {recurrenceEnabled && (
+          <div className="bg-muted p-4 rounded-lg">
+            <RecurrenceSettings
+              enabled={recurrenceEnabled}
+              onEnableChange={setRecurrenceEnabled}
+              pattern={watch("recurrencePattern")}
+              onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
+              interval={watch("recurrenceInterval")}
+              onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
+              startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
+              onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
+              endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
+              onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
+              weeklyDays={watch("weeklyRecurrenceDays") || []}
+              onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
+              monthlyType={watch("monthlyRecurrenceType")}
+              onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
+              monthlyDay={watch("monthlyRecurrenceDay") || 1}
+              onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
             />
-
-            <div className="space-y-2">
-              <TagList
-                tags={tags}
-                onAddTag={(tag) => setTags([...tags, tag])}
-                onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <SubtaskList
-                subtasks={subtasks}
-                onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
-                onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
-                  i === index ? { ...subtask, completed: !subtask.completed } : subtask
-                ))}
-                onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
-              />
-            </div>
-          </>
+          </div>
         )}
+
+        {reminderEnabled && (
+          <div className="bg-muted p-4 rounded-lg">
+            <Select 
+              defaultValue={watch("reminderMinutes")?.toString() || "15"}
+              onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select reminder time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 minutes before</SelectItem>
+                <SelectItem value="15">15 minutes before</SelectItem>
+                <SelectItem value="30">30 minutes before</SelectItem>
+                <SelectItem value="60">1 hour before</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <CategorySelect
+          categories={categories}
+          selectedCategories={selectedCategories}
+          onAddCategory={handleAddCategory}
+          onRemoveCategory={handleRemoveCategory}
+          onOpenDialog={() => setCategoryDialogOpen(true)}
+        />
+
+        <div className="space-y-2">
+          <TagList
+            tags={tags}
+            onAddTag={(tag) => setTags([...tags, tag])}
+            onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+          />
+        </div>
 
         <DependencySelect
           tasks={allTasks}
           selectedDependencies={watch("dependencies") || []}
           onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
           currentTaskId={initialData?.id}
-          placeholder="Related Tasks (optional)"
         />
+
+        {taskType === 'task' && (
+          <div className="space-y-2">
+            <SubtaskList
+              subtasks={subtasks}
+              onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
+              onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
+                i === index ? { ...subtask, completed: !subtask.completed } : subtask
+              ))}
+              onRemoveSubtask={(index) => setSubtasks(subtasks.filter((_, i) => i !== index))}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t">
