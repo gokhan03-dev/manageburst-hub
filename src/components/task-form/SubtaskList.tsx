@@ -2,7 +2,6 @@
 import React, { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, X, ListTodo } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,16 +35,13 @@ export const SubtaskList = ({
 
   return (
     <div className="space-y-2">
-      <Label className="flex items-center gap-2 text-sm">
-        <ListTodo className="h-4 w-4" />
-        Subtasks
-      </Label>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
+        <ListTodo className="h-4 w-4 text-muted-foreground" />
         <Input
           value={newSubtask}
           onChange={(e) => setNewSubtask(e.target.value)}
           placeholder="Add subtask"
-          className="h-9 text-sm"
+          className="h-9 text-sm flex-1"
           onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Enter") {
               e.preventDefault();
