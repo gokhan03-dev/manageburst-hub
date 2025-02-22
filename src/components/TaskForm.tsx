@@ -9,12 +9,23 @@ import {
   RecurrencePattern,
   WeekDay,
   MonthlyRecurrenceType,
-  Sensitivity,
   TaskTag,
 } from "@/types/task";
 import { Json } from "@/integrations/supabase/types";
-import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { CategorySelect } from "./task-form/CategorySelect";
+import { TagList } from "./task-form/TagList";
+import { SubtaskList } from "./task-form/SubtaskList";
+import { DependencySelect } from "./task-form/DependencySelect";
+import { MeetingSettings } from "./task-form/MeetingSettings";
+import { TaskBasicInfo } from "./task-form/TaskBasicInfo";
+import { MeetingTimeSettings } from "./task-form/MeetingTimeSettings";
+import { RecurrenceControls } from "./task-form/RecurrenceControls";
+import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -25,17 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { CategorySelect } from "./task-form/CategorySelect";
-import { PrioritySelect } from "./task-form/PrioritySelect";
 import { DatePicker } from "./task-form/DatePicker";
-import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { SubtaskList } from "./task-form/SubtaskList";
-import { TagList } from "./task-form/TagList";
-import { MeetingSettings } from "./task-form/MeetingSettings";
-import { DependencySelect } from "./task-form/DependencySelect";
+import { PrioritySelect } from "./task-form/PrioritySelect";
 import { Repeat, Bell, Settings } from "lucide-react";
 
 interface TaskFormProps {
@@ -50,48 +52,37 @@ interface Subtask {
   completed: boolean;
 }
 
-interface DatabaseTask {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: string;
-  status: string;
-  due_date: string | null;
-  start_time: string | null;
-  end_time: string | null;
-  created_at: string;
-  user_id: string;
-  category_ids: string[] | null;
-  tags: string[] | null;
-  event_type: string | null;
-  is_all_day: boolean | null;
-  location: string | null;
-  attendees: Json | null;
-  recurrence_pattern: string | null;
-  recurrence_interval: number | null;
-  recurrence_start_date: string | null;
-  recurrence_end_date: string | null;
-  next_occurrence: string | null;
-  last_occurrence: string | null;
-  schedule_start_date: string | null;
-  weekly_recurrence_days: string[] | null;
-  monthly_recurrence_type: string | null;
-  monthly_recurrence_day: number | null;
-  reminder_minutes: number | null;
-  online_meeting_url: string | null;
-  sensitivity: string | null;
-  goal_deadline: string | null;
-  goal_target: string | null;
-  habit_frequency: string | null;
-  habit_streak: number | null;
-  progress: number | null;
-  is_completed: boolean | null;
-}
-
-interface Dependency {
-  id: string;
-  title: string;
-}
+const transformDatabaseTask = (dbTask: any): Task => ({
+  id: dbTask.id,
+  title: dbTask.title,
+  description: dbTask.description || "",
+  priority: dbTask.priority as TaskPriority,
+  status: dbTask.status as TaskStatus,
+  dueDate: dbTask.due_date || new Date().toISOString(),
+  createdAt: dbTask.created_at,
+  dependencies: [],
+  categoryIds: dbTask.category_ids || [],
+  subtasks: [],
+  tags: [],
+  eventType: dbTask.event_type as EventType,
+  startTime: dbTask.start_time,
+  endTime: dbTask.end_time,
+  isAllDay: dbTask.is_all_day,
+  location: dbTask.location,
+  attendees: (dbTask.attendees as any[] || []).map(a => ({ 
+    email: a.email, 
+    required: a.required 
+  })),
+  recurrencePattern: dbTask.recurrence_pattern as RecurrencePattern,
+  recurrenceInterval: dbTask.recurrence_interval,
+  recurrenceStartDate: dbTask.recurrence_start_date,
+  recurrenceEndDate: dbTask.recurrence_end_date,
+  weeklyRecurrenceDays: dbTask.weekly_recurrence_days as WeekDay[],
+  monthlyRecurrenceType: dbTask.monthly_recurrence_type as MonthlyRecurrenceType,
+  monthlyRecurrenceDay: dbTask.monthly_recurrence_day,
+  reminderMinutes: dbTask.reminder_minutes,
+  onlineMeetingUrl: dbTask.online_meeting_url,
+});
 
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
@@ -149,41 +140,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
     },
   });
 
-  const transformDatabaseTask = (task: DatabaseTask): Task => ({
-    id: task.id,
-    title: task.title,
-    description: task.description || "",
-    priority: task.priority as TaskPriority,
-    status: task.status as TaskStatus,
-    dueDate: task.due_date || new Date().toISOString(),
-    createdAt: task.created_at,
-    dependencies: [],
-    categoryIds: task.category_ids || [],
-    subtasks: [],
-    tags: [],
-    eventType: (task.event_type || taskType) as EventType,
-    startTime: task.start_time || undefined,
-    endTime: task.end_time || undefined,
-    isAllDay: task.is_all_day || false,
-    location: task.location || undefined,
-    attendees: ((task.attendees as any[] || []) as Array<{ email: string; required: boolean }>)
-      .map(a => ({ email: a.email, required: a.required })),
-    recurrencePattern: task.recurrence_pattern as RecurrencePattern || undefined,
-    recurrenceInterval: task.recurrence_interval || 1,
-    recurrenceStartDate: task.recurrence_start_date || undefined,
-    recurrenceEndDate: task.recurrence_end_date || undefined,
-    nextOccurrence: task.next_occurrence || undefined,
-    lastOccurrence: task.last_occurrence || undefined,
-    scheduleStartDate: task.schedule_start_date || undefined,
-    weeklyRecurrenceDays: (task.weekly_recurrence_days as WeekDay[]) || [],
-    monthlyRecurrenceType: (task.monthly_recurrence_type as MonthlyRecurrenceType) || undefined,
-    monthlyRecurrenceDay: task.monthly_recurrence_day || undefined,
-    reminderMinutes: task.reminder_minutes || 15,
-    onlineMeetingUrl: task.online_meeting_url || undefined,
-    sensitivity: (task.sensitivity || "normal") as Sensitivity,
-  });
-
-  const { data: allTasks = [] } = useQuery<Task[]>({
+  const { data: allTasks = [] } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
       const { data: tasksData, error } = await supabase
@@ -200,48 +157,22 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         return [];
       }
       
-      return (tasksData as unknown as DatabaseTask[]).map(transformDatabaseTask);
+      return tasksData.map(transformDatabaseTask);
     },
   });
 
   const handleAddCategory = (categoryId: string) => {
-    const newCategories = [...selectedCategories, categoryId];
-    setSelectedCategories(newCategories);
-    setValue("categoryIds", newCategories);
+    if (!selectedCategories.includes(categoryId)) {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
   };
 
   const handleRemoveCategory = (categoryId: string) => {
-    const newCategories = selectedCategories.filter(id => id !== categoryId);
-    setSelectedCategories(newCategories);
-    setValue("categoryIds", newCategories);
-  };
-
-  const handleDurationChange = (value: string) => {
-    const startTimeValue = watch('startTime');
-    if (!startTimeValue) {
-      toast({
-        title: "Please select a start time first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const startTime = new Date(startTimeValue);
-      const endTime = new Date(startTime.getTime() + parseInt(value) * 60000);
-      setValue('endTime', endTime.toISOString());
-    } catch (error) {
-      console.error('Error calculating end time:', error);
-      toast({
-        title: "Error setting meeting duration",
-        description: "Please try selecting the start time again",
-        variant: "destructive",
-      });
-    }
+    setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
   };
 
   const handleFormSubmit = async (data: any) => {
-    if (selectedType === 'meeting' && attendees.length > 0) {
+    if (taskType === 'meeting' && attendees.length > 0) {
       try {
         const { data: userData } = await supabase.auth.getUser();
         const organizerName = userData.user?.email || "Meeting Organizer";
@@ -321,7 +252,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                     String(Math.round((new Date(watch('endTime')).getTime() - new Date(watch('startTime')).getTime()) / 60000)) : 
                     "30"
                   }
-                  onValueChange={handleDurationChange}
+                  onValueChange={(value) => setValue('endTime', new Date(new Date(watch('startTime')).getTime() + parseInt(value) * 60000).toISOString())}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Duration" />
