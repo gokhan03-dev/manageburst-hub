@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Category } from "@/types/task";
-import { Tags, Settings } from "lucide-react";
+import { Tags, Settings, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryDialog } from "@/components/board/CategoryDialog";
-import { X } from "lucide-react";
 
 interface CategorySelectProps {
   categories: Category[];
@@ -54,7 +53,7 @@ export const CategorySelect = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Tags className="h-4 w-4 text-muted-foreground shrink-0" />
         <Select
@@ -69,7 +68,7 @@ export const CategorySelect = ({
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center gap-2">
                   <div
-                    className="h-3 w-3 rounded-full"
+                    className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: category.color }}
                   />
                   {category.name}
@@ -89,33 +88,35 @@ export const CategorySelect = ({
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {selectedCategories.map((categoryId) => {
-          const category = categories.find((c) => c.id === categoryId);
-          if (!category) return null;
+      {selectedCategories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedCategories.map((categoryId) => {
+            const category = categories.find((c) => c.id === categoryId);
+            if (!category) return null;
 
-          return (
-            <Badge
-              key={categoryId}
-              variant="outline"
-              className="flex items-center gap-1 px-2 py-0.5 text-xs border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-400"
-            >
-              <div
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              {category.name}
-              <button
-                type="button"
-                onClick={() => onRemoveCategory(categoryId)}
-                className="ml-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-full p-0.5"
+            return (
+              <Badge
+                key={categoryId}
+                variant="outline"
+                className="flex items-center gap-1.5 py-1 pl-2 pr-1.5 text-xs bg-blue-50/50 border-blue-200 text-blue-700 hover:bg-blue-100/50 dark:bg-blue-950/50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors"
               >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          );
-        })}
-      </div>
+                <div
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: category.color }}
+                />
+                {category.name}
+                <button
+                  type="button"
+                  onClick={() => onRemoveCategory(categoryId)}
+                  className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            );
+          })}
+        </div>
+      )}
 
       <CategoryDialog 
         isOpen={dialogOpen} 
