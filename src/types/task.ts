@@ -8,6 +8,11 @@ export type EventType = "task" | "meeting" | "appointment" | "reminder";
 export type Sensitivity = "normal" | "private" | "confidential";
 export type AttendeeResponse = "accepted" | "tentative" | "declined";
 
+interface Subtask {
+  text: string;
+  completed: boolean;
+}
+
 export interface Attendee {
   email: string;
   required: boolean;
@@ -33,6 +38,7 @@ export interface Task {
   createdAt: string;
   dependencies?: string[];
   categoryIds?: string[];
+  subtasks?: Subtask[];
   
   // Calendar integration fields
   eventType?: EventType;

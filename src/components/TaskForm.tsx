@@ -1,4 +1,3 @@
-
 import React, { useState, KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -161,7 +160,10 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                 type="button"
                 variant="outline"
                 size="icon"
-                className={cn(recurrenceEnabled && "bg-primary/20 text-primary")}
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  recurrenceEnabled && "bg-primary/20 text-primary"
+                )}
                 onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
               >
                 <Repeat className="h-4 w-4" />
@@ -170,7 +172,10 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                 type="button"
                 variant="outline"
                 size="icon"
-                className={cn(reminderEnabled && "bg-primary/20 text-primary")}
+                className={cn(
+                  "h-9 w-9 rounded-md p-2",
+                  reminderEnabled && "bg-primary/20 text-primary"
+                )}
                 onClick={() => setReminderEnabled(!reminderEnabled)}
               >
                 <Bell className="h-4 w-4" />
