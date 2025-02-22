@@ -221,37 +221,22 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
           </div>
         )}
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="flex items-center gap-2">
-              <TagsIcon className="h-4 w-4" />
-              Categories
-            </Label>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCategoryDialogOpen(true)}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-          <CategorySelect
-            categories={categories}
-            selectedCategories={initialData?.categoryIds || []}
-            onAddCategory={(categoryId) => {
-              const currentCategories = watch("categoryIds") || [];
-              setValue("categoryIds", [...currentCategories, categoryId]);
-            }}
-            onRemoveCategory={(categoryId) => {
-              const currentCategories = watch("categoryIds") || [];
-              setValue(
-                "categoryIds",
-                currentCategories.filter((id) => id !== categoryId)
-              );
-            }}
-            onOpenDialog={() => setCategoryDialogOpen(true)}
-          />
-        </div>
+        <CategorySelect
+          categories={categories}
+          selectedCategories={initialData?.categoryIds || []}
+          onAddCategory={(categoryId) => {
+            const currentCategories = watch("categoryIds") || [];
+            setValue("categoryIds", [...currentCategories, categoryId]);
+          }}
+          onRemoveCategory={(categoryId) => {
+            const currentCategories = watch("categoryIds") || [];
+            setValue(
+              "categoryIds",
+              currentCategories.filter((id) => id !== categoryId)
+            );
+          }}
+          onOpenDialog={() => setCategoryDialogOpen(true)}
+        />
 
         <div className="space-y-2">
           <TagList
