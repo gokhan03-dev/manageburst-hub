@@ -17,7 +17,7 @@ interface TagListProps {
   onRemoveTag: (id: string) => void;
 }
 
-export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
+export const TagList: React.FC<TagListProps> = ({ tags, onAddTag, onRemoveTag }) => {
   const [newTag, setNewTag] = useState("");
 
   const handleAddTag = () => {
@@ -25,7 +25,7 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
       onAddTag({
         id: Date.now().toString(),
         name: newTag.trim(),
-        color: generateTagColor(),
+        color: generateTagColor()
       });
       setNewTag("");
     }
@@ -38,7 +38,7 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
       "#F97316", // Bright Orange
       "#D946EF", // Magenta Pink
       "#1EAEDB", // Bright Blue
-      "#9b87f5", // Primary Purple
+      "#9b87f5"  // Primary Purple
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
@@ -90,7 +90,7 @@ export const TagList = ({ tags, onAddTag, onRemoveTag }: TagListProps) => {
                 <X className="h-3 w-3" />
               </button>
             </Badge>
-          )}
+          ))}
         </div>
       )}
     </div>
