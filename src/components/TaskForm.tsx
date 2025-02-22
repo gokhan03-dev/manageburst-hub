@@ -224,13 +224,31 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
       {taskType === 'task' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-end gap-2">
-            <RecurrenceControls
-              recurrenceEnabled={recurrenceEnabled}
-              reminderEnabled={reminderEnabled}
-              onRecurrenceToggle={setRecurrenceEnabled}
-              onReminderToggle={setReminderEnabled}
-            />
+          <div className="flex items-center gap-4">
+            <div className="w-1/4 space-y-2">
+              <Label>Priority</Label>
+              <PrioritySelect
+                defaultValue={watch('priority')}
+                onValueChange={(value: TaskPriority) => setValue("priority", value)}
+              />
+            </div>
+
+            <div className="w-1/3 space-y-2">
+              <Label>Deadline</Label>
+              <DatePicker
+                date={watch('dueDate') ? new Date(watch('dueDate')) : undefined}
+                onSelect={(date) => setValue("dueDate", date?.toISOString())}
+              />
+            </div>
+            
+            <div className="flex items-center justify-end gap-2 flex-1">
+              <RecurrenceControls
+                recurrenceEnabled={recurrenceEnabled}
+                reminderEnabled={reminderEnabled}
+                onRecurrenceToggle={setRecurrenceEnabled}
+                onReminderToggle={setReminderEnabled}
+              />
+            </div>
           </div>
 
           {(recurrenceEnabled || reminderEnabled) && (
@@ -380,25 +398,27 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
         </>
       )}
 
-      <MeetingSettings
-        attendees={attendees}
-        isOnlineMeeting={isOnlineMeeting}
-        onOnlineMeetingChange={setIsOnlineMeeting}
-        onLocationChange={(location) => setValue('location', location)}
-        onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
-        onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
-        onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
-        onUpdateAttendeeResponse={(email, response) => {
-          setAttendees(attendees.map(a => 
-            a.email === email ? { ...a, response } : a
-          ));
-        }}
-        meetingTitle={watch('title')}
-        startTime={watch('startTime')}
-        endTime={watch('endTime')}
-        description={watch('description')}
-        location={watch('location')}
-      />
+      {taskType === 'meeting' && (
+        <MeetingSettings
+          attendees={attendees}
+          isOnlineMeeting={isOnlineMeeting}
+          onOnlineMeetingChange={setIsOnlineMeeting}
+          onLocationChange={(location) => setValue('location', location)}
+          onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
+          onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
+          onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
+          onUpdateAttendeeResponse={(email, response) => {
+            setAttendees(attendees.map(a => 
+              a.email === email ? { ...a, response } : a
+            ));
+          }}
+          meetingTitle={watch('title')}
+          startTime={watch('startTime')}
+          endTime={watch('endTime')}
+          description={watch('description')}
+          location={watch('location')}
+        />
+      )}
 
       <CategorySelect
         categories={categories}
