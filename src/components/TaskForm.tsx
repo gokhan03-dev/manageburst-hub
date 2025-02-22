@@ -87,6 +87,11 @@ interface DatabaseTask {
   is_completed: boolean | null;
 }
 
+interface Dependency {
+  id: string;
+  title: string;
+}
+
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
@@ -338,6 +343,16 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             tags={tags}
             onAddTag={(tag) => setTags([...tags, tag])}
             onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Dependencies</Label>
+          <DependencySelect
+            tasks={allTasks}
+            selectedDependencies={watch("dependencies") || []}
+            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
+            currentTaskId={initialData?.id}
           />
         </div>
 

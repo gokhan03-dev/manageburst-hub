@@ -34,8 +34,6 @@ export function RecurrencePatternSelector({
 
   return (
     <div className="flex items-center space-x-2">
-      <Repeat className="h-4 w-4 text-muted-foreground" />
-      <Label className="whitespace-nowrap">Repeat every</Label>
       <Input
         type="number"
         min={1}
