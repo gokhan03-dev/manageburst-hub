@@ -88,6 +88,11 @@ interface DatabaseTask {
   is_completed: boolean | null;
 }
 
+interface Dependency {
+  id: string;
+  title: string;
+}
+
 export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskFormProps) => {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
@@ -236,7 +241,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   };
 
   const handleFormSubmit = async (data: any) => {
-    if (taskType === 'meeting' && attendees.length > 0) {
+    if (selectedType === 'meeting' && attendees.length > 0) {
       try {
         const { data: userData } = await supabase.auth.getUser();
         const organizerName = userData.user?.email || "Meeting Organizer";
@@ -316,28 +321,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
                     String(Math.round((new Date(watch('endTime')).getTime() - new Date(watch('startTime')).getTime()) / 60000)) : 
                     "30"
                   }
-                  onValueChange={(value) => {
-                    const startTimeValue = watch('startTime');
-                    if (!startTimeValue) {
-                      toast({
-                        title: "Please select a start time first",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    try {
-                      const startTime = new Date(startTimeValue);
-                      const endTime = new Date(startTime.getTime() + parseInt(value) * 60000);
-                      setValue('endTime', endTime.toISOString());
-                    } catch (error) {
-                      console.error('Error calculating end time:', error);
-                      toast({
-                        title: "Error setting meeting duration",
-                        description: "Please try selecting the start time again",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
+                  onValueChange={handleDurationChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Duration" />
@@ -428,6 +412,11 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               attendees={attendees}
               isOnlineMeeting={isOnlineMeeting}
               onOnlineMeetingChange={setIsOnlineMeeting}
+              onDurationChange={(duration) => {
+                const startTime = new Date(watch('startTime'));
+                const endTime = new Date(startTime.getTime() + parseInt(duration) * 60000);
+                setValue('endTime', endTime.toISOString());
+              }}
               onLocationChange={(location) => setValue('location', location)}
               onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
               onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
