@@ -48,20 +48,16 @@ export const CategorySelect = ({
     (category) => !selectedCategories.includes(category.id)
   );
 
-  const handleCategoryChange = (value: string) => {
-    onAddCategory(value);
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Tags className="h-4 w-4 text-muted-foreground shrink-0" />
         <Select
           value=""
-          onValueChange={handleCategoryChange}
+          onValueChange={onAddCategory}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select category" />
+            <SelectValue placeholder="Add category" />
           </SelectTrigger>
           <SelectContent>
             {availableCategories.map((category) => (
