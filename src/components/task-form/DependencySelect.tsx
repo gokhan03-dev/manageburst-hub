@@ -42,7 +42,7 @@ export function DependencySelect({
         onValueChange={handleAddDependency}
         value=""
       >
-        <SelectTrigger>
+        <SelectTrigger className="w-full">
           <SelectValue placeholder="Select dependencies" />
         </SelectTrigger>
         <SelectContent>
@@ -62,14 +62,14 @@ export function DependencySelect({
           return (
             <Badge
               key={depId}
-              variant="secondary"
-              className="flex items-center gap-1 px-3 py-0.5"
+              variant="outline"
+              className="flex items-center gap-1 px-2 py-0.5 text-xs border-blue-400 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-400"
             >
               {task.title}
               <button
                 type="button"
                 onClick={() => handleRemoveDependency(depId)}
-                className="ml-1 hover:bg-background/40 rounded-full p-0.5"
+                className="ml-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-full p-0.5"
               >
                 <X className="h-3 w-3" />
               </button>

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { TaskPriority } from "@/types/task";
-import { Triangle } from "lucide-react";
+import { Triangle, Circle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -20,24 +20,20 @@ export const PrioritySelect = ({
   onValueChange,
 }: PrioritySelectProps) => {
   const renderPriorityOption = (priority: TaskPriority) => {
-    const getIconStyles = (priority: TaskPriority) => {
+    const getIcon = (priority: TaskPriority) => {
       switch (priority) {
         case "high":
-          return "text-orange-500 rotate-0";
+          return <Triangle className="h-4 w-4 text-orange-500" />;
         case "medium":
-          return "text-green-500 rounded-full border-2 border-current";
+          return <Circle className="h-4 w-4 text-green-500" />;
         case "low":
-          return "text-blue-500 rotate-180";
+          return <Triangle className="h-4 w-4 text-blue-500 rotate-180" />;
       }
     };
 
     return (
       <div className="flex items-center gap-2">
-        <Triangle 
-          className={`h-4 w-4 transition-transform ${getIconStyles(priority)}`} 
-          strokeWidth={priority === "medium" ? 0 : 2}
-          fill={priority === "medium" ? "currentColor" : "none"}
-        />
+        {getIcon(priority)}
         <span className="capitalize">{priority}</span>
       </div>
     );

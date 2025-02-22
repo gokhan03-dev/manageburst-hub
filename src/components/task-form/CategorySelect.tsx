@@ -44,12 +44,16 @@ export const CategorySelect = ({
   };
 
   const handleCategoryChange = (value: string) => {
-    // Remove current category if exists
-    if (selectedCategories.length > 0) {
-      onRemoveCategory(selectedCategories[0]);
+    if (selectedCategories.includes(value)) {
+      onRemoveCategory(value);
+    } else {
+      // Remove current category if exists
+      if (selectedCategories.length > 0) {
+        onRemoveCategory(selectedCategories[0]);
+      }
+      // Add new category
+      onAddCategory(value);
     }
-    // Add new category
-    onAddCategory(value);
   };
 
   const currentCategory = categories.find(cat => cat.id === selectedCategories[0]);
@@ -63,19 +67,7 @@ export const CategorySelect = ({
           onValueChange={handleCategoryChange}
         >
           <SelectTrigger className="flex-1">
-            <SelectValue>
-              {currentCategory ? (
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: currentCategory.color }}
-                  />
-                  {currentCategory.name}
-                </div>
-              ) : (
-                "Select category"
-              )}
-            </SelectValue>
+            <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (

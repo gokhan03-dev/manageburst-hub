@@ -1,7 +1,7 @@
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle } from "lucide-react";
+import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle, Triangle } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -45,14 +45,14 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   
   const priorityColors = {
     low: "text-blue-500 dark:text-blue-400",
-    medium: "text-amber-500 dark:text-amber-400",
+    medium: "text-green-500 dark:text-green-400",
     high: "text-red-500 dark:text-red-400",
   };
 
   const priorityIcons = {
-    low: <Circle className="h-4 w-4" />,
-    medium: <AlertCircle className="h-4 w-4" />,
-    high: <AlertTriangle className="h-4 w-4 fill-current" />,
+    low: <Triangle className="h-4 w-4 rotate-180" />,
+    medium: <Circle className="h-4 w-4" />,
+    high: <Triangle className="h-4 w-4" />,
   };
 
   const statusColors = {
