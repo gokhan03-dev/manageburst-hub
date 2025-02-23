@@ -8,32 +8,32 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Task } from "@/types/task";
-import { TaskForm } from "@/components/TaskForm";
+import { MeetingForm } from "@/components/MeetingForm";
 import { SyncStatus } from "@/components/integrations/microsoft/SyncStatus";
 
-interface TaskDialogProps {
+interface MeetingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedTask?: Task;
+  selectedMeeting?: Task;
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
 }
 
-export function TaskDialog({
+export function MeetingDialog({
   isOpen,
   onOpenChange,
-  selectedTask,
+  selectedMeeting,
   onSubmit,
-}: TaskDialogProps) {
+}: MeetingDialogProps) {
   const handleSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     onSubmit({
       ...data,
-      eventType: "task",
+      eventType: "meeting",
     });
   };
 
-  const dialogDescription = selectedTask 
-    ? "Edit the details of your task" 
-    : "Create a new task with the details below";
+  const dialogDescription = selectedMeeting 
+    ? "Edit the details of your meeting" 
+    : "Create a new meeting with the details below";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -41,17 +41,17 @@ export function TaskDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
-              {selectedTask ? "Edit" : "Create New"} Task
+              {selectedMeeting ? "Edit" : "Create New"} Meeting
             </DialogTitle>
-            {selectedTask && <SyncStatus taskId={selectedTask.id} />}
+            {selectedMeeting && <SyncStatus taskId={selectedMeeting.id} />}
           </div>
           <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
-          <TaskForm
+          <MeetingForm
             onSubmit={handleSubmit}
-            initialData={selectedTask}
+            initialData={selectedMeeting}
             onCancel={() => onOpenChange(false)}
           />
         </div>

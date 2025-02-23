@@ -13,7 +13,9 @@ export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
   const { currentFilter } = useFilter();
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  const [selectedMeeting, setSelectedMeeting] = useState<Task | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -46,8 +48,13 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setTaskDialogOpen(true);
+    if (task.eventType === "meeting") {
+      setSelectedMeeting(task);
+      setMeetingDialogOpen(true);
+    } else {
+      setSelectedTask(task);
+      setTaskDialogOpen(true);
+    }
   };
 
   const handleTaskSubmit = (data: Omit<Task, "id" | "createdAt">) => {
@@ -58,6 +65,16 @@ export const TaskBoard = () => {
     }
     setTaskDialogOpen(false);
     setSelectedTask(undefined);
+  };
+
+  const handleMeetingSubmit = (data: Omit<Task, "id" | "createdAt">) => {
+    if (selectedMeeting) {
+      updateTask({ ...data, id: selectedMeeting.id, createdAt: selectedMeeting.createdAt });
+    } else {
+      addTask(data);
+    }
+    setMeetingDialogOpen(false);
+    setSelectedMeeting(undefined);
   };
 
   return (
@@ -71,6 +88,10 @@ export const TaskBoard = () => {
         setTaskDialogOpen={setTaskDialogOpen}
         selectedTask={selectedTask}
         onTaskSubmit={handleTaskSubmit}
+        meetingDialogOpen={meetingDialogOpen}
+        setMeetingDialogOpen={setMeetingDialogOpen}
+        selectedMeeting={selectedMeeting}
+        onMeetingSubmit={handleMeetingSubmit}
       />
 
       <SearchAndFilter
