@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -16,25 +15,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { CategorySelect } from "./task-form/CategorySelect";
-import { TagList } from "./task-form/TagList";
-import { SubtaskList } from "./task-form/SubtaskList";
-import { DependencySelect } from "./task-form/DependencySelect";
-import { MeetingSettings } from "./task-form/MeetingSettings";
 import { TaskBasicInfo } from "./task-form/TaskBasicInfo";
+import { TaskTiming } from "./task-form/TaskTiming";
+import { TaskManagement } from "./task-form/TaskManagement";
+import { ReminderSettings } from "./task-form/ReminderSettings";
 import { MeetingTimeSettings } from "./task-form/MeetingTimeSettings";
-import { RecurrenceControls } from "./task-form/RecurrenceControls";
 import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { PrioritySelect } from "./task-form/PrioritySelect";
-import { DatePicker } from "./task-form/DatePicker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { RecurrenceControls } from "./task-form/RecurrenceControls";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -84,10 +71,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrencePattern);
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>(initialData?.subtasks || []);
-  const [isOnlineMeeting, setIsOnlineMeeting] = useState(true);
   const [tags, setTags] = useState<TaskTag[]>(initialData?.tags || []);
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categoryIds || []);
   const [attendees, setAttendees] = useState<Attendee[]>(initialData?.attendees || []);
 
   const { register, handleSubmit, setValue, watch } = useForm({
@@ -114,58 +98,6 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       },
     },
   });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-      
-      if (error) {
-        toast({
-          title: "Error fetching categories",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-      
-      return data;
-    },
-  });
-
-  const { data: allTasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: async () => {
-      const { data: tasksData, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at');
-      
-      if (error) {
-        toast({
-          title: "Error fetching tasks",
-          description: error.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-      
-      return tasksData.map(transformDatabaseTask);
-    },
-  });
-
-  const handleAddCategory = (categoryId: string) => {
-    if (!selectedCategories.includes(categoryId)) {
-      setSelectedCategories([...selectedCategories, categoryId]);
-    }
-  };
-
-  const handleRemoveCategory = (categoryId: string) => {
-    setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
-  };
 
   const handleFormSubmit = async (data: any) => {
     if (taskType === 'meeting' && attendees.length > 0) {
@@ -203,8 +135,7 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
       ...data,
       attendees,
       tags,
-      dependencies: watch('dependencies') || [],
-      categoryIds: selectedCategories,
+      subtasks,
     });
   };
 
@@ -222,26 +153,16 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
 
       {(!isEditMode || (isEditMode && taskType === 'task')) && taskType === 'task' && (
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <PrioritySelect
-              defaultValue={watch('priority')}
-              onValueChange={(value: TaskPriority) => setValue("priority", value)}
-            />
-
-            <DatePicker
-              date={watch('dueDate') ? new Date(watch('dueDate')) : undefined}
-              onSelect={(date) => setValue("dueDate", date?.toISOString())}
-            />
-            
-            <div className="flex items-center justify-end gap-2 flex-1">
-              <RecurrenceControls
-                recurrenceEnabled={recurrenceEnabled}
-                reminderEnabled={reminderEnabled}
-                onRecurrenceToggle={setRecurrenceEnabled}
-                onReminderToggle={setReminderEnabled}
-              />
-            </div>
-          </div>
+          <TaskTiming
+            priority={watch('priority')}
+            dueDate={watch('dueDate')}
+            recurrenceEnabled={recurrenceEnabled}
+            reminderEnabled={reminderEnabled}
+            onPriorityChange={(value) => setValue("priority", value)}
+            onDueDateChange={(date) => setValue("dueDate", date?.toISOString())}
+            onRecurrenceToggle={setRecurrenceEnabled}
+            onReminderToggle={setReminderEnabled}
+          />
 
           {(recurrenceEnabled || reminderEnabled) && (
             <div className="space-y-4">
@@ -269,39 +190,19 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               )}
 
               {reminderEnabled && (
-                <div className="pl-4 border-l-2 border-primary/20">
-                  <div className="space-y-2">
-                    <Label>Reminder Time</Label>
-                    <Select
-                      value={watch("reminderMinutes")?.toString()}
-                      onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select reminder time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5">5 minutes before</SelectItem>
-                        <SelectItem value="10">10 minutes before</SelectItem>
-                        <SelectItem value="15">15 minutes before</SelectItem>
-                        <SelectItem value="30">30 minutes before</SelectItem>
-                        <SelectItem value="60">1 hour before</SelectItem>
-                        <SelectItem value="1440">1 day before</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <ReminderSettings
+                  reminderMinutes={watch("reminderMinutes")}
+                  onReminderChange={(value) => setValue("reminderMinutes", value)}
+                />
               )}
             </div>
           )}
 
-          <TagList
+          <TaskManagement
             tags={tags}
+            subtasks={subtasks}
             onAddTag={(tag) => setTags([...tags, tag])}
             onRemoveTag={(id) => setTags(tags.filter(t => t.id !== id))}
-          />
-
-          <SubtaskList
-            subtasks={subtasks}
             onAddSubtask={(text) => setSubtasks([...subtasks, { text, completed: false }])}
             onToggleSubtask={(index) => setSubtasks(subtasks.map((subtask, i) => 
               i === index ? { ...subtask, completed: !subtask.completed } : subtask
