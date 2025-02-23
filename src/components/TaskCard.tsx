@@ -2,7 +2,7 @@
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle, Triangle } from "lucide-react";
+import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle, Triangle, Video } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -87,6 +87,13 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   const displayTags = task.tags?.slice(0, 3) || [];
   const hasMoreTags = task.tags && task.tags.length > 3;
 
+  const getDateToDisplay = () => {
+    if (task.eventType === 'meeting' && task.startTime) {
+      return format(new Date(task.startTime), "MMM dd, h:mm a");
+    }
+    return task.dueDate ? format(new Date(task.dueDate), "MMM dd") : null;
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -118,11 +125,14 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
           <span className={cn("", priorityColors[task.priority])}>
             {priorityIcons[task.priority]}
           </span>
+          {task.eventType === 'meeting' && (
+            <Video className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="flex items-center">
             <Calendar className="mr-1 h-3 w-3" />
-            {format(new Date(task.dueDate), "MMM dd")}
+            {getDateToDisplay()}
           </div>
           <Button
             variant="ghost"
@@ -219,5 +229,4 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       <div className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );
-}
-
+};

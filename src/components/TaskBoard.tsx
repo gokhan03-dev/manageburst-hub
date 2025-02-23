@@ -51,17 +51,17 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
-    console.log("Task clicked:", task);
+    console.log("Task clicked:", task); // Debug log
     if (task.eventType === "meeting") {
       setSelectedTask(undefined);
       setSelectedMeeting(task);
       setMeetingDialogOpen(true);
-      console.log("Opening meeting dialog");
+      console.log("Opening meeting dialog"); // Debug log
     } else {
       setSelectedMeeting(undefined);
       setSelectedTask(task);
       setTaskDialogOpen(true);
-      console.log("Opening task dialog");
+      console.log("Opening task dialog"); // Debug log
     }
   };
 
