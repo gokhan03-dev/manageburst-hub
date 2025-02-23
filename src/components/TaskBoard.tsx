@@ -10,7 +10,7 @@ import { useFilter } from "@/contexts/FilterContext";
 import { DragEndEvent } from "@dnd-kit/core";
 import { TaskDialog } from "./board/TaskDialog";
 import { MeetingDialog } from "./meeting/MeetingDialog";
-import { toast } from "./ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
@@ -51,17 +51,14 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
-    console.log("Task clicked:", task); // Debug log
     if (task.eventType === "meeting") {
       setSelectedTask(undefined);
       setSelectedMeeting(task);
       setMeetingDialogOpen(true);
-      console.log("Opening meeting dialog"); // Debug log
     } else {
       setSelectedMeeting(undefined);
       setSelectedTask(task);
       setTaskDialogOpen(true);
-      console.log("Opening task dialog"); // Debug log
     }
   };
 
@@ -95,13 +92,21 @@ export const TaskBoard = () => {
   const handleMeetingSubmit = (data: Omit<Task, "id" | "createdAt">) => {
     try {
       if (selectedMeeting) {
-        updateTask({ ...data, id: selectedMeeting.id, createdAt: selectedMeeting.createdAt });
+        updateTask({
+          ...data,
+          id: selectedMeeting.id,
+          createdAt: selectedMeeting.createdAt,
+          eventType: "meeting"
+        });
         toast({
           title: "Meeting updated",
           description: "Your meeting has been updated successfully.",
         });
       } else {
-        addTask({ ...data, eventType: "meeting" });
+        addTask({
+          ...data,
+          eventType: "meeting"
+        });
         toast({
           title: "Meeting created",
           description: "Your meeting has been created successfully.",
@@ -119,17 +124,21 @@ export const TaskBoard = () => {
     }
   };
 
+  const handleAddMeeting = () => {
+    setSelectedMeeting(undefined);
+    setMeetingDialogOpen(true);
+  };
+
+  const handleAddTask = () => {
+    setSelectedTask(undefined);
+    setTaskDialogOpen(true);
+  };
+
   return (
     <div className="space-y-2">
       <BoardActions
-        onAddTask={() => {
-          setSelectedTask(undefined);
-          setTaskDialogOpen(true);
-        }}
-        onAddMeeting={() => {
-          setSelectedMeeting(undefined);
-          setMeetingDialogOpen(true);
-        }}
+        onAddTask={handleAddTask}
+        onAddMeeting={handleAddMeeting}
       />
 
       <SearchAndFilter
