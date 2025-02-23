@@ -10,6 +10,7 @@ import {
 import { Task, EventType } from "@/types/task";
 import { cn } from "@/lib/utils";
 import { TaskForm } from "@/components/TaskForm";
+import { MeetingForm } from "@/components/MeetingForm";
 import { SyncStatus } from "@/components/integrations/microsoft/SyncStatus";
 import { ClipboardList, Video } from "lucide-react";
 
@@ -66,6 +67,25 @@ export function TaskDialog({
     ? "Edit the details of your task" 
     : "Create a new task with the details below";
 
+  const renderForm = () => {
+    if (selectedType === "meeting") {
+      return (
+        <MeetingForm
+          onSubmit={handleSubmit}
+          initialData={selectedTask}
+          onCancel={() => onOpenChange(false)}
+        />
+      );
+    }
+    return (
+      <TaskForm
+        onSubmit={handleSubmit}
+        initialData={selectedTask}
+        onCancel={() => onOpenChange(false)}
+      />
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
@@ -81,12 +101,7 @@ export function TaskDialog({
 
         <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
           <TaskTypeSelector />
-          <TaskForm
-            onSubmit={handleSubmit}
-            initialData={selectedTask}
-            taskType={selectedType}
-            onCancel={() => onOpenChange(false)}
-          />
+          {renderForm()}
         </div>
       </DialogContent>
     </Dialog>
