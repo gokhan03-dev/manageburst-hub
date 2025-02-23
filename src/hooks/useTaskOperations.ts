@@ -24,6 +24,12 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
     try {
       console.log('Adding task with subtasks:', task.subtasks); // Debug log
 
+      // Convert subtasks to a format that matches Json type
+      const subtasksJson = task.subtasks?.map(st => ({
+        text: st.text,
+        completed: st.completed
+      })) as Json[] || [];
+
       const { data, error } = await supabase
         .from("tasks")
         .insert({
@@ -33,7 +39,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           status: task.status,
           due_date: task.dueDate,
           user_id: userId,
-          subtasks: task.subtasks || [],
+          subtasks: subtasksJson,
           tags: task.tags?.map(tag => tag.name) || [],
           category_ids: task.categoryIds || []
         })
@@ -89,6 +95,12 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
         }
       }
 
+      // Convert subtasks to a format that matches Json type
+      const subtasksJson = updatedTask.subtasks?.map(st => ({
+        text: st.text,
+        completed: st.completed
+      })) as Json[] || [];
+
       const { error } = await supabase
         .from("tasks")
         .update({
@@ -97,7 +109,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: updatedTask.priority,
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
-          subtasks: updatedTask.subtasks || [],
+          subtasks: subtasksJson,
           tags: updatedTask.tags?.map(tag => tag.name) || [],
           category_ids: updatedTask.categoryIds || []
         })
