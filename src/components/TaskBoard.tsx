@@ -8,6 +8,9 @@ import { BoardColumns } from "./board/BoardColumns";
 import { useTaskFiltering } from "@/hooks/useTaskFiltering";
 import { useFilter } from "@/contexts/FilterContext";
 import { DragEndEvent } from "@dnd-kit/core";
+import { TaskDialog } from "./board/TaskDialog";
+import { MeetingDialog } from "./board/MeetingDialog";
+import { toast } from "./ui/use-toast";
 
 export const TaskBoard = () => {
   const { tasks, addTask, updateTask, moveTask } = useTaskContext();
@@ -48,38 +51,72 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Reset both selected states first
-    setSelectedTask(undefined);
-    setSelectedMeeting(undefined);
-
-    // Then set the appropriate state and open the correct dialog
+    console.log("Task clicked:", task); // Debug log
     if (task.eventType === "meeting") {
+      setSelectedTask(undefined);
       setSelectedMeeting(task);
       setMeetingDialogOpen(true);
+      console.log("Opening meeting dialog"); // Debug log
     } else {
+      setSelectedMeeting(undefined);
       setSelectedTask(task);
       setTaskDialogOpen(true);
+      console.log("Opening task dialog"); // Debug log
     }
   };
 
   const handleTaskSubmit = (data: Omit<Task, "id" | "createdAt">) => {
-    if (selectedTask) {
-      updateTask({ ...data, id: selectedTask.id, createdAt: selectedTask.createdAt });
-    } else {
-      addTask(data);
+    try {
+      if (selectedTask) {
+        updateTask({ ...data, id: selectedTask.id, createdAt: selectedTask.createdAt });
+        toast({
+          title: "Task updated",
+          description: "Your task has been updated successfully.",
+        });
+      } else {
+        addTask(data);
+        toast({
+          title: "Task created",
+          description: "Your task has been created successfully.",
+        });
+      }
+      setTaskDialogOpen(false);
+      setSelectedTask(undefined);
+    } catch (error) {
+      console.error("Error submitting task:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your task.",
+        variant: "destructive",
+      });
     }
-    setTaskDialogOpen(false);
-    setSelectedTask(undefined);
   };
 
   const handleMeetingSubmit = (data: Omit<Task, "id" | "createdAt">) => {
-    if (selectedMeeting) {
-      updateTask({ ...data, id: selectedMeeting.id, createdAt: selectedMeeting.createdAt });
-    } else {
-      addTask(data);
+    try {
+      if (selectedMeeting) {
+        updateTask({ ...data, id: selectedMeeting.id, createdAt: selectedMeeting.createdAt });
+        toast({
+          title: "Meeting updated",
+          description: "Your meeting has been updated successfully.",
+        });
+      } else {
+        addTask(data);
+        toast({
+          title: "Meeting created",
+          description: "Your meeting has been created successfully.",
+        });
+      }
+      setMeetingDialogOpen(false);
+      setSelectedMeeting(undefined);
+    } catch (error) {
+      console.error("Error submitting meeting:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your meeting.",
+        variant: "destructive",
+      });
     }
-    setMeetingDialogOpen(false);
-    setSelectedMeeting(undefined);
   };
 
   return (
@@ -89,14 +126,10 @@ export const TaskBoard = () => {
           setSelectedTask(undefined);
           setTaskDialogOpen(true);
         }}
-        taskDialogOpen={taskDialogOpen}
-        setTaskDialogOpen={setTaskDialogOpen}
-        selectedTask={selectedTask}
-        onTaskSubmit={handleTaskSubmit}
-        meetingDialogOpen={meetingDialogOpen}
-        setMeetingDialogOpen={setMeetingDialogOpen}
-        selectedMeeting={selectedMeeting}
-        onMeetingSubmit={handleMeetingSubmit}
+        onAddMeeting={() => {
+          setSelectedMeeting(undefined);
+          setMeetingDialogOpen(true);
+        }}
       />
 
       <SearchAndFilter
@@ -116,6 +149,20 @@ export const TaskBoard = () => {
         tasks={filteredAndSortedTasks}
         onTaskClick={handleTaskClick}
         onDragEnd={handleDragEnd}
+      />
+
+      <TaskDialog
+        isOpen={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        selectedTask={selectedTask}
+        onSubmit={handleTaskSubmit}
+      />
+
+      <MeetingDialog
+        isOpen={meetingDialogOpen}
+        onOpenChange={setMeetingDialogOpen}
+        selectedMeeting={selectedMeeting}
+        onSubmit={handleMeetingSubmit}
       />
     </div>
   );
