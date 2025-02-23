@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
@@ -218,4 +219,5 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
       <div className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     </div>
   );
-};
+}
+
