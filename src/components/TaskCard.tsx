@@ -2,7 +2,7 @@
 import React from "react";
 import { Task } from "@/types/task";
 import { cn } from "@/lib/utils";
-import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, AlertTriangle, AlertCircle, Circle, Triangle, Video } from "lucide-react";
+import { Calendar, Trash2, CheckSquare, Square, ListChecks, Tags, Video, Circle, Triangle } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -34,13 +34,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
     },
   });
   
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
   });
   
@@ -145,83 +139,87 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
           </Button>
         </div>
       </div>
-      
-      {(displayTags.length > 0 || taskCategories.length > 0) && (
-        <div className="mb-2 flex flex-wrap gap-1">
-          {taskCategories.map((category) => (
-            <Badge
-              key={category.id}
-              variant="secondary"
-              className="text-xs px-1"
-              style={{
-                backgroundColor: `${category.color}20`,
-                borderColor: category.color,
-              }}
-            >
-              <div
-                className="mr-1 h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              {category.name}
-            </Badge>
-          ))}
-          {displayTags.map((tag) => (
-            <Badge
-              key={tag.id}
-              variant="outline"
-              className="text-xs px-1"
-              style={{
-                backgroundColor: `${tag.color}15`,
-                borderColor: tag.color,
-                color: tag.color,
-              }}
-            >
-              {tag.name}
-            </Badge>
-          ))}
-          {hasMoreTags && (
+
+      <div className="space-y-2">
+        {(displayTags.length > 0 || taskCategories.length > 0) && (
+          <div className="flex flex-wrap gap-1">
+            {taskCategories.map((category) => (
+              <Badge
+                key={category.id}
+                variant="secondary"
+                className="text-xs px-1"
+                style={{
+                  backgroundColor: `${category.color}20`,
+                  borderColor: category.color,
+                }}
+              >
+                <div
+                  className="mr-1 h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: category.color }}
+                />
+                {category.name}
+              </Badge>
+            ))}
+            {displayTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="outline"
+                className="text-xs px-1"
+                style={{
+                  backgroundColor: `${tag.color}15`,
+                  borderColor: tag.color,
+                  color: tag.color,
+                }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+            {hasMoreTags && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Tags className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {task.tags!.length - 3} more tags
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        )}
+
+        <div>
+          <h3 className={cn(
+            "text-sm font-medium text-foreground",
+            task.status === 'completed' && "line-through text-muted-foreground"
+          )}>
+            {task.title}
+          </h3>
+          
+          {task.description && (
+            <p className={cn(
+              "text-xs text-muted-foreground line-clamp-2 mt-1",
+              task.status === 'completed' && "line-through"
+            )}>
+              {task.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {task.subtasks && task.subtasks.length > 0 && (
             <Tooltip>
               <TooltipTrigger>
-                <Tags className="h-3 w-3 text-muted-foreground" />
+                <div className="flex items-center gap-1">
+                  <ListChecks className="h-3 w-3" />
+                  {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
+                </div>
               </TooltipTrigger>
               <TooltipContent>
-                {task.tags!.length - 3} more tags
+                <p>Subtasks completed</p>
               </TooltipContent>
             </Tooltip>
           )}
         </div>
-      )}
-
-      <h3 className={cn(
-        "text-sm font-medium text-foreground mb-1",
-        task.status === 'completed' && "line-through text-muted-foreground"
-      )}>
-        {task.title}
-      </h3>
-      
-      {task.description && (
-        <p className={cn(
-          "text-xs text-muted-foreground line-clamp-2 mb-2",
-          task.status === 'completed' && "line-through"
-        )}>
-          {task.description}
-        </p>
-      )}
-      
-      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-        {task.subtasks && task.subtasks.length > 0 && (
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="flex items-center gap-1">
-                <ListChecks className="h-3 w-3" />
-                {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Subtasks completed</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
       </div>
       
       {showDependencies && <TaskDependencyGraph task={task} allTasks={tasks} />}
