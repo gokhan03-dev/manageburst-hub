@@ -8,7 +8,7 @@ export type EventType = "task" | "meeting" | "appointment" | "reminder";
 export type Sensitivity = "normal" | "private" | "confidential";
 export type AttendeeResponse = "accepted" | "tentative" | "declined";
 
-interface Subtask {
+export interface Subtask {
   text: string;
   completed: boolean;
 }
