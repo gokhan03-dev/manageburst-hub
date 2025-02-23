@@ -51,17 +51,17 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
-    console.log("Task clicked:", task); // Debug log
+    console.log("Task clicked:", task);
     if (task.eventType === "meeting") {
       setSelectedTask(undefined);
       setSelectedMeeting(task);
       setMeetingDialogOpen(true);
-      console.log("Opening meeting dialog"); // Debug log
+      console.log("Opening meeting dialog");
     } else {
       setSelectedMeeting(undefined);
       setSelectedTask(task);
       setTaskDialogOpen(true);
-      console.log("Opening task dialog"); // Debug log
+      console.log("Opening task dialog");
     }
   };
 
@@ -74,7 +74,7 @@ export const TaskBoard = () => {
           description: "Your task has been updated successfully.",
         });
       } else {
-        addTask(data);
+        addTask({ ...data, eventType: "task" });
         toast({
           title: "Task created",
           description: "Your task has been created successfully.",
@@ -101,7 +101,7 @@ export const TaskBoard = () => {
           description: "Your meeting has been updated successfully.",
         });
       } else {
-        addTask(data);
+        addTask({ ...data, eventType: "meeting" });
         toast({
           title: "Meeting created",
           description: "Your meeting has been created successfully.",
