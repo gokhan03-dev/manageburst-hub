@@ -17,7 +17,7 @@ interface TagListProps {
   onRemoveTag: (id: string) => void;
 }
 
-export const TagList: React.FC<TagListProps> = ({ tags, onAddTag, onRemoveTag }) => {
+export const TagList: React.FC<TagListProps> = ({ tags = [], onAddTag, onRemoveTag }) => {
   const [newTag, setNewTag] = useState("");
 
   const handleAddTag = () => {

@@ -5,23 +5,23 @@ import { TagList } from "./TagList";
 import { SubtaskList } from "./SubtaskList";
 
 interface TaskManagementProps {
-  tags: TaskTag[];
-  subtasks: Subtask[];
-  onAddTag: (tag: TaskTag) => void;
-  onRemoveTag: (id: string) => void;
-  onAddSubtask: (text: string) => void;
-  onToggleSubtask: (index: number) => void;
-  onRemoveSubtask: (index: number) => void;
+  tags?: TaskTag[];
+  subtasks?: Subtask[];
+  onAddTag?: (tag: TaskTag) => void;
+  onRemoveTag?: (id: string) => void;
+  onAddSubtask?: (text: string) => void;
+  onToggleSubtask?: (index: number) => void;
+  onRemoveSubtask?: (index: number) => void;
 }
 
 export const TaskManagement = ({
-  tags,
-  subtasks,
-  onAddTag,
-  onRemoveTag,
-  onAddSubtask,
-  onToggleSubtask,
-  onRemoveSubtask,
+  tags = [],
+  subtasks = [],
+  onAddTag = () => {},
+  onRemoveTag = () => {},
+  onAddSubtask = () => {},
+  onToggleSubtask = () => {},
+  onRemoveSubtask = () => {},
 }: TaskManagementProps) => {
   return (
     <>

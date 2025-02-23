@@ -19,7 +19,7 @@ interface SubtaskListProps {
 }
 
 export const SubtaskList = ({
-  subtasks,
+  subtasks = [],
   onAddSubtask,
   onToggleSubtask,
   onRemoveSubtask,
