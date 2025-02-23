@@ -21,7 +21,7 @@ export const TaskBasicInfo = ({
     <div className="space-y-4">
       <Input
         {...register("title", { required: true })}
-        placeholder={`${taskType} title`}
+        placeholder={`${taskType === 'meeting' ? 'Meeting' : 'Task'} title`}
         className="text-lg"
       />
 
