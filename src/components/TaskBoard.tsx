@@ -9,7 +9,7 @@ import { useTaskFiltering } from "@/hooks/useTaskFiltering";
 import { useFilter } from "@/contexts/FilterContext";
 import { DragEndEvent } from "@dnd-kit/core";
 import { TaskDialog } from "./board/TaskDialog";
-import { MeetingDialog } from "./board/MeetingDialog";
+import { MeetingDialog } from "./meeting/MeetingDialog";
 import { toast } from "./ui/use-toast";
 
 export const TaskBoard = () => {
