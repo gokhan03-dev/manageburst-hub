@@ -22,14 +22,10 @@ export const CategoryDialog = ({ isOpen, onOpenChange }: CategoryDialogProps) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="sm:max-w-[425px]" 
-        onClick={handleClick}
-        aria-describedby="category-dialog-description"
-      >
+      <DialogContent className="sm:max-w-[425px]" onClick={handleClick}>
         <DialogHeader>
           <DialogTitle>Manage Categories</DialogTitle>
-          <DialogDescription id="category-dialog-description">
+          <DialogDescription>
             Create and manage categories for your tasks.
           </DialogDescription>
         </DialogHeader>
