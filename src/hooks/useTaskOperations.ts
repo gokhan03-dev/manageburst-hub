@@ -38,7 +38,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           due_date: task.dueDate,
           user_id: userId,
           subtasks: subtasksJson,
-          tags: task.tags || [],
+          tags: task.tags?.map(tag => tag.name) || [],
           category_ids: task.categoryIds || []
         })
         .select()
@@ -102,7 +102,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
           subtasks: subtasksJson,
-          tags: updatedTask.tags || [],
+          tags: updatedTask.tags?.map(tag => tag.name) || [],
           category_ids: updatedTask.categoryIds || []
         })
         .eq("id", updatedTask.id);
