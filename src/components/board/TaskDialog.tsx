@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Task, EventType } from "@/types/task";
 import { cn } from "@/lib/utils";
@@ -63,7 +64,10 @@ export function TaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] flex flex-col"
+        aria-describedby="task-dialog-description"
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-semibold">
@@ -71,6 +75,9 @@ export function TaskDialog({
             </DialogTitle>
             {selectedTask && <SyncStatus taskId={selectedTask.id} />}
           </div>
+          <DialogDescription id="task-dialog-description">
+            {selectedTask ? "Edit the details of your task" : "Create a new task with the details below"}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-6 overflow-y-auto flex-1 pr-6 -mr-6">
