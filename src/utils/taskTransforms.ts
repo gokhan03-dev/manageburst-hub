@@ -1,5 +1,5 @@
 
-import { Task } from "@/types/task";
+import { Task, TaskTag } from "@/types/task";
 import { Json } from "@/integrations/supabase/types";
 
 export const transformTaskData = (taskData: any): Task => ({
@@ -16,7 +16,12 @@ export const transformTaskData = (taskData: any): Task => ({
     text: st.text,
     completed: st.completed
   })) : [],
-  tags: taskData.tags || [],
+  // Transform tag names back into TaskTag objects
+  tags: taskData.tags ? taskData.tags.map((tagName: string) => ({
+    id: tagName, // Using the name as id since we only store names
+    name: tagName,
+    color: generateTagColor() // We need to regenerate the color as it's not stored
+  })) : [],
   eventType: taskData.event_type,
   startTime: taskData.start_time,
   endTime: taskData.end_time,
@@ -34,3 +39,16 @@ export const transformTaskData = (taskData: any): Task => ({
   onlineMeetingUrl: taskData.online_meeting_url,
   sensitivity: taskData.sensitivity,
 });
+
+// Helper function to generate tag colors (same as in TagList component)
+const generateTagColor = () => {
+  const colors = [
+    "#8B5CF6", // Vivid Purple
+    "#0EA5E9", // Ocean Blue
+    "#F97316", // Bright Orange
+    "#D946EF", // Magenta Pink
+    "#1EAEDB", // Bright Blue
+    "#9b87f5"  // Primary Purple
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
