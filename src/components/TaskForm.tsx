@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -11,7 +12,6 @@ import {
   MonthlyRecurrenceType,
   TaskTag,
 } from "@/types/task";
-import { Json } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -25,10 +25,8 @@ import { TaskBasicInfo } from "./task-form/TaskBasicInfo";
 import { MeetingTimeSettings } from "./task-form/MeetingTimeSettings";
 import { RecurrenceControls } from "./task-form/RecurrenceControls";
 import { RecurrenceSettings } from "./task-form/RecurrenceSettings";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { PrioritySelect } from "./task-form/PrioritySelect";
+import { DatePicker } from "./task-form/DatePicker";
 import {
   Select,
   SelectContent,
@@ -36,9 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "./task-form/DatePicker";
-import { PrioritySelect } from "./task-form/PrioritySelect";
-import { Repeat, Bell, Settings } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface TaskFormProps {
   onSubmit: (data: Omit<Task, "id" | "createdAt">) => void;
@@ -358,104 +354,4 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
             </div>
           </div>
 
-          <div className="space-y-4">
-            {recurrenceEnabled && (
-              <div className="pl-4 border-l-2 border-primary/20">
-                <RecurrenceSettings
-                  enabled={recurrenceEnabled}
-                  onEnableChange={setRecurrenceEnabled}
-                  pattern={watch("recurrencePattern")}
-                  onPatternChange={(pattern) => setValue("recurrencePattern", pattern)}
-                  interval={watch("recurrenceInterval")}
-                  onIntervalChange={(interval) => setValue("recurrenceInterval", interval)}
-                  startDate={watch("recurrenceStartDate") ? new Date(watch("recurrenceStartDate")) : undefined}
-                  onStartDateChange={(date) => setValue("recurrenceStartDate", date?.toISOString())}
-                  endDate={watch("recurrenceEndDate") ? new Date(watch("recurrenceEndDate")) : undefined}
-                  onEndDateChange={(date) => setValue("recurrenceEndDate", date?.toISOString())}
-                  weeklyDays={watch("weeklyRecurrenceDays") || []}
-                  onWeeklyDaysChange={(days) => setValue("weeklyRecurrenceDays", days)}
-                  monthlyType={watch("monthlyRecurrenceType")}
-                  onMonthlyTypeChange={(type) => setValue("monthlyRecurrenceType", type)}
-                  monthlyDay={watch("monthlyRecurrenceDay") || 1}
-                  onMonthlyDayChange={(day) => setValue("monthlyRecurrenceDay", day)}
-                />
-              </div>
-            )}
-
-            {reminderEnabled && (
-              <div className="pl-4 border-l-2 border-primary/20">
-                <div className="space-y-2">
-                  <Label>Reminder Time</Label>
-                  <Select
-                    value={watch("reminderMinutes")?.toString()}
-                    onValueChange={(value) => setValue("reminderMinutes", parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select reminder time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 minutes before</SelectItem>
-                      <SelectItem value="10">10 minutes before</SelectItem>
-                      <SelectItem value="15">15 minutes before</SelectItem>
-                      <SelectItem value="30">30 minutes before</SelectItem>
-                      <SelectItem value="60">1 hour before</SelectItem>
-                      <SelectItem value="1440">1 day before</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <MeetingSettings
-            attendees={attendees}
-            isOnlineMeeting={isOnlineMeeting}
-            onOnlineMeetingChange={setIsOnlineMeeting}
-            onLocationChange={(location) => setValue('location', location)}
-            onMeetingUrlChange={(url) => setValue('onlineMeetingUrl', url)}
-            onAddAttendee={(email) => setAttendees([...attendees, { email, required: true }])}
-            onRemoveAttendee={(email) => setAttendees(attendees.filter(a => a.email !== email))}
-            onUpdateAttendeeResponse={(email, response) => {
-              setAttendees(attendees.map(a => 
-                a.email === email ? { ...a, response } : a
-              ));
-            }}
-            meetingTitle={watch('title')}
-            startTime={watch('startTime')}
-            endTime={watch('endTime')}
-            description={watch('description')}
-            location={watch('location')}
-          />
-        </>
-      )}
-
-      {(!isEditMode || (isEditMode && taskType === taskType)) && (
-        <>
-          <CategorySelect
-            categories={categories}
-            selectedCategories={selectedCategories}
-            onAddCategory={handleAddCategory}
-            onRemoveCategory={handleRemoveCategory}
-            onOpenDialog={() => setCategoryDialogOpen(true)}
-          />
-
-          <DependencySelect
-            tasks={allTasks}
-            selectedDependencies={watch("dependencies") || []}
-            onDependencyChange={(dependencies) => setValue("dependencies", dependencies)}
-            currentTaskId={initialData?.id}
-          />
-        </>
-      )}
-
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          {initialData ? "Update" : "Create"} {taskType}
-        </Button>
-      </div>
-    </form>
-  );
-};
+          <div className="space
