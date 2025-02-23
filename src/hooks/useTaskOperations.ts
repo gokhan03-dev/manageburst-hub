@@ -22,11 +22,11 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt">) => {
     try {
-      // Convert subtasks to Json type
-      const subtasksJson = task.subtasks ? task.subtasks.map(st => ({
+      // Ensure subtasks is an array and properly formatted for storage
+      const subtasksJson = (task.subtasks || []).map(st => ({
         text: st.text,
         completed: st.completed
-      })) as Json : [];
+      }));
 
       const { data, error } = await supabase
         .from("tasks")
@@ -41,7 +41,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           tags: task.tags?.map(tag => tag.name) || [],
           category_ids: task.categoryIds || []
         })
-        .select()
+        .select('*, task_dependencies(dependency_task_id)')
         .single();
 
       if (error) throw error;
@@ -87,11 +87,11 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
         }
       }
 
-      // Convert subtasks to Json type
-      const subtasksJson = updatedTask.subtasks ? updatedTask.subtasks.map(st => ({
+      // Ensure subtasks is an array and properly formatted for storage
+      const subtasksJson = (updatedTask.subtasks || []).map(st => ({
         text: st.text,
         completed: st.completed
-      })) as Json : [];
+      }));
 
       const { error } = await supabase
         .from("tasks")

@@ -12,9 +12,10 @@ export const transformTaskData = (taskData: any): Task => ({
   createdAt: taskData.created_at,
   dependencies: taskData.dependencies?.map((dep: any) => dep.dependency_task_id) || [],
   categoryIds: taskData.category_ids || [],
-  subtasks: taskData.subtasks ? taskData.subtasks.map((st: any) => ({
-    text: st.text,
-    completed: st.completed
+  // Transform subtasks from JSON
+  subtasks: Array.isArray(taskData.subtasks) ? taskData.subtasks.map((st: any) => ({
+    text: st.text || '',
+    completed: Boolean(st.completed)
   })) : [],
   // Transform tag names back into TaskTag objects
   tags: taskData.tags ? taskData.tags.map((tagName: string) => ({
