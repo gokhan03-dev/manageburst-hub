@@ -81,11 +81,11 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
   const displayTags = task.tags?.slice(0, 3) || [];
   const hasMoreTags = task.tags && task.tags.length > 3;
 
-  const getDateToDisplay = () => {
+  const getDateDisplay = () => {
     if (task.eventType === 'meeting' && task.startTime) {
-      return format(new Date(task.startTime), "MMM dd, h:mm a");
+      return `${format(new Date(task.startTime), "MMM dd, h:mm a")}`;
     }
-    return task.dueDate ? format(new Date(task.dueDate), "MMM dd") : null;
+    return task.dueDate ? format(new Date(task.dueDate), "MMM dd") : "No date";
   };
 
   return (
@@ -100,6 +100,7 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
         "border-l-4",
         statusColors[task.status],
         isDragging && "opacity-50",
+        task.eventType === 'meeting' && "bg-primary/5",
         className
       )}
     >
@@ -120,13 +121,18 @@ export const TaskCard = ({ task, onClick, className, showDependencies = true }: 
             {priorityIcons[task.priority]}
           </span>
           {task.eventType === 'meeting' && (
-            <Video className="h-4 w-4 text-muted-foreground" />
+            <Tooltip>
+              <TooltipTrigger>
+                <Video className="h-4 w-4 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent>Meeting</TooltipContent>
+            </Tooltip>
           )}
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center">
+          <div className="flex items-center whitespace-nowrap">
             <Calendar className="mr-1 h-3 w-3" />
-            {getDateToDisplay()}
+            {getDateDisplay()}
           </div>
           <Button
             variant="ghost"
