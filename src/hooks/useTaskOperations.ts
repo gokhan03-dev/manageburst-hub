@@ -4,6 +4,7 @@ import { Task, TaskStatus } from "@/types/task";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { transformTaskData } from "@/utils/taskTransforms";
+import { Json } from "@/integrations/supabase/types";
 
 export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, userId: string | undefined) => {
   const { toast } = useToast();
@@ -21,17 +22,23 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt">) => {
     try {
+      // Convert subtasks to Json type
+      const subtasksJson = task.subtasks ? task.subtasks.map(st => ({
+        text: st.text,
+        completed: st.completed
+      })) as Json : [];
+
       const { data, error } = await supabase
         .from("tasks")
-        .insert([{ 
+        .insert({
           title: task.title,
           description: task.description,
           priority: task.priority,
           status: task.status,
           due_date: task.dueDate,
           user_id: userId,
-          subtasks: task.subtasks || []
-        }])
+          subtasks: subtasksJson
+        })
         .select()
         .single();
 
@@ -78,6 +85,12 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
         }
       }
 
+      // Convert subtasks to Json type
+      const subtasksJson = updatedTask.subtasks ? updatedTask.subtasks.map(st => ({
+        text: st.text,
+        completed: st.completed
+      })) as Json : [];
+
       const { error } = await supabase
         .from("tasks")
         .update({
@@ -86,7 +99,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: updatedTask.priority,
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
-          subtasks: updatedTask.subtasks || []
+          subtasks: subtasksJson
         })
         .eq("id", updatedTask.id);
 
