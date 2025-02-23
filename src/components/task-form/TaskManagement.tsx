@@ -12,6 +12,8 @@ interface TaskManagementProps {
   onAddSubtask?: (text: string) => void;
   onToggleSubtask?: (index: number) => void;
   onRemoveSubtask?: (index: number) => void;
+  onAddCategory?: (categoryId: string) => void;
+  selectedCategoryIds?: string[];
 }
 
 export const TaskManagement = ({
@@ -22,6 +24,8 @@ export const TaskManagement = ({
   onAddSubtask = () => {},
   onToggleSubtask = () => {},
   onRemoveSubtask = () => {},
+  onAddCategory = () => {},
+  selectedCategoryIds = [],
 }: TaskManagementProps) => {
   return (
     <>
