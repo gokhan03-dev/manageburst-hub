@@ -22,11 +22,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
   const addTask = useCallback(async (task: Omit<Task, "id" | "createdAt">) => {
     try {
-      // Ensure subtasks is an array and properly formatted for storage
-      const subtasksJson = (task.subtasks || []).map(st => ({
-        text: st.text,
-        completed: st.completed
-      }));
+      console.log('Adding task with subtasks:', task.subtasks); // Debug log
 
       const { data, error } = await supabase
         .from("tasks")
@@ -37,14 +33,16 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           status: task.status,
           due_date: task.dueDate,
           user_id: userId,
-          subtasks: subtasksJson,
+          subtasks: task.subtasks || [],
           tags: task.tags?.map(tag => tag.name) || [],
           category_ids: task.categoryIds || []
         })
-        .select('*, task_dependencies(dependency_task_id)')
+        .select()
         .single();
 
       if (error) throw error;
+
+      console.log('Task added to database:', data); // Debug log
 
       if (task.dependencies?.length) {
         const dependencyPromises = task.dependencies.map(depId =>
@@ -60,6 +58,8 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
       }
 
       const newTask = transformTaskData(data);
+      console.log('Transformed new task:', newTask); // Debug log
+
       setTasks((prev) => [...prev, newTask]);
       
       toast({
@@ -80,18 +80,14 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
   const updateTask = useCallback(async (updatedTask: Task) => {
     try {
+      console.log('Updating task with subtasks:', updatedTask.subtasks); // Debug log
+
       if (updatedTask.status === "completed") {
         const depsCompleted = await checkDependenciesCompleted(updatedTask.id);
         if (!depsCompleted) {
           throw new Error("Cannot complete task: dependencies are not completed");
         }
       }
-
-      // Ensure subtasks is an array and properly formatted for storage
-      const subtasksJson = (updatedTask.subtasks || []).map(st => ({
-        text: st.text,
-        completed: st.completed
-      }));
 
       const { error } = await supabase
         .from("tasks")
@@ -101,7 +97,7 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
           priority: updatedTask.priority,
           status: updatedTask.status,
           due_date: updatedTask.dueDate,
-          subtasks: subtasksJson,
+          subtasks: updatedTask.subtasks || [],
           tags: updatedTask.tags?.map(tag => tag.name) || [],
           category_ids: updatedTask.categoryIds || []
         })
@@ -109,9 +105,12 @@ export const useTaskOperations = (tasks: Task[], setTasks: React.Dispatch<React.
 
       if (error) throw error;
 
+      console.log('Task updated in database'); // Debug log
+
       setTasks((prev) =>
         prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
       );
+      
       toast({
         title: "Task updated",
         description: "Your task has been updated successfully.",
