@@ -48,6 +48,11 @@ export const TaskBoard = () => {
   };
 
   const handleTaskClick = (task: Task) => {
+    // Reset both selected states first
+    setSelectedTask(undefined);
+    setSelectedMeeting(undefined);
+
+    // Then set the appropriate state and open the correct dialog
     if (task.eventType === "meeting") {
       setSelectedMeeting(task);
       setMeetingDialogOpen(true);
