@@ -353,5 +353,17 @@ export const TaskForm = ({ onSubmit, initialData, taskType, onCancel }: TaskForm
               />
             </div>
           </div>
+        </>
+      )}
 
-          <div className="space
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">
+          {isEditMode ? 'Update' : 'Create'} {taskType}
+        </Button>
+      </div>
+    </form>
+  );
+};
