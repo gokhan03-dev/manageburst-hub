@@ -50,12 +50,16 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (dependenciesError) throw dependenciesError;
 
+        console.log('Raw task data:', tasksData); // Debug log
+
         const formattedTasks = tasksData.map(task => ({
           ...transformTaskData(task),
           dependencies: dependenciesData
             ?.filter(dep => dep.dependent_task_id === task.id)
             .map(dep => dep.dependency_task_id) || []
         }));
+
+        console.log('Formatted tasks:', formattedTasks); // Debug log
 
         setTasks(formattedTasks);
       } catch (error) {
